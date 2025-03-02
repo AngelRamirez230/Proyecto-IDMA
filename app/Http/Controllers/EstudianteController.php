@@ -28,8 +28,8 @@ class EstudianteController extends Controller
      */
     public function create()
     {
-        $mesActual = date('n');
-        $añoActual = date('Y');
+        $mesActual = now()->month;
+        $añoActual = now()->year;
 
         $generacionActual = Generacion::where('añoDeInicio', $añoActual)
             ->where('idMesInicio', $mesActual)
@@ -63,7 +63,7 @@ class EstudianteController extends Controller
                 'primer_apellido'     => 'required|string|max:45',
                 'segundo_apellido'    => 'nullable|string|max:45',
                 'telefono'            => 'nullable|string|max:10|unique:usuario,telefono',
-                'telefonoFijo'        => 'nullable|string|max:10|unique:usuario,telefono',
+                'telefonoFijo'        => 'nullable|string|max:10|unique:usuario,telefonoFijo',
                 'correoInstitucional' => 'required|email|max:100|unique:usuario,correoInstitucional',
                 'correoElectronico'   => 'nullable|email|max:100|unique:usuario,correoElectronico',
                 'nombreUsuario'       => 'required|string|max:100|unique:usuario,nombreUsuario',
@@ -78,43 +78,46 @@ class EstudianteController extends Controller
                 'matriculaNumerica'     => 'required|string|max:45|unique:estudiante,matriculaNumerica',
                 'matriculaAlfanumerica' => 'required|string|max:45|unique:estudiante,matriculaAlfanumerica',
                 'grado'                 => 'required|integer|min:1|max:9',
-                'creditosAcomulados'    => 'nullable|integer|min:0',
-                'promedioGeneral'       => 'required|numeric|between:0,10',
-                'fechaDeIngreso'        => 'required|date',
                 'idGeneracion'          => 'required|exists:generacion,idGeneracion',
                 'idPlanDeEstudios'      => 'required|exists:plan_de_estudios,idPlanDeEstudios',
                 'idTipoDeInscripcion'   => 'required|exists:tipo_de_inscripcion,idTipoDeInscripcion',
+
+            ],
+            [
+                'required' => 'El campo :attribute es obligatorio.',
+                'string'   => 'El campo :attribute debe ser texto.',
+                'max'      => 'El campo :attribute no debe exceder :max caracteres.',
+                'min'      => 'El campo :attribute debe tener al menos :min caracteres.',
+                'email'    => 'El campo :attribute debe ser un correo válido.',
+                'integer'  => 'El campo :attribute debe ser un número entero.',
+                'unique'   => 'El valor ingresado en :attribute ya está registrado.',
+                'exists'   => 'La opción seleccionada en :attribute no es válida.',
+                'date'     => 'El campo :attribute debe ser una fecha válida.',
             ]
         );
 
         if ($validator->fails()) {
             return back()
                 ->withErrors($validator)
-                ->with('popupError', 'No se pudo crear el estudiante')
+                ->with('popupError', 'No se pudo crear el estudiante, verifique los datos ingresados')
                 ->withInput();
         }
 
         /* ================= TRANSACCIÓN ================= */
         DB::transaction(function () use ($request) {
 
-            /* ===== LOCALIDAD NACIMIENTO ===== */
-            $idLocalidadNacimiento = $request->idLocalidadNacimiento;
-
             /* ===== LOCALIDAD DOMICILIO ===== */
-            $idLocalidadDomicilio = null;
+            $idLocalidadDomicilio = $request->localidad;
 
-            if ($request->filled('localidad')) {
-                $idLocalidadDomicilio = $request->localidad;
-            } elseif ($request->filled('localidadManual') && $request->filled('municipio')) {
+            if (!$idLocalidadDomicilio && $request->filled('localidadManual') && $request->filled('municipio')) {
                 $localidad = Localidad::firstOrCreate(
                     [
                         'nombreLocalidad' => $request->localidadManual,
                         'idMunicipio'     => $request->municipio,
                     ],
-                    [
-                        'idTipoDeEstatus' => 3,
-                    ]
+                    ['idTipoDeEstatus' => 3]
                 );
+
                 $idLocalidadDomicilio = $localidad->idLocalidad;
             }
 
@@ -129,7 +132,20 @@ class EstudianteController extends Controller
                     'colonia'        => $request->colonia,
                     'idLocalidad'    => $idLocalidadDomicilio,
                 ]);
+
                 $domicilioId = $domicilio->idDomicilio;
+            }
+
+            /* ===== LOCALIDAD NACIMIENTO ===== */
+            $idLocalidadNacimiento = $request->localidadNacimiento;
+
+            if (!$idLocalidadNacimiento && $request->filled('localidadNacimientoManual')) {
+                $localidadNacimiento = Localidad::firstOrCreate(
+                    ['nombreLocalidad' => $request->localidadNacimientoManual],
+                    ['idTipoDeEstatus' => 3]
+                );
+
+                $idLocalidadNacimiento = $localidadNacimiento->idLocalidad;
             }
 
             /* ===== USUARIO ===== */
@@ -144,14 +160,15 @@ class EstudianteController extends Controller
                 'RFC'                   => $request->RFC,
                 'CURP'                  => $request->CURP,
                 'telefono'              => $request->telefono,
+                'telefonoFijo'          => $request->telefonoFijo,
                 'correoInstitucional'   => $request->correoInstitucional,
                 'correoElectronico'     => $request->correoElectronico,
                 'nombreUsuario'         => $request->nombreUsuario,
                 'contraseña'            => Hash::make($request->contraseña),
                 'idLocalidadNacimiento' => $idLocalidadNacimiento,
                 'idDomicilio'           => $domicilioId,
-                'idTipoDeUsuario'       => 4, // Estudiante
-                'idEstatus'             => 1,
+                'idtipoDeUsuario'       => 4,
+                'idestatus'             => 1,
             ]);
 
             /* ===== ESTUDIANTE ===== */
@@ -160,9 +177,9 @@ class EstudianteController extends Controller
                 'matriculaNumerica'     => $request->matriculaNumerica,
                 'matriculaAlfanumerica' => $request->matriculaAlfanumerica,
                 'grado'                 => $request->grado,
-                'creditosAcumulados'    => $request->creditosAcomulados ?? 0,
-                'promedioGeneral'       => $request->promedioGeneral,
-                'fechaDeIngreso'        => $request->fechaDeIngreso,
+                'creditosAcumulados'    => 0,
+                'promedioGeneral'       => 0.00,
+                'fechaDeIngreso'        => now(),
                 'idGeneracion'          => $request->idGeneracion,
                 'idTipoDeInscripcion'   => $request->idTipoDeInscripcion,
                 'idPlanDeEstudios'      => $request->idPlanDeEstudios,

@@ -309,7 +309,7 @@ document.addEventListener('DOMContentLoaded', function () {
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    const planSelect   = document.getElementById('planEstudios');
+    const planSelect   = document.getElementById('idPlanDeEstudios');
     const licInput     = document.getElementById('licenciatura');
 
     if (!planSelect || !licInput) return;

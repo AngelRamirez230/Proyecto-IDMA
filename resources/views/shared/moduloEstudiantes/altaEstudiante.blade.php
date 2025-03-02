@@ -202,7 +202,7 @@
                         placeholder="CURP"
                         value="{{ old('CURP') }}"
                     >
-                    <x-error-field field="curp" />
+                    <x-error-field field="CURP" />
                 </div>
 
                 {{-- RFC --}}
