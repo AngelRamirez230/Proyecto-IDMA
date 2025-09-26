@@ -249,16 +249,14 @@
 
                 {{-- Matricula númerica --}}
                 <div class="form-group">
-                    <label for="matriculaNumerica">Matrícula númerica:</label>
+                    <label for="matriculaNumerica">Matrícula numérica:</label>
                     <input
                         type="text"
                         id="matriculaNumerica"
-                        name="matriculaNumerica"
                         class="input-mediano"
-                        placeholder="Matrícula númerica"
-                        value="{{ old('matriculaNumerica') }}"
+                        placeholder="Se genera automáticamente"
+                        readonly
                     >
-                    <x-error-field field="matriculaNumerica" />
                 </div>
 
 

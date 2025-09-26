@@ -75,7 +75,6 @@ class EstudianteController extends Controller
                 'idEstadoCivil'       => 'required|exists:estado_civil,idEstadoCivil',
 
                 // ESTUDIANTE
-                'matriculaNumerica'     => 'required|string|max:45|unique:estudiante,matriculaNumerica',
                 'grado'                 => 'required|integer|min:1|max:9',
                 'idGeneracion'          => 'required|exists:generacion,idGeneracion',
                 'idPlanDeEstudios'      => 'required|exists:plan_de_estudios,idPlanDeEstudios',
@@ -176,10 +175,18 @@ class EstudianteController extends Controller
                 $request->idPlanDeEstudios
             );
 
+            $plan = PlanDeEstudios::with('licenciatura')
+                ->findOrFail($request->idPlanDeEstudios);
+
+            $matriculaNumerica = $this->generarMatriculaNumerica(
+                $request->idGeneracion,
+                $plan->licenciatura->idLicenciatura
+            );
+
             /* ===== ESTUDIANTE ===== */
             Estudiante::create([
                 'idUsuario'             => $usuario->idUsuario,
-                'matriculaNumerica'     => $request->matriculaNumerica,
+                'matriculaNumerica'     => $matriculaNumerica,
                 'matriculaAlfanumerica' => $matriculaAlfanumerica,
                 'grado'                 => $request->grado,
                 'creditosAcumulados'    => 0,
@@ -230,5 +237,39 @@ class EstudianteController extends Controller
 
         return $prefijo. $año. $periodo. $abreviacion. $consecutivoFormateado;
     }
+
+    private function generarMatriculaNumerica(int $idGeneracion, int $idLicenciatura): string
+    {
+        
+        $siglaEscolar = '01';
+
+        
+        $ofertaAcademica = str_pad($idLicenciatura, 2, '0', STR_PAD_LEFT);
+
+       
+        $generacion = Generacion::findOrFail($idGeneracion);
+
+        
+        $año = $generacion->añoDeInicio;
+
+        
+        $periodo = ($generacion->idMesInicio == 3) ? '01' : '02';
+
+        
+        $ultimo = Estudiante::where('idGeneracion', $idGeneracion)
+            ->orderBy('matriculaNumerica', 'desc')
+            ->first();
+
+        $consecutivo = $ultimo
+            ? intval(substr($ultimo->matriculaNumerica, -4)) + 1
+            : 1;
+
+       
+        $consecutivoFormateado = str_pad($consecutivo, 4, '0', STR_PAD_LEFT);
+
+        
+        return $siglaEscolar. $año. $periodo. $ofertaAcademica. $consecutivoFormateado;
+    }
+
 
 }
