@@ -20,14 +20,20 @@
 
 .rectanguloAmarillo {
     position: absolute;
-    top: 15%;                    
-    left: 50%;                   
-    transform: translate(-50%); 
-    width: 22%;                 
-    height: 500px;               
-    background: #FFB300;         
-    border-radius: 0 0 360px 360px; 
-    z-index: 2;                  
+    top: 15%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 22%;
+    height: 500px;
+    background: #FFB300;
+    border-radius: 0 0 360px 360px;
+    z-index: 2;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;       /* centro horizontal */
+    justify-content: flex-start; /* arriba hacia abajo */
+    padding-top: 40px;  
 }
 
 .imagenIDMA {
@@ -40,23 +46,78 @@
 }
 
 .formularioLogin {
-    position: absolute;        
-    top: 50%;                  
-    left: 50%;                 
-    transform: translate(-50%, -50%); 
-    width: 80%;
-    max-width: 300px;
+    width: 80%;     
+    max-width: 250px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    z-index: 2;
+    gap: 10px;
+    margin-top: 45%;
 }
 
-.formularioLogin input {
-    padding: 10px;
-    border-radius: 0;          
-    border: 2px solid #ffffff; 
-    background-color: #ffffff; 
-    font-size: 12px;
-    color: #79272C;          
+.inputGroup {
+    width: 100%;      
+    position: relative;
+}
+
+.inputGroup input {
+    width: 77%;
+    height: 35px;       
+    padding-left: 45px; 
+    padding-right: 10px;
+    
+    border: 2px solid #fff;
+    border-radius: 0;
+    background: #fff;
+
+    font-family: Poppins;
+    font-size: 18px;
+    color: #79272C;
+}
+
+.iconoInput {
+    background-color: #fff;
+    color: #79272C;
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 28px;
+}
+
+
+.btnLogin {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: px;
+
+    font-family: Poppins, sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+
+    background-color: #79272C; 
+    color: white;
+
+    cursor: pointer;
+    transition: 0.3s ease;
+    margin-top: 5%;
+}
+
+.btnGoogle {
+    margin-top: 60px;
+    width: 80%;
+    padding: 12px;
+    border: 2px solid #4285F4;
+    border-radius: 6px;
+
+    background-color: #fff;
+    color: #4285F4;
+
+    font-family: Poppins, sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+
+    cursor: pointer;
+    transition: 0.3s ease;
+    margin-top: 0;
 }

@@ -11,21 +11,19 @@
     <div class="rectanguloAmarillo">
         <form class="formularioLogin">
 
-            <!-- Input usuario con icono -->
             <div class="inputGroup">
-                <i class="fa-solid fa-user iconoInput"></i>
+                <i class="fa-solid fa-circle-user iconoInput"></i>
                 <input type="text" id="usuario" name="usuario" placeholder="Matrícula o correo">
             </div>
 
-            <!-- Input contraseña con icono -->
             <div class="inputGroup">
                 <i class="fa-solid fa-lock iconoInput"></i>
                 <input type="password" id="password" name="password" placeholder="Contraseña">
             </div>
 
-            <!-- Botones -->
-            <button type="submit" class="btnLogin">Iniciar sesión</button>
-            <button type="button" class="btnLogin">Google</button>
+            
+            <button type="submit" class="btnLogin">Ingresar</button>
+            <button type="button" class="btnGoogle">Google</button>
 
         </form>
     </div>
@@ -35,6 +33,5 @@
     
     <div class="rectanguloRojoFondoLogin"></div>
 
-    
 </body>
 </html>
