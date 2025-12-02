@@ -1,26 +1,28 @@
+
 .rectanguloRojoFondoLogin {
     position: absolute;
-    top: 50%;               
+    top: 50%;
     left: 0;
     width: 100%;
-    height: 50vh;           
+    height: 50vh;
     background-color: #79272C;
-    z-index: -1;            
+    z-index: -1;
 }
 
 .fondoSuperio {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;      
-    height: 50vh;     
-    object-fit: cover; 
-    z-index: -1;      
+    width: 100%;
+    height: 50vh;
+    object-fit: cover;
+    z-index: -1;
 }
+
 
 .rectanguloAmarillo {
     position: absolute;
-    top: 15%;
+    top: 10%;
     left: 50%;
     transform: translateX(-50%);
     width: 22%;
@@ -31,22 +33,24 @@
 
     display: flex;
     flex-direction: column;
-    align-items: center;       /* centro horizontal */
-    justify-content: flex-start; /* arriba hacia abajo */
-    padding-top: 40px;  
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 40px;
 }
+
 
 .imagenIDMA {
     position: absolute;
-    top: 5%;                    
-    left: 50%;               
-    transform: translateX(-50%); 
-    width: 22%;                 
-    z-index: 2;                 
+    top: 1%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 22%;
+    z-index: 2;
 }
 
+
 .formularioLogin {
-    width: 80%;     
+    width: 80%;
     max-width: 250px;
     display: flex;
     flex-direction: column;
@@ -54,70 +58,82 @@
     margin-top: 45%;
 }
 
-.inputGroup {
-    width: 100%;      
+
+.cajaDeTexto {
+    width: 100%;
     position: relative;
 }
 
-.inputGroup input {
-    width: 77%;
-    height: 35px;       
-    padding-left: 45px; 
+.cajaDeTexto input {
+    width: 75%;
+    height: 35px;
+    padding-left: 45px;
     padding-right: 10px;
-    
+
     border: 2px solid #fff;
     border-radius: 0;
     background: #fff;
 
-    font-family: Poppins;
+    font-family: Poppins, sans-serif;
     font-size: 18px;
     color: #79272C;
 }
 
-.iconoInput {
-    background-color: #fff;
-    color: #79272C;
+.cajaDeTexto i {
     position: absolute;
     left: 10px;
     top: 50%;
     transform: translateY(-50%);
     font-size: 28px;
+    color: #79272C;
+    pointer-events: none;
 }
 
 
 .btnLogin {
-    width: 100%;
+    width: 80%;
+    margin: 5% auto 0 auto; 
     padding: 12px;
+
     border: none;
-    border-radius: px;
+    border-radius: 6px;
 
     font-family: Poppins, sans-serif;
     font-size: 16px;
     font-weight: 600;
 
-    background-color: #79272C; 
+    background-color: #79272C;
     color: white;
 
     cursor: pointer;
     transition: 0.3s ease;
-    margin-top: 5%;
 }
 
-.btnGoogle {
-    margin-top: 60px;
-    width: 80%;
-    padding: 12px;
-    border: 2px solid #4285F4;
-    border-radius: 6px;
 
-    background-color: #fff;
-    color: #4285F4;
+.btnGoogle {
+    display: flex;           
+    align-items: center;     
+    justify-content: center;
+    gap: 8px;
+
+    width: 80%;
+    margin: 10px auto 0 auto; 
+    padding: 12px;
+
+    border: none;
+    border-radius: 6px;
+    background-color: #CED4DA;
 
     font-family: Poppins, sans-serif;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 60;
+    color: #000;
 
     cursor: pointer;
     transition: 0.3s ease;
-    margin-top: 0;
 }
+
+.btnGoogle i {
+    font-size: 20px;
+    color: #4285F4;
+}   

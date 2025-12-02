@@ -11,19 +11,27 @@
     <div class="rectanguloAmarillo">
         <form class="formularioLogin">
 
-            <div class="inputGroup">
+            <div class="cajaDeTexto">
                 <i class="fa-solid fa-circle-user iconoInput"></i>
                 <input type="text" id="usuario" name="usuario" placeholder="Matrícula o correo">
             </div>
 
-            <div class="inputGroup">
+            <div class="cajaDeTexto">
                 <i class="fa-solid fa-lock iconoInput"></i>
                 <input type="password" id="password" name="password" placeholder="Contraseña">
             </div>
 
             
             <button type="submit" class="btnLogin">Ingresar</button>
-            <button type="button" class="btnGoogle">Google</button>
+
+            
+            
+            <button type="button" class="btnGoogle">
+                <i class="fa-brands fa-google iconoInput"></i> 
+                Google
+            </button>
+            
+            
 
         </form>
     </div>
