@@ -48,19 +48,8 @@ body, main, button, input, select, textarea {
     transform: scale(1.01);
 }
 
-/* Clase extra para agrandar letra */
 .btn-grande {
-    font-size: 22px;  /* Ajusta este valor según necesites */
+    font-size: 30px;  /* Ajusta este valor según necesites */
 }
 
-/* Responsive: en móviles pequeños */
-@media (max-width: 480px) {
-    .apartado-de-usuarios {
-        padding-top: 50px;
-    }
 
-    .apartado-de-usuarios button {
-        font-size: 18px;
-        padding: 12px 0;
-    }
-}
