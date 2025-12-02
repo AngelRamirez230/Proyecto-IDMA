@@ -9,3 +9,7 @@ Route::get('/', function () {
 Route::get('/inicio', function () {
     return view('inicio');
 });
+
+Route::get('/apartadoUsuarios', function () {
+    return view('moduloUsuario.apartadoUsuarios');
+});
