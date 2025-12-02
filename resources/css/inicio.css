@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
 * {
     margin: 0;
     padding: 0;
@@ -6,20 +8,81 @@
 
 body {
     background-color: white;
-    font-family: Arial, sans-serif;
+    font-family: "Poppins", sans-serif;
 }
 
+/* NAV */
 .navbar {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    height: 116px;
+    height: 100px; /* altura solicitada */
     background-color: #79272C;
     z-index: 1000;
+    display: flex;
+    align-items: center;
+    padding: 0 30px;
 }
 
+/* CONTENIDO DESPUÉS DEL NAV */
 .content {
-    margin-top: 116px;
-    padding: 20px;
+    margin-top: 105px; /* separación solicitada */
+    padding-top: 100px; /* separación real debajo del nav */
+    width: 100%;
+    display: flex;
+    justify-content: center;
 }
+
+/* GRID DE BOTONES */
+.btn-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(194px, 1fr));
+    gap: 35px; /* separación entre botones */
+    width: 90%;
+    max-width: 1200px;
+    justify-items: center;
+}
+
+/* BOTONES */
+.card-btn {
+    width: 194px;
+    height: 178px;
+    background: #FFB300;
+    border-radius: 8px;
+    cursor: pointer;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    transition: 0.2s ease-in-out;
+    position: relative;
+}
+
+/* EFECTO HOVER */
+.card-btn:hover {
+    transform: scale(1.03);
+}
+
+/* ÍCONO */
+.card-btn img {
+    width: 48.751px;
+    height: 52.5px;
+    object-fit: contain;
+}
+
+/* TEXTO DEL BOTÓN */
+.card-btn-title {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+
+    color: #79272C;
+    font-family: "Poppins", sans-serif;
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 500;
+}
+
