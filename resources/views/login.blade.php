@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Iniciar sesión</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     @vite(['resources/css/login.css'])
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
@@ -19,12 +18,12 @@
             
 
             <div class="cajaDeTexto">
-                <i class="fa-solid fa-circle-user iconoInput"></i>
+                <img src="{{ asset('imagenes/IconoLoginUsuario.png') }}" class="iconoLoginUsuario" alt="iconoLoginUsuario">
                 <input type="text" id="usuario" name="usuario" placeholder="Matrícula o correo">
             </div>
 
             <div class="cajaDeTexto">
-                <i class="fa-solid fa-lock iconoInput"></i>
+                <img src="{{ asset('imagenes/IconoLoginContraseña.png') }}" class="iconoLoginContraseña" alt="iconoLoginContraseña">
                 <input type="password" id="password" name="password" placeholder="Contraseña">
             </div>
 
@@ -34,7 +33,7 @@
             
             
             <button type="button" class="btnGoogle">
-                <i class="fa-brands fa-google iconoInput"></i> 
+                <img src="{{ asset('imagenes/IconoGoogle.png') }}" class="iconoGoogle" alt="iconoGoogle">
                 Google
             </button>
             
