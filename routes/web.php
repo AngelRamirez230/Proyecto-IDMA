@@ -11,5 +11,17 @@ Route::get('/inicio', function () {
 });
 
 Route::get('/apartadoUsuarios', function () {
-    return view('moduloUsuario.apartadoUsuarios');
+    return view('moduloUsuarios.apartadoUsuarios');
+});
+
+Route::get('/apartadoEstudiantes', function () {
+    return view('moduloEstudiantes.apartadoEstudiantes');
+});
+
+Route::get('/apartadoBecas', function () {
+    return view('moduloBecas.apartadoBecas');
+});
+
+Route::get('/apartadoConceptos', function () {
+    return view('moduloConceptosDePago.apartadoConceptos');
 });
