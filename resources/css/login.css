@@ -1,7 +1,7 @@
 
 .rectanguloRojoFondoLogin {
-    position: absolute;
-    top: 50%;
+    position: fixed;
+    bottom: 0;
     left: 0;
     width: 100%;
     height: 50vh;
@@ -9,8 +9,9 @@
     z-index: -1;
 }
 
-.fondoSuperio {
-    position: absolute;
+
+.fondoSuperior {
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
@@ -22,118 +23,113 @@
 
 .rectanguloAmarillo {
     position: absolute;
-    top: 10%;
+    top: 50%;
     left: 50%;
-    transform: translateX(-50%);
-    width: 22%;
+    transform: translate(-50%, -50%);
+
+    width: 330px;
     height: 500px;
+
     background: #FFB300;
     border-radius: 0 0 360px 360px;
     z-index: 2;
 
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding-top: 40px;
+    align-items: center;   
+    padding: 10px;         
+    gap: 20px;
+    box-sizing: border-box; 
 }
 
-
+/* Logo */
 .imagenIDMA {
-    position: absolute;
-    top: 1%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 22%;
-    z-index: 2;
+    width: 230px;
+    height: auto;
+    margin-top: -50px;
 }
 
 
 .formularioLogin {
-    width: 80%;
-    max-width: 250px;
+    width: 90%;         
+    max-width: 280px;     
+    
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    margin-top: 45%;
+    gap: 12px;
+    
+    margin: 15px auto 0 auto;
 }
 
 
 .cajaDeTexto {
-    width: 100%;
     position: relative;
+    width: 100%;          
 }
+
 
 .cajaDeTexto input {
-    width: 75%;
-    height: 35px;
+    width: 100%;          
+    height: 40px;
     padding-left: 45px;
-    padding-right: 10px;
 
-    border: 2px solid #fff;
-    border-radius: 0;
-    background: #fff;
+    border: 2px solid white;
+    border-radius: 6px;
+    background: white;
 
-    font-family: Poppins, sans-serif;
-    font-size: 18px;
+    font-size: 16px;
     color: #79272C;
+
+    box-sizing: border-box;  
 }
+
 
 .cajaDeTexto i {
     position: absolute;
-    left: 10px;
+    left: 12px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 28px;
+    font-size: 22px;
     color: #79272C;
-    pointer-events: none;
 }
 
 
 .btnLogin {
-    width: 80%;
-    margin: 5% auto 0 auto; 
+    width: 70%;          
     padding: 12px;
-
     border: none;
-    border-radius: 6px;
-
-    font-family: Poppins, sans-serif;
+    border-radius: 0px;
+    background: #79272C;
+    color: white;
     font-size: 16px;
     font-weight: 600;
-
-    background-color: #79272C;
-    color: white;
-
     cursor: pointer;
-    transition: 0.3s ease;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 
 .btnGoogle {
-    display: flex;           
-    align-items: center;     
-    justify-content: center;
-    gap: 8px;
-
-    width: 80%;
-    margin: 10px auto 0 auto; 
+    width: 70%;
     padding: 12px;
-
     border: none;
-    border-radius: 6px;
-    background-color: #CED4DA;
-
-    font-family: Poppins, sans-serif;
-    font-size: 16px;
-    font-weight: 60;
+    border-radius: 0px;
+    background: #CED4DA;
     color: #000;
+    font-size: 16px;
+    font-weight: 600;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+    margin-right: auto;
 
     cursor: pointer;
-    transition: 0.3s ease;
 }
 
 .btnGoogle i {
     font-size: 20px;
     color: #4285F4;
-}   
+}
