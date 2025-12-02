@@ -5,6 +5,7 @@
     <title>Iniciar sesión</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     @vite(['resources/css/login.css'])
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
     
@@ -37,7 +38,7 @@
     </div>
 
     <img src="{{ asset('imagenes/LOGO_INTERIOR_IDMA.png') }}" class="imagenIDMA" alt="imagenidma">
-    <img src="{{ asset('imagenes/ImagenDeFondo.png') }}" class="fondoSuperio" alt="imagenSuperiorFondo">
+    <img src="{{ asset('imagenes/ImagenDeFondo.png') }}" class="fondoSuperior" alt="imagenSuperiorFondo">
     
     <div class="rectanguloRojoFondoLogin"></div>
 

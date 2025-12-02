@@ -1,3 +1,8 @@
+/* ========================================= */
+/* 1. ESTILOS BASE (MÓVILES) */
+/* ========================================= */
+
+/* Fondo Rojo y Superior */
 
 .rectanguloRojoFondoLogin {
     position: absolute;
@@ -9,7 +14,7 @@
     z-index: -1;
 }
 
-.fondoSuperio {
+.fondoSuperior {
     position: absolute;
     top: 0;
     left: 0;
@@ -19,63 +24,64 @@
     z-index: -1;
 }
 
-
+/* Rectángulo Amarillo (Tarjeta de Login) - Más Ancho y Bajo en Móviles */
 .rectanguloAmarillo {
     position: absolute;
-    top: 10%;
+    top: 5%; /* Más arriba en móvil */
     left: 50%;
     transform: translateX(-50%);
-    width: 22%;
-    height: 500px;
+    width: 90%; /* Mucho más ancho en móvil */
+    height: 400px; /* Altura más manejable para móvil */
     background: #FFB300;
-    border-radius: 0 0 360px 360px;
+    /* Un border-radius adaptado para móvil */
+    border-radius: 0 0 200px 200px; 
     z-index: 2;
 
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    padding-top: 40px;
+    padding-top: 30px; /* Menos padding superior */
 }
 
-
+/* Imagen de Logo - Más ancha en móvil para centrar */
 .imagenIDMA {
     position: absolute;
     top: 1%;
     left: 50%;
     transform: translateX(-50%);
-    width: 22%;
+    width: 70%; /* Más ancha en móvil para abarcar el rectángulo */
     z-index: 2;
 }
 
-
+/* Formulario */
 .formularioLogin {
-    width: 80%;
-    max-width: 250px;
+    width: 90%; /* Más ancho para aprovechar el espacio */
+    max-width: 300px; /* Límite para que no se vea ridículo en tablets anchas */
     display: flex;
     flex-direction: column;
     gap: 10px;
-    margin-top: 45%;
+    margin-top: 35%; /* Ajuste para colocarlo mejor */
 }
 
-
+/* Campos de Texto (Input) */
 .cajaDeTexto {
     width: 100%;
     position: relative;
 }
 
 .cajaDeTexto input {
-    width: 75%;
-    height: 35px;
+    width: 80%; /* Ajuste para dejar espacio al icono */
+    height: 40px;
     padding-left: 45px;
     padding-right: 10px;
-
+    
     border: 2px solid #fff;
-    border-radius: 0;
+    border-radius: 6px; /* Añadido un poco de redondeo para mejor look móvil */
     background: #fff;
 
     font-family: Poppins, sans-serif;
-    font-size: 18px;
+    font-size: 16px; /* Tamaño de fuente ligeramente más pequeño para móvil */
     color: #79272C;
 }
 
@@ -84,14 +90,14 @@
     left: 10px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 28px;
+    font-size: 24px; /* Icono un poco más pequeño */
     color: #79272C;
     pointer-events: none;
 }
 
-
+/* Botones */
 .btnLogin {
-    width: 80%;
+    width: 90%; /* Más ancho en móvil */
     margin: 5% auto 0 auto; 
     padding: 12px;
 
@@ -109,14 +115,13 @@
     transition: 0.3s ease;
 }
 
-
 .btnGoogle {
-    display: flex;           
-    align-items: center;     
+    display: flex; 
+    align-items: center; 
     justify-content: center;
     gap: 8px;
 
-    width: 80%;
+    width: 90%; /* Más ancho en móvil */
     margin: 10px auto 0 auto; 
     padding: 12px;
 
@@ -126,7 +131,7 @@
 
     font-family: Poppins, sans-serif;
     font-size: 16px;
-    font-weight: 60;
+    font-weight: 600; /* Corregido peso de fuente */
     color: #000;
 
     cursor: pointer;
@@ -136,4 +141,148 @@
 .btnGoogle i {
     font-size: 20px;
     color: #4285F4;
-}   
+} 
+
+/* ========================================= */
+/* 2. MEDIA QUERY (TABLETS Y ESCRITORIOS) */
+/* Aplicar estilos originales a partir de 601px */
+/* ========================================= */
+
+@media (min-width: 601px) {
+    
+    /* Rectángulo Amarillo (Volvemos a un ancho más controlado) */
+    .rectanguloAmarillo {
+        top: 10%;
+        width: 35%; /* Ancho apropiado para Tablets/Escritorios pequeños */
+        height: 500px;
+        border-radius: 0 0 360px 360px;
+        padding-top: 40px;
+    }
+
+    /* Imagen de Logo */
+    .imagenIDMA {
+        width: 35%; /* Que coincida con el ancho del rectángulo */
+    }
+
+    /* Formulario */
+    .formularioLogin {
+        width: 80%;
+        max-width: 250px;
+        margin-top: 45%; 
+    }
+    
+    /* Campos de Texto (Volvemos a un tamaño más grande) */
+    .cajaDeTexto input {
+        width: 75%; 
+        height: 35px;
+        font-size: 18px; 
+    }
+    
+    .cajaDeTexto i {
+        font-size: 28px;
+    }
+
+    /* Botones (Volvemos al ancho más controlado) */
+    .btnLogin,
+    .btnGoogle {
+        width: 80%;
+    }
+}
+
+
+/* ========================================= */
+/* 3. MEDIA QUERY (ESCRITORIO GRANDE) */
+/* Aplicar ancho muy pequeño original a partir de 1024px */
+/* ========================================= */
+
+@media (min-width: 1024px) {
+    
+    .rectanguloAmarillo {
+        width: 22%; /* Tu ancho original de escritorio */
+    }
+
+    .imagenIDMA {
+        width: 22%; /* Tu ancho original de escritorio */
+    }
+}
+
+@media (max-width: 350px) {
+     .rectanguloAmarillo {
+        height: 350px; /* Reducimos altura */
+        padding-top: 20px;
+    }
+
+    .imagenIDMA {
+        width: 60%;
+        margin-bottom: 1rem;
+    }
+
+    .formularioLogin {
+        margin-top: 25%;
+    }
+
+    .cajaDeTexto input {
+        height: 35px;
+        font-size: 14px;
+        padding-left: 2rem;
+    }
+
+    .cajaDeTexto i {
+        font-size: 20px;
+    }
+
+    .btnLogin,
+    .btnGoogle {
+        font-size: 14px;
+        padding: 10px;
+    }
+}
+
+@media (max-width: 600px) {
+
+    /* Rectángulo Amarillo */
+    .rectanguloAmarillo {
+        width: 40%;       /* Ocupa casi todo el ancho */
+        height: 65%;     /* Altura automática según contenido */
+        padding: 10px;    /* Menos padding superior */
+        border-radius: 0 0 150px 150px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Logo */
+    .imagenIDMA {
+        width: 60%;       /* Más pequeño para que entre en la tarjeta */
+        max-width: 180px;
+        margin-bottom: 1rem;
+    }
+
+    /* Formulario */
+    .formularioLogin {
+        width: 90%;
+        margin-top: 60;
+        gap: 0.8rem;
+    }
+
+    /* Inputs */
+    .cajaDeTexto input {
+        width: 80%;
+        height: 35px;
+        font-size: 14px;
+        padding-left: 2rem;
+    }
+
+    .cajaDeTexto i {
+        font-size: 18px;
+    }
+
+    /* Botones */
+    .btnLogin,
+    .btnGoogle {
+        width: 70%;
+        font-size: 14px;
+        padding: 10px;
+    }
+}
