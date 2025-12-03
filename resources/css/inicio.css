@@ -32,18 +32,114 @@ body {
     z-index: 1000;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     padding: 0 30px;
+}
+
+.nav-left{
+    display: flex;
+    align-items: center;
 }
 
 .nav-logo {
     height: 55px; 
-    margin-left: 30px;
-    display: block;
+    margin-left: 20px;
+    object-fit: contain;
+}
+
+.nav-right {
+    display:contents;
+    align-items: center;
+}
+
+.logout-btn{
+    height: 100%;
+    display:flex;
+    align-items: center;
+    gap: 8px;
+
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: white;
+
+    font-family: "Poppins", sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+
+    padding: 10px 15px;
+    transition: 0.2s ease-in-out;
+}
+
+.logout-icon {
+    height: 30px;
+    width: auto;
+}
+
+.logout-btn:hover {
+    background-color: #FFB300;
+    color: #79272C; /* texto cambia para contraste */
+}
+
+/* NAV SECUNDARIO */
+.subnav {
+    width: 100%;
+    background-color: #FFB300;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    padding-left: 50px;
+    position: sticky;
+    top: 80px;
+    z-index: 900;
+
+    overflow-x: auto;       /* <--- permite desplazamiento horizontal */
+    overflow-y: hidden;     /* <--- evita barras verticales */
+    white-space: nowrap;    /* <--- evita que los botones salten de línea */
+}
+
+/* Lista */
+.subnav-list {
+    list-style: none;
+    display: flex;
+}
+
+/* Botones */
+.subnav-item {
+    cursor: pointer;
+    padding: 8px 15px;
+    color: #79272C;
+    font-family: "Poppins", sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    transition: 0.2s ease-in-out;
+    white-space: nowrap;
+}
+
+/* Hover */
+.subnav-item:hover {
+    background-color: #79272C;
+    color: white;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 1229.33px) {
+    .subnav {
+        height: 55px;
+        flex-direction: column;      /* Ahora es vertical */
+        align-items: flex-start;      /* Alineado a la izquierda */
+    }
+
+    .subnav-btn {
+        width: 100%;                 /* Botones a lo ancho */
+        padding: 12px 15px;
+        text-align: left;            /* Texto alineado a la izquierda */
+    }
 }
 
 /* CONTENIDO DESPUÉS DEL NAV */
 .content {
-    margin-top: 75px; /* separación solicitada */
+    margin-top: 40px; /* separación solicitada */
     padding-top: 70px; /* separación real debajo del nav */
     width: 100%;
     display: flex;
