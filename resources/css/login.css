@@ -1,4 +1,10 @@
 
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+body, input, button, select, textarea {
+    font-family: 'Poppins', sans-serif;
+}
+
 .rectanguloRojoFondoLogin {
     position: fixed;
     bottom: 0;
@@ -58,13 +64,14 @@
     flex-direction: column;
     gap: 12px;
     
-    margin: 15px auto 0 auto;
+    margin: 0px auto 0 auto;
 }
 
 
 .cajaDeTexto {
     position: relative;
-    width: 100%;          
+    width: 100%; 
+    border-radius: 0;         
 }
 
 
@@ -74,7 +81,6 @@
     padding-left: 45px;
 
     border: 2px solid white;
-    border-radius: 6px;
     background: white;
 
     font-size: 16px;

@@ -1,0 +1,55 @@
+/* Importar fuente Poppins */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+/* Aplicar Poppins a todo el body y elementos importantes */
+body, main, button, input, select, textarea {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Contenedor principal */
+.apartado-de-usuarios {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;   /* Alinear al inicio verticalmente */
+    min-height: 100vh;             /* Ocupa toda la altura de la pantalla */
+    padding-top: 80px;             /* Espacio desde arriba para que quede más arriba del centro */
+    gap: 20px;                      /* Espacio entre botones */
+    background-color: #ffffff;      /* Fondo opcional */
+    color: #79272C;                 /* Color de letra general */
+    width: 100%;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+/* Botones principales */
+.apartado-de-usuarios button {
+    width: 100%;                     /* Ocupa casi todo el ancho */
+    max-width: auto;                /* Limite máximo en pantallas grandes */
+    padding: 14px 0;                 /* Espacio interno vertical y horizontal */
+    font-size: 16px;                  /* Tamaño inicial de letra */
+    font-weight: bold;               
+    color: #79272C;                  
+    background-color: #FFB300;       
+    border: none;                    
+    border-radius: 0px;              
+    cursor: pointer;                 
+    transition: transform 0.2s;      
+    font-family: 'Poppins', sans-serif;
+    display: block;
+    text-align: center;              
+}
+
+/* Hover efecto */
+.apartado-de-usuarios button:hover {
+    transform: scale(1.01);
+}
+
+.btn-grande {
+    font-size: 30px;  /* Ajusta este valor según necesites */
+}
+
+
