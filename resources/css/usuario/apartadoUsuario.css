@@ -35,7 +35,7 @@ body, main, button, input, select, textarea {
     color: #79272C;                  
     background-color: #FFB300;       
     border: none;                    
-    border-radius: 8px;              
+    border-radius: 0px;              
     cursor: pointer;                 
     transition: transform 0.2s;      
     font-family: 'Poppins', sans-serif;
