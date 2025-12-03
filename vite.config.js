@@ -9,6 +9,7 @@ export default defineConfig({
                 
                 'resources/css/login.css',
                 'resources/css/inicio.css',
+                'resources/css/barraNavegacion.css',
                 'resources/js/app.js'
             ],
             refresh: true,

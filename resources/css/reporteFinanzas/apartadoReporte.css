@@ -1,13 +1,12 @@
 
 /* Contenedor principal */
-.apartado-de-estudiantes {
+.apartado-de-reportes {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;   /* Alinear al inicio verticalmente */
     min-height: auto;             /* Ocupa toda la altura de la pantalla */            
-    gap: 20px;                      /* Espacio entre botones */
-    background-color: #ffffff;      /* Fondo opcional */
+    gap: 20px;                      /* Espacio entre botones */      
     color: #79272C;                 /* Color de letra general */
     width: 100%;
     padding-left: 20px;
@@ -17,7 +16,7 @@
 }
 
 /* Botones principales */
-.apartado-de-estudiantes button {
+.apartado-de-reportes button {
     width: 100%;                     /* Ocupa casi todo el ancho */
     max-width: auto;                /* Limite máximo en pantallas grandes */
     padding: 14px 0;                 /* Espacio interno vertical y horizontal */
@@ -35,9 +34,8 @@
 }
 
 /* Hover efecto */
-.apartado-de-estudiantes button:hover {
+.apartado-de-reportes button:hover {
     transform: scale(1.01);
 }
-
 
 

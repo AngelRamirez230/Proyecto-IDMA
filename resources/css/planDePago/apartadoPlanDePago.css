@@ -1,6 +1,6 @@
 
 /* Contenedor principal */
-.apartado-de-estudiantes {
+.apartado-planes {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -17,7 +17,7 @@
 }
 
 /* Botones principales */
-.apartado-de-estudiantes button {
+.apartado-planes button {
     width: 100%;                     /* Ocupa casi todo el ancho */
     max-width: auto;                /* Limite máximo en pantallas grandes */
     padding: 14px 0;                 /* Espacio interno vertical y horizontal */
@@ -35,9 +35,12 @@
 }
 
 /* Hover efecto */
-.apartado-de-estudiantes button:hover {
+.apartado-planes button:hover {
     transform: scale(1.01);
 }
 
+.btn-grande {
+    font-size: 30px;  /* Ajusta este valor según necesites */
+}
 
 
