@@ -10,10 +10,14 @@
 
 <!-- NAV -->
 <div class="navbar">
+    <img src="/imagenes/LogoIDMABlanco.png" alt="Logo" class="nav-logo">
 </div>
 
 <!-- CONTENIDO -->
 <div class="content">
+
+    <img src="{{ asset('imagenes/ImagenDeFondo.png') }}" class="fondoInferior" alt="imagenSuperiorFondo">
+
     <div class="btn-grid">
 
         <!-- BOTÓN 1 -->
