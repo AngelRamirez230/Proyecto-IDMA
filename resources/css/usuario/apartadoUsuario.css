@@ -1,4 +1,4 @@
-/* Importar fuente Poppins */
+
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
 
 /* Aplicar Poppins a todo el body y elementos importantes */
@@ -54,7 +54,7 @@ body {
     height: 100%;
     display:flex;
     align-items: center;
-    gap: 8px;
+    gap: 3px;
 
     background: transparent;
     border: none;
@@ -62,7 +62,7 @@ body {
     color: white;
 
     font-family: "Poppins", sans-serif;
-    font-size: 18px;
+    font-size: 15px;
     font-weight: 500;
 
     padding: 10px 15px;
@@ -70,13 +70,55 @@ body {
 }
 
 .logout-icon {
-    height: 30px;
+    height: 20px;
     width: auto;
 }
 
 .logout-btn:hover {
     background-color: #FFB300;
     color: #79272C; /* texto cambia para contraste */
+}
+
+
+/* NAV SECUNDARIO */
+.subnav {
+    width: 100%;
+    background-color: #FFB300;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    padding-left: 50px;
+    position: sticky;
+    top: 80px;
+    z-index: 900;
+
+    overflow-x: auto;       /* <--- permite desplazamiento horizontal */
+    overflow-y: hidden;     /* <--- evita barras verticales */
+    white-space: nowrap;    /* <--- evita que los botones salten de línea */
+}
+
+/* Lista */
+.subnav-list {
+    list-style: none;
+    display: flex;
+}
+
+/* Botones */
+.subnav-item {
+    cursor: pointer;
+    padding: 8px 15px;
+    color: #79272C;
+    font-family: "Poppins", sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    transition: 0.2s ease-in-out;
+    white-space: nowrap;
+}
+
+/* Hover */
+.subnav-item:hover {
+    background-color: #79272C;
+    color: white;
 }
 
 
@@ -96,14 +138,14 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;   /* Alinear al inicio verticalmente */
-    min-height: 100vh;             /* Ocupa toda la altura de la pantalla */
-    padding-top: 80px;             /* Espacio desde arriba para que quede más arriba del centro */
+    min-height: 100vh;             /* Ocupa toda la altura de la pantalla */            
     gap: 20px;                      /* Espacio entre botones */
     background-color: #ffffff;      /* Fondo opcional */
     color: #79272C;                 /* Color de letra general */
     width: 100%;
     padding-left: 20px;
     padding-right: 20px;
+    margin-top: 150px; 
 }
 
 /* Botones principales */
