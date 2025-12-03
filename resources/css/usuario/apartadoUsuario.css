@@ -9,6 +9,87 @@ body, main, button, input, select, textarea {
     box-sizing: border-box;
 }
 
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: white;
+    font-family: "Poppins", sans-serif;
+}
+/* NAV */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 80px; /* altura solicitada */
+    background-color: #79272C;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30px;
+}
+
+.nav-left{
+    display: flex;
+    align-items: center;
+}
+
+.nav-logo {
+    height: 55px; 
+    margin-left: 20px;
+    object-fit: contain;
+}
+
+.nav-right {
+    display:contents;
+    align-items: center;
+}
+
+.logout-btn{
+    height: 100%;
+    display:flex;
+    align-items: center;
+    gap: 8px;
+
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: white;
+
+    font-family: "Poppins", sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+
+    padding: 10px 15px;
+    transition: 0.2s ease-in-out;
+}
+
+.logout-icon {
+    height: 30px;
+    width: auto;
+}
+
+.logout-btn:hover {
+    background-color: #FFB300;
+    color: #79272C; /* texto cambia para contraste */
+}
+
+
+.fondoInferior {
+    position: fixed;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 50vh;
+    object-fit: cover;
+    z-index: 0;  /* ahora estará detrás de los botones pero visible */
+}
+
 /* Contenedor principal */
 .apartado-de-usuarios {
     display: flex;
