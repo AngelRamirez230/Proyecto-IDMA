@@ -1,0 +1,62 @@
+
+
+/* CONTENIDO DESPUÉS DEL NAV */
+.content {
+    padding-top: 150px; /* separación real debajo del nav */
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+/* GRID DE BOTONES */
+.btn-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(194px, 1fr));
+    gap: 35px; /* separación entre botones */
+    width: 90%;
+    max-width: 1200px;
+    justify-items: center;
+    margin-bottom: 70px;
+}
+
+/* BOTONES */
+.card-btn {
+    width: 190px;
+    height: 180px;
+    background: #FFB300;
+    border-radius: 8px;
+    cursor: pointer;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    transition: 0.2s ease-in-out;
+    position: relative;
+}
+
+/* EFECTO HOVER */
+.card-btn:hover {
+    transform: scale(1.03);
+}
+
+/* ÍCONO */
+.card-btn img {
+    width: 48.751px;
+    height: 52.5px;
+    object-fit: contain;
+}
+
+/* TEXTO DEL BOTÓN */
+.card-btn-title {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+
+    color: #79272C;
+    font-family: "Poppins", sans-serif;
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 500;
+}
