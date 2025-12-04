@@ -17,6 +17,10 @@ Route::get('/apartadoUsuarios', function () {
     return view('shared.moduloUsuarios.apartadoUsuarios');
 })->name('apartadoUsuarios');
 
+Route::get('/altaUsuarios', function () {
+    return view('shared.moduloUsuarios.altaDeUsuario');
+})->name('altaUsuarios');
+
 /*ESTUDIANTES*/
 Route::get('/apartadoEstudiantes', function () {
     return view('shared.moduloEstudiantes.apartadoEstudiantes');

@@ -9,7 +9,7 @@
 <body>
     @include('layouts.barraNavegacion')
     <main class="apartado-general">
-        <a href="#" class="btn-boton btn-alta-usuario">Alta de usuario</a>
+        <a href="{{ route('altaUsuarios') }}" class="btn-boton btn-alta-usuario">Alta de usuario</a>
         <a href="#" class="btn-boton btn-consulta-usuario">Consulta de usuario</a>
     </main>
 
