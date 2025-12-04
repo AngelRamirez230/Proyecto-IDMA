@@ -28,6 +28,10 @@ Route::get('/apartadoReporte', function () {
     return view('shared.moduloReportes.apartadoReportes');
 })->name('apartadoReportes');
 
+Route::get('/apartadoBitacoras', function () {
+    return view('shared.moduloReportes.apartadoBitacora');
+})->name('apartadoBitacoras');
+
 
 
 

@@ -27,7 +27,7 @@
         <li class="subnav-item"><a href="{{ route('apartadoPagos') }}">Pagos</a></li>
         <li class="subnav-item"><a href="{{ route('apartadoReportes') }}">Reportes</a></li>
         <li class="subnav-item"><a href="{{ route('apartadoConceptos') }}">Conceptos de pago</a></li>
-        <li class="subnav-item"><a href="#">Bítacoras del sistema</a></li>
+        <li class="subnav-item"><a href="{{ route('apartadoBitacoras') }}">Bítacoras del sistema</a></li>
     </ul>
 </div>
 

@@ -10,10 +10,10 @@
     @include('layouts.barraNavegacion')
 
     <main class="apartado-general">
-        <button type="button" class="btn-pagos-aprobados">Pagos aprobados</button>
-        <button type="button" class="btn-pagos-pendientes">Pagos pendientes</button>
-        <button type="button" class="btn-pagos-rechazados">Pagos rechazados</button>
-        <button type="button" class="btn-Kardex">Kárdex</button>
+        <a href="#" class="btn-boton btn-pagos-aprobados">Pagos aprobados</a>
+        <a href="#" class="btn-boton btn-pagos-pendientes">Pagos pendientes</a>
+        <a href="#" class="btn-boton btn-pagos-rechazados">Pagos rechazados</a>
+        <a href="#" class="btn-boton btn-Kardex">Kárdex</a>
     </main>
 
 </body>

@@ -10,7 +10,7 @@
     @include('layouts.barraNavegacion')
 
     <main class="apartado-general">
-        <button type="button" class="btn-consulta-bitacoras">Consultar bitácoras del sistema</button>
+        <a href="#" class="btn-boton btn-consulta-bitacoras">Consultar bitácoras del sistema</a>
     </main>
 
 </body>

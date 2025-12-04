@@ -75,7 +75,7 @@
             <span class="card-btn-title">Conceptos de pago</span>
         </a>
 
-        <a href="{{}}" class="card-btn">
+        <a href="{{route('apartadoBitacoras')}}" class="card-btn">
             <img src="/imagenes/IconoBitacorasdelsistema.png" alt="">
             <span class="card-btn-title">Bítacoras del sistema</span>
         </a>
