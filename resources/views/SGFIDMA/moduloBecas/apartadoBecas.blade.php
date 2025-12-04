@@ -10,9 +10,9 @@
     @include('layouts.barraNavegacion')
 
     <main class="apartado-general">
-        <button type="button" class="btn-alta-beca">Alta de beca</button>
-        <button type="button" class="btn-consulta-beca">Consulta de beca</button>
-        <button type="button" class="btn-consulta-solicitud">Consultar solicitudes</button>
+        <a href="#" class="btn-boton btn-alta-beca">Alta de beca</a>
+        <a href="#" class="btn-boton btn-consulta-beca">Consulta de beca</a>
+        <a href="#" class="btn-boton btn-consulta-solicitud">Consultar solicitudes</a>
     </main>
 
 </body>

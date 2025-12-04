@@ -64,7 +64,7 @@
             <span class="card-btn-title">Pagos</span>
         </a>
 
-        <a href="{{ route('apartadoReportesFinanzas') }}" class="card-btn">
+        <a href="{{ route('apartadoReportes') }}" class="card-btn">
             <img src="/imagenes/IconoInicioReportes.png" alt="">
             <span class="card-btn-title">Reportes</span>
         </a>
@@ -75,7 +75,7 @@
             <span class="card-btn-title">Conceptos de pago</span>
         </a>
 
-        <a href="#" class="card-btn">
+        <a href="{{route('apartadoBitacoras')}}" class="card-btn">
             <img src="/imagenes/IconoBitacorasdelsistema.png" alt="">
             <span class="card-btn-title">Bítacoras del sistema</span>
         </a>

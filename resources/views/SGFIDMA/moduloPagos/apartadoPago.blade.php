@@ -10,8 +10,8 @@
     @include('layouts.barraNavegacion')
 
     <main class="apartado-general">
-        <button type="button" class="btn-consulta-pago">Consultar pagos</button>
-        <button type="button" class="btn-validar-pago">Validar pagos</button>
+        <a href="#" class="btn-boton btn-consulta-pago">Consultar pagos</a>
+        <a href="#" class="btn-boton btn-validar-pago">Validar pagos</a>
         
     </main>
 

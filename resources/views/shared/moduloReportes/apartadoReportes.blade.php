@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apartado planes de pago</title>
+    <title>Apartado de reportes</title>
     @vite(['resources/css/app.css'])
 </head>
 <body>
     @include('layouts.barraNavegacion')
+
     <main class="apartado-general">
-        <a href="#" class="btn-boton btn-alta-plan">Crear plan de pago</a>
-        <a href="#" class="btn-boton btn-consulta-plan">Consultar planes de pago</a>
+        <a href="{{ route('apartadoReportesFinanzas') }}" class="btn-boton btn-reportes-financieros">Reportes financieros</a>
+        <a href="#" class="btn-boton btn-reportes-academicos">Reportes académicos</a>
+
     </main>
 
 </body>

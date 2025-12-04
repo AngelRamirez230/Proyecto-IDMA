@@ -1,42 +1,41 @@
-
 /* Contenedor principal */
 .apartado-general {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;   /* Alinear al inicio verticalmente */
-    min-height: auto;             /* Ocupa toda la altura de la pantalla */            
-    gap: 20px;                      /* Espacio entre botones */
-    background-color: #ffffff;      /* Fondo opcional */
-    color: #79272C;                 /* Color de letra general */
+    justify-content: flex-start;
+    min-height: auto;
+    gap: 20px;
+    background-color: #ffffff;
+    color: #79272C;
     width: 100%;
     padding-left: 20px;
     padding-right: 20px;
-    padding-top: 150px; 
+    padding-top: 150px;
     padding-bottom: 60px;
 }
 
-/* Botones principales */
-.apartado-general button {
-    width: 100%;                     /* Ocupa casi todo el ancho */
-    max-width: auto;                /* Limite máximo en pantallas grandes */
-    padding: 14px 0;                 /* Espacio interno vertical y horizontal */
-    font-size: 16px;                  /* Tamaño inicial de letra */
-    font-weight: bold;               
-    color: #79272C;                  
-    background-color: #FFB300;       
-    border: none;                    
-    border-radius: 0px;              
-    cursor: pointer;                 
-    transition: transform 0.2s;      
+/* --- Estilo unificado para button y a --- */
+
+.apartado-general a.btn-boton {
+    width: 100%;
+    padding: 14px 0;
+    font-size: 16px;
+    font-weight: bold;
+    color: #79272C;
+    background-color: #FFB300;
+    border: none;
+    border-radius: 0px;
+    cursor: pointer;
+    transition: transform 0.2s;
     font-family: 'Poppins', sans-serif;
     display: block;
-    text-align: center;              
+    text-align: center;
+    text-decoration: none;  /* Solo afecta a los <a> */
 }
 
-/* Hover efecto */
-.apartado-general button:hover {
+/* Hover */
+
+.apartado-general a.btn-boton:hover {
     transform: scale(1.01);
 }
-
-

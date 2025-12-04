@@ -10,8 +10,8 @@
     @include('layouts.barraNavegacion')
     
     <main class="apartado-general">
-        <button type="button" class="btn-alta-conceptos">Añadir concepto de pago</button>
-        <button type="button" class="btn-consulta-conceptos">Consultar conceptos de pago</button>
+        <a href="#" class="btn-boton btn-alta-conceptos">Añadir concepto de pago</a>
+        <a href="#" class="btn-boton btn-consulta-conceptos">Consultar conceptos de pago</a>
         
     </main>
 

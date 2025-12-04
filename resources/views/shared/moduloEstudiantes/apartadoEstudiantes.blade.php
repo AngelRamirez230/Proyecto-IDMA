@@ -9,9 +9,9 @@
 <body>
     @include('layouts.barraNavegacion')
     <main class="apartado-general">
-        <button type="button" class="btn-alta-estudiante">Alta de estudiante</button>
-        <button type="button" class="btn-consulta-estudiante">Consulta de estudiante</button>
-        <button type="button" class="btn-Asignar-plan">Asignar plan de pagos</button>
+        <a href="#" class="btn-boton btn-alta-estudiante">Alta de estudiante</a>
+        <a href="#" class="btn-boton btn-consulta-estudiante">Consulta de estudiante</a>
+        <a href="#" class="btn-boton btn-Asignar-plan">Asignar plan de pagos</a>
     </main>
 
 </body>
