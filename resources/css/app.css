@@ -1,0 +1,11 @@
+/*PAGES*/
+@import './pages/login.css';
+@import './pages/inicio.css';
+
+
+
+
+
+/*COMPONENTS*/
+@import './components/BtnsApartadoGeneral.css';
+@import './components/PlantillaYBarraNavegacion.css';
