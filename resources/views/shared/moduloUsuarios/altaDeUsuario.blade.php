@@ -9,7 +9,7 @@
 <body>
     @include('layouts.barraNavegacion')
 
-    <form action="#" method="POST" class="formulario-alta-usuario">
+    <form action="{{ route('inicio')}}" method="POST" class="formulario">
     @csrf
 
         <div class="form-group">
@@ -42,7 +42,11 @@
             <input type="password" id="password" name="password" placeholder="Escribe una contraseña" required>
         </div>
 
-        <button type="submit" class="btn-boton">Crear Usuario</button>
+        <div class="form-group">
+            <button type="submit" class="btn-boton-formulario">Guardar</button>
+            <a href="{{ route('apartadoUsuarios') }}" class="btn-boton-formulario btn-cancelar">Cancelar</a>
+        </div>
     </form>
+
 </body>
 </html>

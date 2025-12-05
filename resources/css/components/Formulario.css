@@ -1,0 +1,112 @@
+/* Contenedor del formulario */
+.formulario {
+    width: auto;
+    margin-top: 150px;
+    padding: 10px;
+    border-radius: 10px;
+    font-family: 'Poppins', sans-serif;
+    position: relative;
+}
+
+/* Cada grupo de label + input en la misma línea */
+.form-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-left: 78px;
+}
+
+/* Labels */
+.form-group label {
+    color: #79272C;
+    font-weight: 600;
+    font-size: 14px;
+    width: 200px;
+}
+
+/* Inputs */
+.form-group input {
+    width: 600px;
+    padding: 10px 12px;
+    border: 1px solid #000;
+    border-radius: 6px;
+    background-color: #ffffff;
+    color: #000000;
+    font-size: 14px;
+    transition: border 0.3s;
+}
+
+
+
+/* Estilo general de los botones */
+.btn-boton-formulario {
+    display: inline-block;
+    width: 191px;
+    height: 49px;
+    padding: 6.5px 44.5px;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    text-decoration: none;
+
+    padding: 12px 20px;
+
+    background-color: #79272C;
+    color: #ffffff;
+
+    border: none;
+    border-radius: 0px;
+
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s;
+    margin-left: 20px;          
+}
+
+.btn-boton-formulario:first-child {
+    margin-left: 0 !important;
+}
+
+.btn-boton-formulario:hover {
+    background-color: #5a1b20;
+}
+
+/* Botón Cancelar */
+.btn-cancelar {
+    background-color: #B0B0B0;
+}
+
+.btn-cancelar:hover {
+    background-color: #7a7a7a;
+}
+
+
+/* Responsive */
+@media screen and (max-width: 800px) {
+
+    .form-group {
+        flex-direction: column;
+        align-items: flex-start;
+        padding-left: 20px;
+    }
+
+    .form-group label,
+    .form-group input {
+        width: calc(100% - 40px);
+        margin-left: 0;
+    }
+
+
+    .btn-boton-formulario {
+        display: block;     
+        margin-top: 12px;
+        margin-left: 0 !important;
+
+        width: 191px;
+        height: 49px;
+
+        justify-content: center;
+        align-items: center;    
+    }
+
+}
