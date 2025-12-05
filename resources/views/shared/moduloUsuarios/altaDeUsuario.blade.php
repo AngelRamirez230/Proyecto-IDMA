@@ -29,7 +29,7 @@
 
         <div class="form-group">
             <label for="genero">Genero:</label>
-            <select id="genero" name="genero" required>
+            <select id="genero" name="genero" class="select" required>
                 <option value="" disabled selected>Seleccionar</option>
             </select>
         </div>
@@ -56,7 +56,7 @@
 
         <div class="form-group">
             <label for="fechaNacimiento">Fecha de nacimiento:</label>
-            <input type="date" id="fechaNacimiento" name="fechaNacimiento" max="{{ date('Y-m-d') }}" required>
+            <input type="date" id="fechaNacimiento" name="fechaNacimiento" max="{{ date('Y-m-d') }}" class="input-date" required>
         </div>
 
         <div class="form-group">
@@ -76,21 +76,21 @@
 
         <div class="form-group">
             <label for="entidad">Entidad:</label>
-            <select id="entidad" name="entidad" required>
+            <select id="entidad" name="entidad" class="select" required>
                 <option value="" disabled selected>Seleccionar</option>
             </select>
         </div>
 
         <div class="form-group">
             <label for="municipio">Municipio:</label>
-            <select id="municipio" name="municipio" required>
+            <select id="municipio" name="municipio" class="select" required>
                 <option value="" disabled selected>Seleccionar</option>
             </select>
         </div>
 
         <div class="form-group">
             <label for="localidad">Localidad:</label>
-            <select id="localidad" name="localidad" required>
+            <select id="localidad" name="localidad" class="select" required>
                 <option value="" disabled selected>Seleccionar</option>
             </select>
         </div>
