@@ -17,6 +17,10 @@ Route::get('/apartadoUsuarios', function () {
     return view('shared.moduloUsuarios.apartadoUsuarios');
 })->name('apartadoUsuarios');
 
+Route::get('/seleccionarRol', function () {
+    return view('shared.moduloUsuarios.seleccionarRol');
+})->name('seleccionarRol');
+
 Route::get('/altaUsuarios', function () {
     return view('shared.moduloUsuarios.altaDeUsuario');
 })->name('altaUsuarios');
@@ -45,6 +49,10 @@ Route::get('/apartadoBitacoras', function () {
 Route::get('/apartadoBecas', function () {
     return view('SGFIDMA.moduloBecas.apartadoBecas');
 })->name('apartadoBecas');
+
+Route::get('/altaBeca', function () {
+    return view('SGFIDMA.moduloBecas.altaDeBeca');
+})->name('altaBeca');
 
 
 /*CONCEPTOS*/

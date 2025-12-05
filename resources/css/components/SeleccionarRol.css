@@ -1,0 +1,41 @@
+.seleccionarRol {
+    width: 90%;
+    max-width: 350px;
+    margin: 200px auto 0 auto;
+    padding: 25px;
+    border-radius: 20px;
+    text-align: center;
+}
+
+.seleccionarRol h2 {
+    font-size: 26px;
+    margin-bottom: 15px;
+    color: #79272C;
+    font-weight: bold;
+}
+
+/* BOTONES INDIVIDUALES */
+.btn-seleccionarRol {
+    display: block;
+    width: 100%;
+    padding: 14px;
+
+    margin: 0;              /* sin separación vertical */
+    border-radius: 0px;    /* cada botón redondeado */
+    background-color: #ffffff;
+    color: #79272C;
+    border: 1px solid #79272C;
+
+    text-decoration: none;
+    font-size: 17px;
+    font-weight: 600;
+    text-align: center;
+
+   
+}
+
+
+.btn-seleccionarRol:hover {
+    background-color: #79272C;
+    color: #ffffff;
+}
