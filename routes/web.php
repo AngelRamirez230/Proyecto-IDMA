@@ -65,6 +65,14 @@ Route::get('/altaBeca', function () {
     return view('SGFIDMA.moduloBecas.altaDeBeca');
 })->name('altaBeca');
 
+Route::get('/consultaBeca', function () {
+    return view('SGFIDMA.moduloBecas.consultaDeBeca');
+})->name('consultaBeca');
+
+Route::get('/modificacionBeca', function () {
+    return view('SGFIDMA.moduloBecas.modificacionDeBeca');
+})->name('modificacionBeca');
+
 
 /*CONCEPTOS*/
 Route::get('/apartadoConceptos', function () {
