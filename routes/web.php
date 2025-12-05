@@ -17,10 +17,29 @@ Route::get('/apartadoUsuarios', function () {
     return view('shared.moduloUsuarios.apartadoUsuarios');
 })->name('apartadoUsuarios');
 
+Route::get('/seleccionarRol', function () {
+    return view('shared.moduloUsuarios.seleccionarRol');
+})->name('seleccionarRol');
+
+Route::get('/altaUsuarios', function () {
+    return view('shared.moduloUsuarios.altaDeUsuario');
+})->name('altaUsuarios');
+
+
+
+
 /*ESTUDIANTES*/
 Route::get('/apartadoEstudiantes', function () {
     return view('shared.moduloEstudiantes.apartadoEstudiantes');
 })->name('apartadoEstudiantes');
+
+Route::get('/altaEstudiante', function () {
+    return view('shared.moduloEstudiantes.altaEstudiante');
+})->name('altaEstudiante');
+
+
+
+
 
 
 /*REPORTES*/
@@ -42,17 +61,29 @@ Route::get('/apartadoBecas', function () {
     return view('SGFIDMA.moduloBecas.apartadoBecas');
 })->name('apartadoBecas');
 
+Route::get('/altaBeca', function () {
+    return view('SGFIDMA.moduloBecas.altaDeBeca');
+})->name('altaBeca');
+
 
 /*CONCEPTOS*/
 Route::get('/apartadoConceptos', function () {
     return view('SGFIDMA.moduloConceptosDePago.apartadoConceptos');
 })->name('apartadoConceptos');
 
+Route::get('/altaConceptos', function () {
+    return view('SGFIDMA.moduloConceptosDePago.altaDeConcepto');
+})->name('altaConcepto');
+
 
 /*PLAN DE PAGO*/
 Route::get('/apartadoPlanDePago', function () {
     return view('SGFIDMA.moduloPlanDePago.apartadoPlanDePago');
 })->name('apartadoPlanDePago');
+
+Route::get('/altaPlanDePago', function () {
+    return view('SGFIDMA.moduloPlanDePago.altaPlan');
+})->name('altaPlan');
 
 
 /*SOLICITU DE BECA*/

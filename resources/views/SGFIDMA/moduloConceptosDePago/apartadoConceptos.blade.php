@@ -10,7 +10,7 @@
     @include('layouts.barraNavegacion')
     
     <main class="apartado-general">
-        <a href="#" class="btn-boton btn-alta-conceptos">Añadir concepto de pago</a>
+        <a href="{{ route('altaConcepto')}}" class="btn-boton btn-alta-conceptos">Añadir concepto de pago</a>
         <a href="#" class="btn-boton btn-consulta-conceptos">Consultar conceptos de pago</a>
         
     </main>
