@@ -14,7 +14,7 @@
 
         <a href="{{route('altaUsuarios')}}" class="btn-seleccionarRol">Administrador</a>
         <a href="" class="btn-seleccionarRol">Docente</a>
-        <a href="" class="btn-seleccionarRol">Estudiante</a>
+        <a href="{{route('altaEstudiante')}}" class="btn-seleccionarRol">Estudiante</a>
         <a href="" class="btn-seleccionarRol">Empleado</a>
 
     </div>

@@ -9,7 +9,7 @@
 <body>
     @include('layouts.barraNavegacion')
     <main class="apartado-general">
-        <a href="#" class="btn-boton btn-alta-plan">Crear plan de pago</a>
+        <a href="{{route('altaPlan')}}" class="btn-boton btn-alta-plan">Crear plan de pago</a>
         <a href="#" class="btn-boton btn-consulta-plan">Consultar planes de pago</a>
     </main>
 

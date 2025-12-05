@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alta de usuario</title>
+    <title>Alta de estudiante</title>
     @vite(['resources/css/app.css'])
 </head>
 <body>
@@ -11,6 +11,24 @@
 
     <form action="{{ route('inicio')}}" method="POST" class="formulario">
     @csrf
+
+        <div class="form-group">
+            <label for="matriculaNumerica">Mátricula númerica:</label>
+            <input type="text" id="matriculaNumerica" name="matriculaNumerica" class="input-mediano input-bloqueado" placeholder="" readonly>
+        </div>  
+
+        <div class="form-group">
+            <label for="matriculaAlfanumerica">Mátricula alfanúmerica:</label>
+            <input type="text" id="matriculaAlfanumerica" name="matriculaAlfanumerica" class="input-mediano input-bloqueado" placeholder="" readonly>
+        </div>  
+
+        <div class="form-group">
+            <label for="carrera">Carrera:</label>
+            <select id="carrera" name="carrera" class="select" required>
+                <option value="" disabled selected>Seleccionar</option>
+            </select>
+        </div>
+
 
         <div class="form-group">
             <label for="primer_nombre">Primer nombre:</label>
@@ -123,7 +141,7 @@
 
         <div class="form-group">
             <button type="submit" class="btn-boton-formulario">Guardar</button>
-            <a href="{{ route('apartadoUsuarios') }}" class="btn-boton-formulario btn-cancelar">Cancelar</a>
+            <a href="{{ route('apartadoEstudiantes') }}" class="btn-boton-formulario btn-cancelar">Cancelar</a>
         </div>
     </form>
 

@@ -51,6 +51,11 @@
     width: 250px;
 }
 
+.input-bloqueado {
+    background-color: #CED4DA !important;
+    color: #000; /* gris del texto */
+    cursor: not-allowed; /* icono de prohibido */
+}
 
 /* Estilo general de los botones */
 .btn-boton-formulario {
