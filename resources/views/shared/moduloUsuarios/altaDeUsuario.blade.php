@@ -14,33 +14,112 @@
 
         <div class="form-group">
             <label for="primer_nombre">Primer nombre:</label>
-            <input type="text" id="primer_nombre" name="primer_nombre" placeholder="Ingresa el primer nombre" required>
+            <input type="text" id="primer_nombre" name="primer_nombre" class= input-mediano placeholder="Ingresa el primer nombre" required>
         </div>
 
         <div class="form-group">
             <label for="segundo_nombre">Segundo nombre:</label>
-            <input type="text" id="segundo_nombre" name="segundo_nombre" placeholder="Ingresa el segundo nombre">
+            <input type="text" id="segundo_nombre" name="segundo_nombre" class= input-mediano placeholder="Ingresa el segundo nombre">
         </div>
 
         <div class="form-group">
             <label for="apellido_paterno">Apellido paterno:</label>
-            <input type="text" id="apellido_paterno" name="apellido_paterno" placeholder="Ingresa el apellido paterno" required>
+            <input type="text" id="apellido_paterno" name="apellido_paterno" class= input-mediano placeholder="Ingresa el apellido paterno" required>
         </div>
 
         <div class="form-group">
-            <label for="apellido_materno">Apellido materno:</label>
-            <input type="text" id="apellido_materno" name="apellido_materno" placeholder="Ingresa el apellido materno">
+            <label for="genero">Genero:</label>
+            <select id="genero" name="genero" required>
+                <option value="" disabled selected>Seleccionar</option>
+            </select>
         </div>
 
         <div class="form-group">
-            <label for="email">Correo electrónico:</label>
-            <input type="email" id="email" name="email" placeholder="ejemplo@correo.com" required>
+            <label for="telefono">Teléfono:</label>
+            <input type="text" id="telefono" name="telefono" class= input-chico placeholder="Ingresa número de teléfono">
+        </div>
+
+        <div class="form-group">
+            <label for="emailInstitucional">Correo institucional:</label>
+            <input type="email" id="emailInstitucional" name="emailInstitucional" class= input-mediano placeholder="ejemplo@idma.edu.mx" required>
         </div>
 
         <div class="form-group">
             <label for="password">Contraseña:</label>
-            <input type="password" id="password" name="password" placeholder="Escribe una contraseña" required>
+            <input type="password" id="password" name="password" class= input-chico placeholder="Escribe una contraseña" required>
         </div>
+
+        <div class="form-group">
+            <label for="nombreUsuario">Nombre de usuario:</label>
+            <input type="text" id="nombreUsuario" name="nombreUsuario" class= input-mediano placeholder="Ingresa el nombre de usuario" required>
+        </div>
+
+        <div class="form-group">
+            <label for="fechaNacimiento">Fecha de nacimiento:</label>
+            <input type="date" id="fechaNacimiento" name="fechaNacimiento" max="{{ date('Y-m-d') }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="curp">Correo electrónico:</label>
+            <input type="text" id="curp" name="curp" class= input-chico placeholder="CURP" required>
+        </div>
+
+        <div class="form-group">
+            <label for="rfc">Correo electrónico:</label>
+            <input type="text" id="rfc" name="rfc" class= input-chico placeholder="RFC">
+        </div>
+
+        <div class="form-group">
+            <label for="email">Correo electrónico:</label>
+            <input type="email" id="email" name="email" class= input-mediano placeholder="ejemplo@correo.com" required>
+        </div>
+
+        <div class="form-group">
+            <label for="entidad">Entidad:</label>
+            <select id="entidad" name="entidad" required>
+                <option value="" disabled selected>Seleccionar</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="municipio">Municipio:</label>
+            <select id="municipio" name="municipio" required>
+                <option value="" disabled selected>Seleccionar</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="localidad">Localidad:</label>
+            <select id="localidad" name="localidad" required>
+                <option value="" disabled selected>Seleccionar</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="codigoPostal">Código postal:</label>
+            <input type="text" id="codigoPostal" name="codigoPostal" class= input-chico placeholder="Ingresa el código postal">
+        </div>
+
+        <div class="form-group">
+            <label for="calle">Calle:</label>
+            <input type="text" id="calle" name="calle" class= input-grande placeholder="Ingresa el nombre de la calle">
+        </div>
+
+        <div class="form-group">
+            <label for="numeroExterior">Número exterior:</label>
+            <input type="text" id="numeroExterior" name="numeroExterior" class= input-chico placeholder="Número exterior">
+        </div>
+
+        <div class="form-group">
+            <label for="numeroInterior">Numero interior:</label>
+            <input type="text" id="numeroInterior" name="numeroInterior" class= input-chico placeholder="Número interior">
+        </div>
+
+        <div class="form-group">
+            <label for="colonia">Colonia:</label>
+            <input type="text" id="colonia" name="colonia" class= input-mediano placeholder="Ingresa el nombre de la colonia">
+        </div>
+
 
         <div class="form-group">
             <button type="submit" class="btn-boton-formulario">Guardar</button>

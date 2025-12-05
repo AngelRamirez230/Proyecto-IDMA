@@ -26,7 +26,7 @@
 
 /* Inputs */
 .form-group input {
-    width: 600px;
+    
     padding: 10px 12px;
     border: 1px solid #000;
     border-radius: 6px;
@@ -36,6 +36,20 @@
     transition: border 0.3s;
 }
 
+
+.input-grande {
+    width: 600px;
+}
+
+
+.input-mediano {
+    width: 400px;
+}
+
+
+.input-chico {
+    width: 250px;
+}
 
 
 /* Estilo general de los botones */
