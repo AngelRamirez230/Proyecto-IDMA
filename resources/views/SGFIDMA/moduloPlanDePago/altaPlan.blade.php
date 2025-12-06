@@ -14,7 +14,7 @@
 
         <div class="form-group">
             <label for="nombrePlan">Nombre del plan de pago:</label>
-            <input type="text" id="nombrePlan" name="nombrePlan" class= input-grande placeholder="Ingresa el nombre del plan de pago" required>
+            <input type="text" id="nombrePlan" name="nombrePlan" class="input-grande" placeholder="Ingresa el nombre del plan de pago" required>
         </div>
 
         <div class="form-group">

@@ -10,7 +10,7 @@
     @include('layouts.barraNavegacion')
 
     <main class="apartado-general">
-        <a href="#" class="btn-boton btn-pagos-aprobados">Pagos aprobados</a>
+        <a href="{{route('eleccionFechas')}}" class="btn-boton btn-pagos-aprobados">Pagos aprobados</a>
         <a href="#" class="btn-boton btn-pagos-pendientes">Pagos pendientes</a>
         <a href="#" class="btn-boton btn-pagos-rechazados">Pagos rechazados</a>
         <a href="#" class="btn-boton btn-Kardex">Kárdex</a>
