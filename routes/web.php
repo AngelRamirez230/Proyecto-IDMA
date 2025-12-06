@@ -25,7 +25,9 @@ Route::get('/altaUsuarios', function () {
     return view('shared.moduloUsuarios.altaDeUsuario');
 })->name('altaUsuarios');
 
-
+Route::get('/consultaUsuarios', function () {
+    return view('shared.moduloUsuarios.consultaDeUsuarios');
+})->name('consultaUsuarios');
 
 
 /*ESTUDIANTES*/

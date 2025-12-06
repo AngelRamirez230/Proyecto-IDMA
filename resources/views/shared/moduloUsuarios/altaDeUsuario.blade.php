@@ -28,7 +28,7 @@
         </div>
 
         <div class="form-group">
-            <label for="genero">Genero:</label>
+            <label for="genero">Género:</label>
             <select id="genero" name="genero" class="select" required>
                 <option value="" disabled selected>Seleccionar</option>
             </select>
