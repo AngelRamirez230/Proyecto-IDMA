@@ -85,6 +85,15 @@ Route::get('/altaConceptos', function () {
     return view('SGFIDMA.moduloConceptosDePago.altaDeConcepto');
 })->name('altaConcepto');
 
+Route::get('/consultaConceptos', function () {
+    return view('SGFIDMA.moduloConceptosDePago.consultaDeConceptos');
+})->name('consultaConceptos');
+
+Route::get('/modificacionConceptos', function () {
+    return view('SGFIDMA.moduloConceptosDePago.modificacionConcepto');
+})->name('modificacionConceptos');
+
+
 
 /*PLAN DE PAGO*/
 Route::get('/apartadoPlanDePago', function () {
@@ -94,6 +103,10 @@ Route::get('/apartadoPlanDePago', function () {
 Route::get('/altaPlanDePago', function () {
     return view('SGFIDMA.moduloPlanDePago.altaPlan');
 })->name('altaPlan');
+
+Route::get('/consultaPlanDePago', function () {
+    return view('SGFIDMA.moduloPlanDePago.consultaPlanDePago');
+})->name('consultaPlan');
 
 
 /*SOLICITU DE BECA*/
@@ -108,10 +121,27 @@ Route::get('/apartadoPago', function () {
     return view('SGFIDMA.moduloPagos.apartadoPago');
 })->name('apartadoPagos');
 
+Route::get('/consultaPagos', function () {
+    return view('SGFIDMA.moduloPagos.consultaDePagos');
+})->name('consultaPagos');
+
+Route::get('/detallesPago', function () {
+    return view('SGFIDMA.moduloPagos.detallesDePago');
+})->name('detallesPago');
+
+
 /*REPORTES FINANZAS*/
 Route::get('/apartadoReporteFinanzas', function () {
     return view('SGFIDMA.moduloReportesFinanzas.apartadoReportesFinanzas');
 })->name('apartadoReportesFinanzas');
+
+Route::get('/eleccionFechas', function () {
+    return view('SGFIDMA.moduloReportesFinanzas.eleccionDeFechas');
+})->name('eleccionFechas');
+
+Route::get('/reportePagosAprobados', function () {
+    return view('SGFIDMA.moduloReportesFinanzas.reportePagosAprobados');
+})->name('reportePagosAprobados');
 
 
 

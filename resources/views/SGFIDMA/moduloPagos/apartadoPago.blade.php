@@ -10,7 +10,7 @@
     @include('layouts.barraNavegacion')
 
     <main class="apartado-general">
-        <a href="#" class="btn-boton btn-consulta-pago">Consultar pagos</a>
+        <a href="{{route('consultaPagos')}}" class="btn-boton btn-consulta-pago">Consultar pagos</a>
         <a href="#" class="btn-boton btn-validar-pago">Validar pagos</a>
         
     </main>

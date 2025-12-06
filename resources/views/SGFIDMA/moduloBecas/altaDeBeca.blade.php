@@ -14,12 +14,12 @@
 
         <div class="form-group">
             <label for="nombreBeca">Nombre de Beca:</label>
-            <input type="text" id="nombreBeca" name="nombreBeca" class= input-grande placeholder="Ingresa el nombre de la beca" required>
+            <input type="text" id="nombreBeca" name="nombreBeca" class="input-grande" placeholder="Ingresa el nombre de la beca" required>
         </div>
 
         <div class="form-group">
             <label for="porcentajeBeca">Porcentaje de descuento:</label>
-            <input type="text" id="porcentajeBeca" name="porcentajeBeca" class= input-chico placeholder="Ingresa el porcentaje de descuento">
+            <input type="text" id="porcentajeBeca" name="porcentajeBeca" class="input-chico" placeholder="Porcentaje de descuento" required>
         </div>
 
 
