@@ -1,0 +1,155 @@
+/* ==============================
+   Consulta - Layout
+   ============================== */
+
+.consulta {
+    margin-top: 172px; /* navbar + subnav */
+    padding: 0 20px 40px;
+}
+
+.consulta-titulo {
+    font-family: "Poppins", sans-serif;
+    font-size: 40px;
+    font-weight: 700;
+    color: #79272C;
+    margin: 0;
+}
+
+/* Controles */
+.consulta-controles {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-top: 42px;
+}
+
+/* ==============================
+   BUSCADOR (CORREGIDO)
+   ============================== */
+
+.consulta-busqueda-group {
+    display: flex;
+    align-items: center;
+    border: 1px solid #000;
+    border-radius: 6px;
+    overflow: hidden; /* evita que el borde se rompa */
+    height: 42px;
+    background: #ffffff;
+}
+
+.consulta-busqueda-group img {
+    padding: 8px;
+    height: 100%;
+    border-right: 1px solid #000;
+    box-sizing: border-box;
+}
+
+.consulta-busqueda-group input {
+    border: none;
+    outline: none;
+    width: 400px;
+    font-size: 14px;
+    padding: 8px 10px;
+    flex: 1;
+    font-family: "Poppins", sans-serif;
+}
+
+/* ==============================
+   Selects del lado derecho
+   ============================== */
+
+.consulta-selects {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+}
+
+.select-boton {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+    font-family: "Poppins", sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    background: #fff;
+    border: 1px solid #000;
+    border-radius: 6px;
+}
+
+.consulta-selects .select-boton + .select-boton {
+    margin-left: 10px;
+}
+
+.select-boton-icono {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+}
+
+/* ==============================
+   TABLA
+   ============================== */
+
+.consulta-tabla-contenedor {
+    margin-top: 42px;
+}
+
+.tabla {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tabla-encabezado {
+    display: flex;
+    background: #79272C;
+    color: #FFFFFF;
+}
+
+.tabla-encabezado th {
+    flex: 1;
+    padding: 12px 16px;
+    font-weight: 500;
+    text-align: center;
+}
+
+.tabla-encabezado th:last-child {
+    text-align: center;
+}
+
+.tabla-cuerpo {
+    display: block;
+}
+
+.tabla-fila {
+    display: flex;
+    border-top: 1px solid #5B5B5B;
+}
+
+.tabla-fila td {
+    flex: 1;
+    padding: 12px 16px;
+}
+
+.tabla-fila td:last-child {
+    text-align: center;
+}
+
+.tabla-acciones {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.accion-boton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.accion-boton img {
+    width: 20px;
+    height: 20px;
+}
