@@ -3,7 +3,7 @@
    ============================== */
 
 .consulta {
-    margin-top: 172px; /* navbar + subnav */
+    margin-top: 130px; /* navbar + subnav */
     padding: 0 20px 40px;
 }
 
@@ -17,10 +17,11 @@
 
 /* Controles */
 .consulta-controles {
-    display: flex;
+    display:flex;
+    flex-direction: column; /* barra arriba, selects abajo */
     align-items: flex-start;
     justify-content: space-between;
-    margin-top: 42px;
+    margin-top: 20px;
 }
 
 /* ==============================
@@ -50,7 +51,6 @@
     width: 400px;
     font-size: 14px;
     padding: 8px 10px;
-    flex: 1;
     font-family: "Poppins", sans-serif;
 }
 
@@ -86,6 +86,38 @@
     width: 16px;
     height: 16px;
     object-fit: contain;
+}
+
+/* ===============================
+   RESPONSIVE PARA SELECTS
+================================ */
+
+/* Cuando la pantalla sea menor a 992px → selects abajo */
+@media (max-width: 992px) {
+    .consulta-usuarios-controles {
+        flex-direction: column; /* barra arriba, selects abajo */
+        gap: 20px;
+        align-items: flex-start; /* todo alineado a la izquierda */
+    }
+
+    .consulta-selects {
+        width: 100%;
+        margin-top: 60px;
+        display: flex;
+        justify-content: flex-start;
+        gap: 10px;
+    }
+}
+
+/* Cuando sea menor a 566px → botones al 50% */
+@media (max-width: 566px) {
+    .consulta-selects {
+        flex-wrap: wrap; /* permite que se vayan a otra línea */
+    }
+
+    .select-boton {
+        width: 50%; /* cada uno ocupa la mitad del ancho */
+    }
 }
 
 /* ==============================
