@@ -125,6 +125,30 @@
 }
 
 
+/* Contenedor que permite poner imagen dentro */
+.contenedor-input-icono {
+    position: relative;
+    width: fit-content;
+    display: inline-block;
+}
+
+/* Espacio a la derecha dentro del input */
+.contenedor-input-icono input {
+    padding-right: 40px; 
+}
+
+/* Imagen alineada a la derecha */
+.icono-input-img {
+    position: absolute;
+    right: 10px; /* distancia del borde derecho */
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;   /* ajusta tamaño */
+    height: 30px;
+    pointer-events: none; /* no bloquea el input */
+}
+
+
 /* Responsive */
 @media screen and (max-width: 950px) {
 
@@ -141,6 +165,22 @@
         margin-left: 0;
     }
 
+    /* --- 📌 Ajustes para inputs con icono --- */
+    .contenedor-input-icono {
+        width: 100%; /* el contenedor ocupa todo el ancho */
+    }
+
+    .contenedor-input-icono input {
+        width: calc(100% - 40px);      /* input responsivo */
+        padding-right: 40px; /* espacio para icono */
+    }
+
+    .icono-input-img {
+        right: 50px;     
+        width: 30px;
+        height: 30px;
+    }
+    /* --------------------------------------- */
 
     .btn-boton-formulario {
         display: block;     
@@ -155,3 +195,9 @@
     }
 
 }
+
+
+
+
+
+
