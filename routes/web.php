@@ -144,6 +144,8 @@ Route::get('/reportePagosAprobados', function () {
     return view('SGFIDMA.moduloReportesFinanzas.reportePagosAprobados');
 })->name('reportePagosAprobados');
 
-
+Route::get('/reportePagosAprobados', function () {
+    return view('SGFIDMA.moduloReportesFinanzas.reportePagosAprobados');
+})->name('reportePagosAprobados');
 
 
