@@ -52,7 +52,17 @@
                             <td>{{ $beca->porcentajeDeDescuento }}%</td>
                             <td>{{ $beca->estatus->nombreTipoDeEstatus ?? 'Sin estatus' }}</td>
                             <td>
-                                <!-- Aquí van los botones de acciones, por ejemplo editar o eliminar -->
+                                <div class="tabla-acciones">
+                                    <a href="{{ route('becas.edit', $beca->idBeca) }}" class="accion-boton" title="Editar">
+                                        <img src="{{ asset('imagenes/IconoEditar.png') }}" alt="Editar">
+                                    </a>
+                                    <a href="{{ route('becas.edit', $beca->idBeca) }}" class="accion-boton" title="Suspender">
+                                        <img src="{{ asset('imagenes/IconoSuspender.png') }}" alt="Editar">
+                                    </a>
+                                    <a href="{{ route('becas.edit', $beca->idBeca) }}" class="accion-boton" title="Eliminar">
+                                        <img src="{{ asset('imagenes/IconoEliminar.png') }}" alt="Eliminar">
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     @endforeach

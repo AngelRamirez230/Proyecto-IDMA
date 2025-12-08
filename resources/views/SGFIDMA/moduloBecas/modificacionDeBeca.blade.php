@@ -14,12 +14,12 @@
 
         <div class="form-group">
             <label for="nombreBeca">Nombre de Beca:</label>
-            <input type="text" id="nombreBeca" name="nombreBeca" class="input-grande input-bloqueado" readonly>
+             <input type="text" id="nombreBeca" name="nombreBeca" class="input-grande input-bloqueado" value="{{ $beca->nombreDeBeca }}" readonly>
         </div>
 
         <div class="form-group">
             <label for="porcentajeBeca">Porcentaje de descuento:</label>
-            <input type="text" id="porcentajeBeca" name="porcentajeBeca" class="input-chico">
+            <input type="text" id="porcentajeBeca" name="porcentajeBeca" class="input-chico" value="{{ $beca->porcentajeDeDescuento }}">
         </div>
 
 

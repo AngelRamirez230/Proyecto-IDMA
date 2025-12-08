@@ -66,17 +66,14 @@ Route::get('/apartadoBecas', function () {
     return view('SGFIDMA.moduloBecas.apartadoBecas');
 })->name('apartadoBecas');
 
-Route::get('/apartadoBecas', function () {
-    return view('SGFIDMA.moduloBecas.apartadoBecas');
-})->name('apartadoBecas');
 
 Route::get('/altaBeca', [BecaController::class, 'create'])->name('altaBeca');
 
 Route::get('/consultaBeca', [BecaController::class, 'index'])->name('consultaBeca');
 
-Route::get('/modificacionBeca', function () {
-    return view('SGFIDMA.moduloBecas.modificacionDeBeca');
-})->name('modificacionBeca');
+Route::get('/becas/{id}/modificar', [BecaController::class, 'edit'])->name('becas.edit');
+
+Route::put('/becas/{id}', [BecaController::class, 'update'])->name('becas.update');
 
 Route::post('/becas/store', [BecaController::class, 'store'])->name('becas.store');
 

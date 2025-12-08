@@ -51,4 +51,16 @@ class BecaController extends Controller
 
         return view('SGFIDMA.moduloBecas.consultaDeBeca', compact('becas'));
     }
+
+    public function edit($id)
+    {
+        // Buscar la beca por id
+        $beca = Beca::findOrFail($id);
+
+        // Retornar la vista de modificación con los datos de la beca
+        return view('SGFIDMA.moduloBecas.modificacionDeBeca', compact('beca'));
+    }
+
+
+    
 }
