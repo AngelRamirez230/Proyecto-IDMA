@@ -23,13 +23,18 @@
         </div>
 
         <div class="form-group">
-            <label for="apellido_paterno">Apellido paterno:</label>
-            <input type="text" id="apellido_paterno" name="apellido_paterno" class="input-mediano" placeholder="Ingresa el apellido paterno" required>
+            <label for="primer_apellido">Primer apellido:</label>
+            <input type="text" id="primer_apellido" name="primer_apellid" class="input-mediano" placeholder="Ingresa el primer apellido" required>
         </div>
 
         <div class="form-group">
-            <label for="genero">Género:</label>
-            <select id="genero" name="genero" class="select" required>
+            <label for="segundo_apellido">Segundo apellido:</label>
+            <input type="text" id="segundo_apellido" name="segundo_apellido" class="input-mediano" placeholder="Ingresa el segundo apellido" required>
+        </div>
+
+        <div class="form-group">
+            <label for="genero">Sexo:</label>
+            <select id="genero" name="sexo" class="select" required>
                 <option value="" disabled selected>Seleccionar</option>
             </select>
         </div>
