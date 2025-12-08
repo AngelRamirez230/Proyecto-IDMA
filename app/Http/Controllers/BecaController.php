@@ -40,5 +40,15 @@ class BecaController extends Controller
 
         return redirect()->route('altaBeca')
                          ->with('success', 'Beca registrada correctamente');
+        
+
+    }
+
+     public function index()
+    {
+        // Obtener todas las becas con su estatus
+        $becas = Beca::with('estatus')->get();
+
+        return view('SGFIDMA.moduloBecas.consultaDeBeca', compact('becas'));
     }
 }

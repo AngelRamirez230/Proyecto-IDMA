@@ -46,11 +46,20 @@
                     </tr>
                 </thead>
                 <tbody class="tabla-cuerpo">
-                    {{-- Aquí se iterarán las becas registradas --}}
+                    @foreach ($becas as $beca)
+                        <tr>
+                            <td>{{ $beca->nombreDeBeca }}</td>
+                            <td>{{ $beca->porcentajeDeDescuento }}%</td>
+                            <td>{{ $beca->estatus->nombreTipoDeEstatus ?? 'Sin estatus' }}</td>
+                            <td>
+                                <!-- Aquí van los botones de acciones, por ejemplo editar o eliminar -->
+                            </td>
+                        </tr>
+                    @endforeach
                 </tbody>
             </table>
         </section>
     </main>
-    
+
 </body>
 </html>

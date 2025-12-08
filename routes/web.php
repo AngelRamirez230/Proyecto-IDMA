@@ -68,9 +68,7 @@ Route::get('/apartadoBecas', function () {
 
 Route::get('/altaBeca', [BecaController::class, 'create'])->name('altaBeca');
 
-Route::get('/consultaBeca', function () {
-    return view('SGFIDMA.moduloBecas.consultaDeBeca');
-})->name('consultaBeca');
+Route::get('/consultaBeca', [BecaController::class, 'index'])->name('consultaBeca');
 
 Route::get('/modificacionBeca', function () {
     return view('SGFIDMA.moduloBecas.modificacionDeBeca');
