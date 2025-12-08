@@ -9,7 +9,7 @@
 <body>
     @include('layouts.barraNavegacion')
 
-    <form action="{{ route('inicio')}}" method="POST" class="formulario">
+    <form action="{{ route('becas.store') }}" method="POST" class="formulario">
     @csrf
 
         <div class="form-group">

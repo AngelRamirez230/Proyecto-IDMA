@@ -8,6 +8,77 @@
 </head>
 <body>
     @include('layouts.barraNavegacion')
+
+    <main class="consulta">
+        <h1 class="consulta-titulo">Lista de pagos</h1>
+
+        <section class="consulta-controles">
+            <!-- Barra de búsqueda -->
+            <div class="consulta-busqueda-group">
+                <img src="{{ asset('imagenes/IconoBusqueda.png') }}" alt="Buscar">
+                <input
+                    type="text"
+                    id="buscarPago"
+                    name="buscarPago"
+                    placeholder="Ingresa referencia de pago o nombre del estudiante"
+                >
+            </div>
+
+            <!-- Filtros del lado derecho -->
+            <div class="consulta-selects">
+                <select type="button" class="select select-boton">
+                    <option value="" disabled selected>Filtrar por</option>
+                </select>
+
+                <select type="button" class="select select-boton">
+                    <option value="" disabled selected>Ordenar por</option>
+                </select>
+            </div>
+        </section>
+
+        <!-- Tabla de resultados -->
+        <section class="consulta-tabla-contenedor">
+            <table class="tabla">
+                <thead>
+                    <tr class="tabla-encabezado">
+                        <th>Nombre estudiante</th>
+                        <th>Referencia de pago</th>
+                        <th>Concepto de pago</th>
+                        <th>Fecha de pago</th>
+                        <th>Estatus</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="tabla-cuerpo">
+                    {{-- Aquí se iterarán las becas registradas --}}
+                    {{--
+                    @foreach($pago as $pago)
+                        <tr class="tabla-fila">
+                            <td>{{ $pago->nombreEstudiante }}</td>
+                            <td>{{ $pago->referencia }}</td>
+                            <td>{{ $pago->conceptoDePago }}</td>
+                            <td>{{ $pago->fechaDePago }}</td>
+                            <td>{{ $pago->estatus }}</td>
+                            <td>
+                                <div class="tabla-acciones">
+                                    <button type="button" class="accion-boton" title="Ver detalles">
+                                        <img src="{{ asset('imagenes/IconoInicioUsuarios.png') }}" alt="Ver">
+                                    </button>
+                                    <button type="button" class="accion-boton" title="Editar">
+                                        <img src="{{ asset('imagenes/IconoInicioUsuarios.png') }}" alt="Editar">
+                                    </button>
+                                    <button type="button" class="accion-boton" title="Suspender">
+                                        <img src="{{ asset('imagenes/IconoInicioUsuarios.png') }}" alt="Desactivar">
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                    --}}
+                </tbody>
+            </table>
+        </section>
+    </main>
     
 </body>
 </html>
