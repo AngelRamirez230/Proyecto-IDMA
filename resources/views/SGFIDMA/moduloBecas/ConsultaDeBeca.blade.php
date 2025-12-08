@@ -8,15 +8,6 @@
 </head>
 <body>
 
-    @if (session('success'))
-        <div class="popup-notificacion" id="popup">
-            <div class="popup-contenido">
-                <p>{{ session('success') }}</p>
-                <button class="popup-boton" onclick="cerrarPopup()">Aceptar</button>
-            </div>
-        </div>
-    @endif
-
     @include('layouts.barraNavegacion')
 
     <main class="consulta">
@@ -55,17 +46,20 @@
                     </tr>
                 </thead>
                 <tbody class="tabla-cuerpo">
-                    {{-- Aquí se iterarán las becas registradas --}}
+                    @foreach ($becas as $beca)
+                        <tr>
+                            <td>{{ $beca->nombreDeBeca }}</td>
+                            <td>{{ $beca->porcentajeDeDescuento }}%</td>
+                            <td>{{ $beca->estatus->nombreTipoDeEstatus ?? 'Sin estatus' }}</td>
+                            <td>
+                                <!-- Aquí van los botones de acciones, por ejemplo editar o eliminar -->
+                            </td>
+                        </tr>
+                    @endforeach
                 </tbody>
             </table>
         </section>
     </main>
-
-    <script>
-        function cerrarPopup() {
-            document.getElementById('popup').style.display = 'none';
-        }
-    </script>
 
 </body>
 </html>
