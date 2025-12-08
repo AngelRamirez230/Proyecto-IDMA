@@ -1,0 +1,54 @@
+/* Fondo oscuro del popup */
+.popup-notificacion {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 5000;
+}
+
+/* Caja del popup */
+.popup-contenido {
+    background: #ffffff;
+    padding: 25px 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    text-align: center;
+    max-width: 300px;
+    font-size: 18px;
+    color: #333;
+    animation: aparecer 0.3s ease-out;
+}
+
+/* Botón */
+.popup-boton {
+    margin-top: 15px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background-color: #79272C;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.popup-boton:hover {
+    background-color: #5e1f23;
+}
+
+/* Animación */
+@keyframes aparecer {
+    from {
+        transform: scale(0.7);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}

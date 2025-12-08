@@ -1,6 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\BecaController;
+
+
 
 
 /*--------------------------SHARED--------------------------------*/
@@ -67,13 +70,13 @@ Route::get('/altaBeca', function () {
     return view('SGFIDMA.moduloBecas.altaDeBeca');
 })->name('altaBeca');
 
-Route::get('/consultaBeca', function () {
-    return view('SGFIDMA.moduloBecas.consultaDeBeca');
-})->name('consultaBeca');
+Route::get('/consultaBeca', [BecaController::class, 'index'])->name('consultaBeca');
 
 Route::get('/modificacionBeca', function () {
     return view('SGFIDMA.moduloBecas.modificacionDeBeca');
 })->name('modificacionBeca');
+
+Route::post('/becas/store', [BecaController::class, 'store'])->name('becas.store');
 
 
 /*CONCEPTOS*/
