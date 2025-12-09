@@ -87,9 +87,9 @@ Route::get('/apartadoConceptos', function () {
     return view('SGFIDMA.moduloConceptosDePago.apartadoConceptos');
 })->name('apartadoConceptos');
 
-Route::get('/altaConceptos', function () {
-    return view('SGFIDMA.moduloConceptosDePago.altaDeConcepto');
-})->name('altaConcepto');
+Route::get('/altaConceptos', [ConceptoController::class, 'create'])->name('altaConcepto');
+
+Route::post('/altaConceptos', [ConceptoController::class, 'store'])->name('guardarConcepto');
 
 Route::get('/consultaConceptos', function () {
     return view('SGFIDMA.moduloConceptosDePago.consultaDeConceptos');
