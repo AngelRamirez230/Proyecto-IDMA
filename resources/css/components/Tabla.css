@@ -61,6 +61,11 @@
     margin-left: auto;
 }
 
+.consulta-selects form {
+    display: flex;
+    align-items: center;
+}
+
 .select-boton {
     display: flex;
     align-items: center;
@@ -132,6 +137,17 @@
     text-align: center;
     white-space: nowrap; /* evita que se rompa el texto */
     vertical-align: middle;
+}
+
+.fila-suspendida td {
+    color: #6A737B !important;
+}
+
+.tablaVacia{
+text-align:center; 
+padding: 20px; 
+color: #79272C; 
+font-size: 18px;
 }
 
 /* ==============================
@@ -228,27 +244,22 @@
 }
 
 @media (max-width: 566px) {
-    .consulta-selects {
-        flex-wrap: wrap;
-        margin-top: 0 !important;
-        gap: 0; /* eliminar espacio entre los botones */
-        flex-direction: column; /* apilar verticalmente */
-        padding-left: 0; /* acercar al borde izquierdo */
-        align-items: flex-start; /* aseguramos alineación a la izquierda */
+    .consulta-selects form {
+        flex-direction: column !important; /* uno debajo del otro */
+        align-items: flex-start !important; /* alineación izquierda */
+        width: 100%;
+        gap: 10px; /* separación entre los selects */
+    }
+
+    .consulta-busqueda-group input {
+        width: calc(100% - 40px);
     }
 
     .select-boton {
-        margin-left: 0 !important; /* eliminar margen heredado */
-        margin-bottom: 10px; /* espacio entre botones */
-        width: auto; /* que no ocupe todo el ancho */
-        min-width: 150px; /* opcional: ancho mínimo para que se vea uniforme */
-    }
-
-    .consulta-selects .select-boton + .select-boton {
-        margin-left: 0; /* asegurar que no haya separación lateral */
+        width: 180px; /* mismo tamaño */
+        margin: 0 !important;
     }
 }
-
 
 
 

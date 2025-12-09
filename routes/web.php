@@ -80,6 +80,8 @@ Route::post('/becas/store', [BecaController::class, 'store'])->name('becas.store
 Route::delete('/becas/{id}', [BecaController::class, 'destroy'])->name('becas.destroy');
 
 
+
+
 /*CONCEPTOS*/
 Route::get('/apartadoConceptos', function () {
     return view('SGFIDMA.moduloConceptosDePago.apartadoConceptos');

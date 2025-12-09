@@ -44,12 +44,39 @@ class BecaController extends Controller
 
     }
 
-     public function index()
+    public function index(Request $request)
     {
-        // Obtener todas las becas con su estatus
-        $becas = Beca::with('estatus')->get();
+        $orden = $request->orden;
+        $filtro = $request->filtro;
+        $buscar = $request->buscarBeca;
 
-        return view('SGFIDMA.moduloBecas.consultaDeBeca', compact('becas'));
+        $query = Beca::with('estatus');
+
+        if ($request->filled('buscarBeca')) {
+            $query->where('nombreDeBeca', 'LIKE', '%' . $buscar . '%');
+        }
+
+
+        if ($filtro === 'activas') {
+            $query->where('idEstatus', 1);
+        } elseif ($filtro === 'suspendidas') {
+            $query->where('idEstatus', 2);
+        } elseif ($filtro === 'todas') {
+
+        }
+
+        // Aplicar orden
+        if ($orden === 'alfabetico') {
+            $query->orderBy('nombreDeBeca', 'asc');
+        } elseif ($orden === 'porcentaje_mayor') {
+            $query->orderBy('porcentajeDeDescuento', 'desc');
+        } elseif ($orden === 'porcentaje_menor') {
+            $query->orderBy('porcentajeDeDescuento', 'asc');
+        }
+
+        $becas = $query->get();
+
+        return view('SGFIDMA.moduloBecas.consultaDeBeca', compact('becas', 'orden', 'filtro','buscar'));
     }
 
     public function edit($id)
@@ -102,6 +129,9 @@ class BecaController extends Controller
 
         return redirect()->route('consultaBeca')->with('success', "La beca {$beca->nombreDeBeca} ha sido eliminada.");
     }
+
+
+    
 
 
 

@@ -23,29 +23,35 @@
         <h1 class="consulta-titulo">Lista de becas</h1>
 
         <section class="consulta-controles">
-            <div class="consulta-busqueda-group">
-                <img src="{{ asset('imagenes/IconoBusqueda.png') }}" alt="Buscar">
-                <input
-                    type="text"
-                    id="buscarBeca"
-                    name="buscarBeca"
-                    placeholder="Ingresa nombre de beca o porcentaje de descuento"
-                >
-            </div>
+            <form action="{{ route('consultaBeca') }}" method="GET">
+                <div class="consulta-busqueda-group">
+                    <img src="{{ asset('imagenes/IconoBusqueda.png') }}" alt="Buscar">
+                    <input type="text" id="buscarBeca" name="buscarBeca" placeholder="Ingresa nombre de la beca" value="{{ $buscar ?? '' }}" onkeydown="if(event.key === 'Enter') this.form.submit();"/>
+                </div>
+            </form>
 
             <div class="consulta-selects">
-                <select type="button" class="select select-boton">
-                    <option value="" disabled selected>Filtrar por</option>
-                </select>
+                <form action="{{ route('consultaBeca') }}" method="GET" id="formFiltro">
+                    <select name="filtro" class="select select-boton" onchange="this.form.submit()">
+                        <option value="" disabled selected>Filtrar por</option>
+                        <option value="todas" {{ ($filtro ?? '') == 'todas' ? 'selected' : '' }}>Ver todas</option>
+                        <option value="activas" {{ ($filtro ?? '') == 'activas' ? 'selected' : '' }}>Activo(a)</option>
+                        <option value="suspendidas" {{ ($filtro ?? '') == 'suspendidas' ? 'selected' : '' }}>Suspendido(a)</option>
+                    </select>
 
-                <select type="button" class="select select-boton">
-                    <option value="" disabled selected>Ordenar por</option>
-                </select>
+                    <select name="orden" class="select select-boton" onchange="this.form.submit()">
+                        <option value="" disabled selected>Ordenar por</option>
+                        <option value="alfabetico" {{ ($orden ?? '') == 'alfabetico' ? 'selected' : '' }}>Alfabéticamente (A-Z)</option>
+                        <option value="porcentaje_mayor" {{ ($orden ?? '') == 'porcentaje_mayor' ? 'selected' : '' }}>Mayor porcentaje</option>
+                        <option value="porcentaje_menor" {{ ($orden ?? '') == 'porcentaje_menor' ? 'selected' : '' }}>Menor porcentaje</option>
+                    </select>
+                </form>
             </div>
+
         </section>
 
         <section class="consulta-tabla-contenedor">
-            <table class="tabla">
+            <table class="tabla" id="tablaBecas">
                 <thead>
                     <tr class="tabla-encabezado">
                         <th>Nombre de beca</th>
@@ -55,35 +61,67 @@
                     </tr>
                 </thead>
                 <tbody class="tabla-cuerpo">
-                    @foreach ($becas as $beca)
+                    @if ($becas->isEmpty())
                         <tr>
-                            <td>{{ $beca->nombreDeBeca }}</td>
-                            <td>{{ $beca->porcentajeDeDescuento }}%</td>
-                            <td>{{ $beca->estatus->nombreTipoDeEstatus ?? 'Sin estatus' }}</td>
-                            <td>
-                                <div class="tabla-acciones">
-                                    <a href="{{ route('becas.edit', $beca->idBeca) }}" class="accion-boton" title="Editar">
-                                        <img src="{{ asset('imagenes/IconoEditar.png') }}" alt="Editar">
-                                    </a>
-                                    <form action="{{ route('becas.update', $beca->idBeca) }}" method="POST" style="display:inline">
-                                        @csrf
-                                        @method('PUT')
-                                        <button type="submit" title="Suspender/Habilitar" class="accion-boton" name="accion" value="Suspender/Habilitar">
-                                            <img src="{{ asset('imagenes/IconoSuspender.png') }}" alt="Suspender">
-                                        </button>
-                                    </form>
-                                    <form action="{{ route('becas.destroy', $beca->idBeca) }}" method="POST" style="display:inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="button" class="accion-boton" title="Eliminar"
-                                            onclick="mostrarPopupConfirmacion('{{ $beca->nombreDeBeca }}', this)">
-                                            <img src="{{ asset('imagenes/IconoEliminar.png') }}" alt="Eliminar">
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
+                            <td colspan="4" class="tablaVacia"> No existen becas disponibles.</td>
                         </tr>
-                    @endforeach
+                    @else
+                        @foreach ($becas as $beca)
+                            <tr class="{{ $beca->idEstatus == 2 ? 'fila-suspendida' : '' }}">
+                                <td>{{ $beca->nombreDeBeca }}</td>
+                                <td>{{ $beca->porcentajeDeDescuento }}%</td>
+                                <td>{{ $beca->estatus->nombreTipoDeEstatus ?? 'Sin estatus' }}</td>
+
+                                <td>
+                                    <div class="tabla-acciones">
+
+                                        <!-- BOTÓN EDITAR -->
+                                        <a href="{{ route('becas.edit', $beca->idBeca) }}" class="accion-boton" title="Editar">
+                                            <img 
+                                                src="{{ $beca->idEstatus == 2 
+                                                    ? asset('imagenes/IconoEditarGris.png') 
+                                                    : asset('imagenes/IconoEditar.png') }}" 
+                                                alt="Editar">
+                                        </a>
+
+                                        <!-- BOTÓN SUSPENDER/HABILITAR -->
+                                        <form action="{{ route('becas.update', $beca->idBeca) }}" method="POST" style="display:inline">
+                                            @csrf
+                                            @method('PUT')
+                                            <button type="submit" title="Suspender/Habilitar" class="accion-boton" name="accion" value="Suspender/Habilitar">
+
+                                                <img 
+                                                    src="{{ $beca->idEstatus == 2 
+                                                        ? asset('imagenes/IconoHabilitar.png') 
+                                                        : asset('imagenes/IconoSuspender.png') }}" 
+                                                    alt="Suspender/Habilitar"
+                                                >
+
+                                            </button>
+                                        </form>
+
+                                        <!-- BOTÓN ELIMINAR -->
+                                        <form action="{{ route('becas.destroy', $beca->idBeca) }}" method="POST" style="display:inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="button" class="accion-boton" title="Eliminar"
+                                                onclick="mostrarPopupConfirmacion('{{ $beca->nombreDeBeca }}', this)">
+                                                <img 
+                                                    src="{{ $beca->idEstatus == 2 
+                                                        ? asset('imagenes/IconoEliminarGris.png') 
+                                                        : asset('imagenes/IconoEliminar.png') }}" 
+                                                    alt="Eliminar"
+                                                >
+                                            </button>
+                                        </form>
+
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+
+                    @endif
+
                 </tbody>
             </table>
 
@@ -127,13 +165,12 @@
         // Enviar el formulario real
         function confirmarEliminacion() {
             if (formularioAEliminar) {
-                formularioAEliminar.submit(); // ← AQUÍ SI SE ENVÍA DELETE
+                formularioAEliminar.submit(); // SE ENVÍA DELETE
             }
         }
+
+
     </script>
-
-
-    
 
 </body>
 </html>
