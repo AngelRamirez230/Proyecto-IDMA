@@ -20,8 +20,10 @@ class BecaController extends Controller
             'porcentajeBeca' => 'required|numeric|min:1|max:100',
         ]);
 
+        $nombre = $this->mbUcwords($request->nombreBeca);
+
         // Validar si ya existe un registro idéntico
-        $existe = Beca::where('nombreDeBeca', $request->nombreBeca)
+        $existe = Beca::whereRaw('LOWER(nombreDeBeca) = ?', [mb_strtolower($request->nombreBeca)])
                       ->where('porcentajeDeDescuento', $request->porcentajeBeca)
                       ->exists();
 
@@ -33,7 +35,7 @@ class BecaController extends Controller
 
         // Crear registro
         Beca::create([
-            'nombreDeBeca' => $request->nombreBeca,
+            'nombreDeBeca' => $nombre,
             'porcentajeDeDescuento' => $request->porcentajeBeca,
             'idEstatus' => 1
         ]);
@@ -42,6 +44,23 @@ class BecaController extends Controller
                          ->with('success', 'Beca registrada correctamente');
         
 
+    }
+
+
+    private function mbUcwords($string, $encoding = 'UTF-8')
+    {
+        $string = mb_strtolower($string, $encoding);
+        $words = explode(' ', $string);
+
+        foreach ($words as &$word) {
+            if ($word !== '') {
+                $first = mb_substr($word, 0, 1, $encoding);
+                $rest = mb_substr($word, 1, null, $encoding);
+                $word = mb_strtoupper($first, $encoding) . $rest;
+            }
+        }
+
+        return implode(' ', $words);
     }
 
     public function index(Request $request)

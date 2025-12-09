@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BecaController;
+use App\Http\Controllers\ConceptoController;
 
 
 
@@ -89,11 +90,9 @@ Route::get('/apartadoConceptos', function () {
 
 Route::get('/altaConceptos', [ConceptoController::class, 'create'])->name('altaConcepto');
 
-Route::post('/altaConceptos', [ConceptoController::class, 'store'])->name('guardarConcepto');
+Route::post('/Conceptos/store', [ConceptoController::class, 'store'])->name('concepto.store');
 
-Route::get('/consultaConceptos', function () {
-    return view('SGFIDMA.moduloConceptosDePago.consultaDeConceptos');
-})->name('consultaConceptos');
+Route::get('/consultaConceptos', [ConceptoController::class, 'index'])->name('consultaConcepto');
 
 Route::get('/modificacionConceptos', function () {
     return view('SGFIDMA.moduloConceptosDePago.modificacionConcepto');
