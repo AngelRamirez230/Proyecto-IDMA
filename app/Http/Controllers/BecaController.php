@@ -62,5 +62,51 @@ class BecaController extends Controller
     }
 
 
+    public function update(Request $request, $idBeca)
+    {
+        $beca = Beca::findOrFail($idBeca);
+
+        if ($request->accion === 'guardar') {
+            // Validar y guardar cambios
+            $request->validate([
+                'porcentajeBeca' => 'required|numeric|min:1|max:100',
+            ]);
+
+            $beca->porcentajeDeDescuento = $request->porcentajeBeca;
+            $beca->save();
+
+            return redirect()->route('consultaBeca')->with('success', 'Beca actualizada correctamente.');
+
+        } elseif ($request->accion === 'Suspender/Habilitar') {
+            // Guardar el estatus actual antes de cambiarlo
+            $estatusAnterior = $beca->idEstatus;
+
+            // Alternar estatus
+            $beca->idEstatus = ($beca->idEstatus == 1) ? 2 : 1;
+            $beca->save();
+
+            // Determinar mensaje según el cambio
+            $mensaje = ($estatusAnterior == 1) 
+                ? "La beca {$beca->nombreDeBeca} ha sido suspendida." 
+                : "La beca {$beca->nombreDeBeca} ha sido activada.";
+
+            return redirect()->route('consultaBeca')->with('success', $mensaje);
+        }
+    }
+
+
+    public function destroy($idBeca)
+    {
+        $beca = Beca::findOrFail($idBeca);
+        $beca->delete();
+
+        return redirect()->route('consultaBeca')->with('success', "La beca {$beca->nombreDeBeca} ha sido eliminada.");
+    }
+
+
+
+
+
+
     
 }

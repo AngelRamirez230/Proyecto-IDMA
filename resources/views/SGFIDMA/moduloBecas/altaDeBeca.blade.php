@@ -37,7 +37,6 @@
 
         <div class="form-group input-con-icono">
             <label for="porcentajeBeca">Porcentaje de descuento:</label>
-
             <div class="contenedor-input-icono">
                 <input type="text" id="porcentajeBeca" name="porcentajeBeca" class="input-chico" placeholder="Porcentaje de descuento" required>
 

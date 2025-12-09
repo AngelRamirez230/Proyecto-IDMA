@@ -10,6 +10,15 @@
 
     @include('layouts.barraNavegacion')
 
+    @if (session('success'))
+        <div class="popup-notificacion" id="popup">
+            <div class="popup-contenido">
+                <p>{{ session('success') }}</p>
+                <button class="popup-boton" onclick="cerrarPopup()">Aceptar</button>
+            </div>
+        </div>
+    @endif
+
     <main class="consulta">
         <h1 class="consulta-titulo">Lista de becas</h1>
 
@@ -56,20 +65,75 @@
                                     <a href="{{ route('becas.edit', $beca->idBeca) }}" class="accion-boton" title="Editar">
                                         <img src="{{ asset('imagenes/IconoEditar.png') }}" alt="Editar">
                                     </a>
-                                    <a href="{{ route('becas.edit', $beca->idBeca) }}" class="accion-boton" title="Suspender">
-                                        <img src="{{ asset('imagenes/IconoSuspender.png') }}" alt="Editar">
-                                    </a>
-                                    <a href="{{ route('becas.edit', $beca->idBeca) }}" class="accion-boton" title="Eliminar">
-                                        <img src="{{ asset('imagenes/IconoEliminar.png') }}" alt="Eliminar">
-                                    </a>
+                                    <form action="{{ route('becas.update', $beca->idBeca) }}" method="POST" style="display:inline">
+                                        @csrf
+                                        @method('PUT')
+                                        <button type="submit" title="Suspender/Habilitar" class="accion-boton" name="accion" value="Suspender/Habilitar">
+                                            <img src="{{ asset('imagenes/IconoSuspender.png') }}" alt="Suspender">
+                                        </button>
+                                    </form>
+                                    <form action="{{ route('becas.destroy', $beca->idBeca) }}" method="POST" style="display:inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="button" class="accion-boton" title="Eliminar"
+                                            onclick="mostrarPopupConfirmacion('{{ $beca->nombreDeBeca }}', this)">
+                                            <img src="{{ asset('imagenes/IconoEliminar.png') }}" alt="Eliminar">
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>
                     @endforeach
                 </tbody>
             </table>
+
+            <div class="popup-confirmacion" id="popupConfirmacion">
+                <div class="popup-contenido">
+                    <p id="mensajeConfirmacion">¿Seguro?</p>
+                    <div class="popup-botones">
+                        <button class="btn-confirmar" onclick="confirmarEliminacion()">Eliminar</button>
+                        <button class="btn-cancelar-confirmacion" onclick="cerrarPopupConfirmacion()">Cancelar</button>
+                    </div>
+                </div>
+            </div>
         </section>
     </main>
+
+    <script>
+        // Cerrar popup de notificación
+        function cerrarPopup() {
+            document.getElementById('popup').style.display = 'none';
+        }
+
+        let formularioAEliminar = null;
+
+        function mostrarPopupConfirmacion(nombreBeca, boton) {
+            // Guardamos el formulario DELETE
+            formularioAEliminar = boton.closest('form');
+
+            // Cambiar texto del popup
+            document.getElementById('mensajeConfirmacion').innerText =
+                `¿Estás seguro de eliminar la beca "${nombreBeca}"?`;
+
+            // Mostrar popup
+            document.getElementById('popupConfirmacion').style.display = 'flex';
+        }
+
+        function cerrarPopupConfirmacion() {
+            document.getElementById('popupConfirmacion').style.display = 'none';
+            formularioAEliminar = null;
+        }
+
+        // Enviar el formulario real
+        function confirmarEliminacion() {
+            if (formularioAEliminar) {
+                formularioAEliminar.submit(); // ← AQUÍ SI SE ENVÍA DELETE
+            }
+        }
+    </script>
+
+
+    
 
 </body>
 </html>
