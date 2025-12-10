@@ -36,13 +36,15 @@
                         <option value="todas" {{ ($filtro ?? '') == 'todas' ? 'selected' : '' }}>Ver todas</option>
                         <option value="activas" {{ ($filtro ?? '') == 'activas' ? 'selected' : '' }}>Activo(a)</option>
                         <option value="suspendidas" {{ ($filtro ?? '') == 'suspendidas' ? 'selected' : '' }}>Suspendido(a)</option>
+                        <option value="pieza" {{ ($filtro ?? '') == 'pieza' ? 'selected' : '' }}>Pieza</option>
+                        <option value="servicio" {{ ($filtro ?? '') == 'servicio' ? 'selected' : '' }}>Servicio</option>
                     </select>
 
                     <select name="orden" class="select select-boton" onchange="this.form.submit()">
                         <option value="" disabled selected>Ordenar por</option>
                         <option value="alfabetico" {{ ($orden ?? '') == 'alfabetico' ? 'selected' : '' }}>Alfabéticamente (A-Z)</option>
-                        <option value="porcentaje_mayor" {{ ($orden ?? '') == 'porcentaje_mayor' ? 'selected' : '' }}>Mayor porcentaje</option>
-                        <option value="porcentaje_menor" {{ ($orden ?? '') == 'porcentaje_menor' ? 'selected' : '' }}>Menor porcentaje</option>
+                        <option value="costo_mayor" {{ ($orden ?? '') == 'costo_mayor' ? 'selected' : '' }}>Mayor costo</option>
+                        <option value="costo_menor" {{ ($orden ?? '') == 'costo_menor' ? 'selected' : '' }}>Menor costo</option>
                     </select>
                 </form>
             </div>
@@ -61,61 +63,62 @@
                     </tr>
                 </thead>
                 <tbody class="tabla-cuerpo">
-
-                    @forelse($conceptos as $concepto)
-                        <tr class="tabla-fila {{ $concepto->idEstatus == 2 ? 'fila-suspendida' : '' }}">
-                            <td>{{ $concepto->nombreConceptoDePago }}</td>
-                            <td>${{ $concepto->costo }}</td>
-                            <td>{{ $concepto->unidad->nombreUnidad ?? 'Sin unidad' }}</td>
-                            <td>{{ $concepto->estatus->nombreTipoDeEstatus ?? 'Sin estatus' }}</td>
-                            <td>
-                                <div class="tabla-acciones">
-                                    <!-- BOTÓN EDITAR -->
-                                    <a href="{{route('concepto.edit', $concepto->idConceptoDePago)}}" class="accion-boton" title="Editar">
-                                        <img 
-                                            src="{{ $concepto->idEstatus == 2 
-                                                ? asset('imagenes/IconoEditarGris.png') 
-                                                : asset('imagenes/IconoEditar.png') }}" 
-                                            alt="Editar">
-                                    </a>
-
-                                    <!-- BOTÓN SUSPENDER/HABILITAR -->
-                                    <form action="{{ route('concepto.update', $concepto->idConceptoDePago) }}" method="POST" style="display:inline">
-                                        @csrf
-                                        @method('PUT')
-                                        <button type="submit" title="Suspender/Habilitar" class="accion-boton" name="accion" value="Suspender/Habilitar">
-
-                                            <img 
-                                                src="{{ $concepto->idEstatus == 2 
-                                                    ? asset('imagenes/IconoHabilitar.png') 
-                                                    : asset('imagenes/IconoSuspender.png') }}" 
-                                                alt="Suspender/Habilitar"
-                                            >
-                                        </button>
-                                    </form>
-
-                                    <!-- BOTÓN ELIMINAR -->
-                                    <form action="{{ route('concepto.destroy', $concepto->idConceptoDePago) }}" method="POST" style="display:inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="button" class="accion-boton" title="Eliminar"
-                                            onclick="mostrarPopupConfirmacion('{{ $concepto->nombreConceptoDePago }}', this)">
-                                            <img 
-                                                src="{{ $concepto->idEstatus == 2 
-                                                    ? asset('imagenes/IconoEliminarGris.png') 
-                                                    : asset('imagenes/IconoEliminar.png') }}" 
-                                                alt="Eliminar"
-                                            >
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
+                    @if ($conceptos->isEmpty())
                         <tr>
-                            <td colspan="5">No hay conceptos registrados.</td>
+                            <td colspan="5" class="tablaVacia"> No existen conceptos de pago disponibles.</td>
                         </tr>
-                    @endforelse
+                    @else
+                        @foreach($conceptos as $concepto)
+                            <tr class="tabla-fila {{ $concepto->idEstatus == 2 ? 'fila-suspendida' : '' }}">
+                                <td>{{ $concepto->nombreConceptoDePago }}</td>
+                                <td>${{ $concepto->costo }}</td>
+                                <td>{{ $concepto->unidad->nombreUnidad ?? 'Sin unidad' }}</td>
+                                <td>{{ $concepto->estatus->nombreTipoDeEstatus ?? 'Sin estatus' }}</td>
+                                <td>
+                                    <div class="tabla-acciones">
+                                        <!-- BOTÓN EDITAR -->
+                                        <a href="{{route('concepto.edit', $concepto->idConceptoDePago)}}" class="accion-boton" title="Editar">
+                                            <img 
+                                                src="{{ $concepto->idEstatus == 2 
+                                                    ? asset('imagenes/IconoEditarGris.png') 
+                                                    : asset('imagenes/IconoEditar.png') }}" 
+                                                alt="Editar">
+                                        </a>
+
+                                        <!-- BOTÓN SUSPENDER/HABILITAR -->
+                                        <form action="{{ route('concepto.update', $concepto->idConceptoDePago) }}" method="POST" style="display:inline">
+                                            @csrf
+                                            @method('PUT')
+                                            <button type="submit" title="Suspender/Habilitar" class="accion-boton" name="accion" value="Suspender/Habilitar">
+
+                                                <img 
+                                                    src="{{ $concepto->idEstatus == 2 
+                                                        ? asset('imagenes/IconoHabilitar.png') 
+                                                        : asset('imagenes/IconoSuspender.png') }}" 
+                                                    alt="Suspender/Habilitar"
+                                                >
+                                            </button>
+                                        </form>
+
+                                        <!-- BOTÓN ELIMINAR -->
+                                        <form action="{{ route('concepto.destroy', $concepto->idConceptoDePago) }}" method="POST" style="display:inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="button" class="accion-boton" title="Eliminar"
+                                                onclick="mostrarPopupConfirmacion('{{ $concepto->nombreConceptoDePago }}', this)">
+                                                <img 
+                                                    src="{{ $concepto->idEstatus == 2 
+                                                        ? asset('imagenes/IconoEliminarGris.png') 
+                                                        : asset('imagenes/IconoEliminar.png') }}" 
+                                                    alt="Eliminar"
+                                                >
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    @endif
                     
                 </tbody>
             </table>
@@ -129,6 +132,11 @@
                 </div>
             </div>
         </section>
+
+        <div class="paginacion">
+            {!! $conceptos->links() !!}
+        </div>
+        
     </main>
 
     <script>

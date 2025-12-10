@@ -135,6 +135,9 @@
                 </div>
             </div>
         </section>
+        <div class="paginacion">
+            {!! $becas->links() !!}
+        </div>
     </main>
 
     <script>

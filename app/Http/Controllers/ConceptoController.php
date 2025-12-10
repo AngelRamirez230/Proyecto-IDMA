@@ -66,13 +66,48 @@ class ConceptoController extends Controller
     }
 
 
-    public function index()
+    public function index(Request $request)
     {
+        $orden = $request->orden;
+        $filtro = $request->filtro;
+        $buscar = $request->buscarConcepto;
         // Trae todos los conceptos con sus relaciones
-        $conceptos = ConceptoDePago::with(['unidad', 'estatus'])->get();
+        $concepto = ConceptoDePago::with(['unidad', 'estatus']);
+
+        //Aplicar buscar
+        if ($request->filled('buscarConcepto')) {
+            $concepto->where('nombreConceptoDePago', 'LIKE', '%' . $buscar . '%');
+        }
+
+        //Aplicar filtro
+        if ($filtro === 'activas') {
+            $concepto->where('idEstatus', 1);
+        } elseif ($filtro === 'suspendidas') {
+            $concepto->where('idEstatus', 2);
+        } elseif ($filtro === 'todas') {
+
+        } elseif($filtro === 'servicio'){
+            $concepto->where('idUnidad', 1);
+
+        } elseif($filtro === 'pieza'){
+            $concepto->where('idUnidad', 2);
+        }
+
+        // Aplicar orden
+        if ($orden === 'alfabetico') {
+            $concepto->orderBy('nombreConceptoDePago', 'asc');
+        } elseif ($orden === 'costo_mayor') {
+            $concepto->orderBy('costo', 'desc');
+        } elseif ($orden === 'costo_menor') {
+            $concepto->orderBy('costo', 'asc');
+        }
+
+
+        $conceptos = $concepto->paginate(5)->withQueryString();
+;
 
         // Retorna la vista
-        return view('SGFIDMA.moduloConceptosDePago.consultaDeConceptos', compact('conceptos'));
+        return view('SGFIDMA.moduloConceptosDePago.consultaDeConceptos', compact('conceptos','filtro'));
     }
 
 
@@ -139,7 +174,7 @@ class ConceptoController extends Controller
         // Redirigir con mensaje
         return redirect()
             ->route('consultaConcepto')
-            ->with('success', "El concepto '{$concepto->nombreConceptoDePago}' ha sido eliminado.");
+            ->with('success', "El concepto {$concepto->nombreConceptoDePago} ha sido eliminado.");
     }
 
 

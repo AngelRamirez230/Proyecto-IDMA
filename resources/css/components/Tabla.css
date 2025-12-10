@@ -151,6 +151,58 @@ font-size: 18px;
 }
 
 /* ==============================
+   PAGINACIÓN
+   ============================== */
+/* CONTENEDOR GENERAL */
+.paginacion .pagination {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.paginacion {
+    margin-top: 35px; 
+}
+
+/* Quitar puntos de la lista */
+.paginacion ul.pagination,
+.paginacion ul.pagination li {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Estilos de los botones */
+.paginacion .page-link {
+    color: #79272C;
+    border: 1px solid #79272C;
+    padding: 8px 14px;
+    font-size: 15px;
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+.paginacion .page-link:hover {
+    background-color: #79272C;
+    color: #fff;
+}
+
+.paginacion .active .page-link {
+    background-color: #79272C;
+    border-color: #79272C;
+    color: #fff;
+}
+
+.paginacion .disabled .page-link {
+    opacity: 0.4;
+    color: #79272C;
+    border-color: #79272C;
+}
+
+
+
+
+/* ==============================
    ACCIONES
    ============================== */
 .tabla-acciones {
