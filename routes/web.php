@@ -94,9 +94,11 @@ Route::post('/Conceptos/store', [ConceptoController::class, 'store'])->name('con
 
 Route::get('/consultaConceptos', [ConceptoController::class, 'index'])->name('consultaConcepto');
 
-Route::get('/modificacionConceptos', function () {
-    return view('SGFIDMA.moduloConceptosDePago.modificacionConcepto');
-})->name('modificacionConceptos');
+Route::get('/concepto/{idConceptoDePago}/modificar', [ConceptoController::class, 'edit'])->name('concepto.edit');
+
+Route::put('/concepto/{idConceptoDePago}/actualizar', [ConceptoController::class, 'update'])->name('concepto.update');
+
+Route::delete('/concepto/{idConceptoDePago}/eliminar', [ConceptoController::class, 'destroy'])->name('concepto.destroy');
 
 
 

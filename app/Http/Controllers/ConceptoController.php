@@ -45,7 +45,7 @@ class ConceptoController extends Controller
             'idEstatus' => 1,
         ]);
 
-        return redirect()->back()->with('success', 'Concepto registrado correctamente');
+        return redirect()->back()->with('success', 'Concepto de pago creado correctamente');
     }
 
     // Convertir a tipo oración con acentos
@@ -74,4 +74,74 @@ class ConceptoController extends Controller
         // Retorna la vista
         return view('SGFIDMA.moduloConceptosDePago.consultaDeConceptos', compact('conceptos'));
     }
+
+
+    public function edit($idConceptoDePago)
+    {
+        // Buscar el concepto por su ID
+        $concepto = ConceptoDePago::findOrFail($idConceptoDePago);
+
+        // Traer unidades para el select
+        $unidades = TipoDeUnidad::all();
+
+        return view('SGFIDMA.moduloConceptosDePago.modificacionConcepto', compact('concepto', 'unidades'));
+    }
+
+
+    public function update(Request $request, $idConceptoDePago)
+    {
+        // Buscar el concepto
+        $concepto = ConceptoDePago::findOrFail($idConceptoDePago);
+
+        if ($request->accion === 'guardar') {
+
+            // Validar cambios
+            $request->validate([
+                'costo' => 'required|numeric|min:1',
+                'unidad' => 'required|numeric',
+            ]);
+
+            // Guardar cambios
+            $concepto->costo = $request->costo;
+            $concepto->idUnidad = $request->unidad; 
+            $concepto->save();
+
+            return redirect()->route('consultaConcepto')
+                            ->with('success', 'Concepto actualizado correctamente.');
+        }
+
+        elseif ($request->accion === 'Suspender/Habilitar') {
+
+            // Guardar estatus anterior
+            $estatusAnterior = $concepto->idEstatus;
+
+            // Alternar estatus
+            $concepto->idEstatus = ($concepto->idEstatus == 1) ? 2 : 1;
+            $concepto->save();
+
+            // Mensaje según acción
+            $mensaje = ($estatusAnterior == 1)
+                ? "El concepto {$concepto->nombreConceptoDePago} ha sido suspendido."
+                : "El concepto {$concepto->nombreConceptoDePago} ha sido activado.";
+
+            return redirect()->route('consultaConcepto')->with('success', $mensaje);
+        }
+    }
+
+    public function destroy($idConceptoDePago)
+    {
+        // Buscar el concepto
+        $concepto = ConceptoDePago::findOrFail($idConceptoDePago);
+
+        // Eliminarlo
+        $concepto->delete();
+
+        // Redirigir con mensaje
+        return redirect()
+            ->route('consultaConcepto')
+            ->with('success', "El concepto '{$concepto->nombreConceptoDePago}' ha sido eliminado.");
+    }
+
+
+
 }

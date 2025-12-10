@@ -11,7 +11,7 @@
     
     <main class="apartado-general">
         <a href="{{ route('altaConcepto')}}" class="btn-boton btn-alta-conceptos">Añadir concepto de pago</a>
-        <a href="{{ route('consultaConceptos')}}" class="btn-boton btn-consulta-conceptos">Consultar conceptos de pago</a>
+        <a href="{{ route('consultaConcepto')}}" class="btn-boton btn-consulta-conceptos">Consultar conceptos de pago</a>
         
     </main>
 

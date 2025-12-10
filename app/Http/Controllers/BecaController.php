@@ -20,12 +20,13 @@ class BecaController extends Controller
             'porcentajeBeca' => 'required|numeric|min:1|max:100',
         ]);
 
+        // Formatear nombre
         $nombre = $this->mbUcwords($request->nombreBeca);
 
         // Validar si ya existe un registro idéntico
         $existe = Beca::whereRaw('LOWER(nombreDeBeca) = ?', [mb_strtolower($request->nombreBeca)])
-                      ->where('porcentajeDeDescuento', $request->porcentajeBeca)
-                      ->exists();
+                    ->where('porcentajeDeDescuento', $request->porcentajeBeca)
+                    ->exists();
 
         if ($existe) {
             return back()
@@ -33,18 +34,27 @@ class BecaController extends Controller
                 ->withInput();
         }
 
-        // Crear registro
-        Beca::create([
-            'nombreDeBeca' => $nombre,
-            'porcentajeDeDescuento' => $request->porcentajeBeca,
-            'idEstatus' => 1
-        ]);
+        try {
 
-        return redirect()->route('altaBeca')
-                         ->with('success', 'Beca registrada correctamente');
-        
+            // Intentar guardar el registro
+            Beca::create([
+                'nombreDeBeca' => $nombre,
+                'porcentajeDeDescuento' => $request->porcentajeBeca,
+                'idEstatus' => 1
+            ]);
 
+            return redirect()->route('altaBeca')
+                            ->with('success', 'Beca registrada correctamente');
+
+        } catch (\Exception $e) {
+
+            // Error inesperado → NO se guardó
+            return back()
+                ->with('popupError', 'Error: No se pudo registrar la beca. Inténtalo nuevamente.')
+                ->withInput();
+        }
     }
+
 
 
     private function mbUcwords($string, $encoding = 'UTF-8')
@@ -148,6 +158,7 @@ class BecaController extends Controller
 
         return redirect()->route('consultaBeca')->with('success', "La beca {$beca->nombreDeBeca} ha sido eliminada.");
     }
+
 
 
     

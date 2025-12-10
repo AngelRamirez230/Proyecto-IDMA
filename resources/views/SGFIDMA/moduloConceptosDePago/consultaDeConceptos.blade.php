@@ -70,15 +70,44 @@
                             <td>{{ $concepto->estatus->nombreTipoDeEstatus ?? 'Sin estatus' }}</td>
                             <td>
                                 <div class="tabla-acciones">
-                                    <button type="button" class="accion-boton" title="Ver detalles">
-                                        <img src="{{ asset('imagenes/IconoInicioUsuarios.png') }}" alt="Ver">
-                                    </button>
-                                    <button type="button" class="accion-boton" title="Editar">
-                                        <img src="{{ asset('imagenes/IconoInicioUsuarios.png') }}" alt="Editar">
-                                    </button>
-                                    <button type="button" class="accion-boton" title="Suspender">
-                                        <img src="{{ asset('imagenes/IconoInicioUsuarios.png') }}" alt="Desactivar">
-                                    </button>
+                                    <!-- BOTÓN EDITAR -->
+                                    <a href="{{route('concepto.edit', $concepto->idConceptoDePago)}}" class="accion-boton" title="Editar">
+                                        <img 
+                                            src="{{ $concepto->idEstatus == 2 
+                                                ? asset('imagenes/IconoEditarGris.png') 
+                                                : asset('imagenes/IconoEditar.png') }}" 
+                                            alt="Editar">
+                                    </a>
+
+                                    <!-- BOTÓN SUSPENDER/HABILITAR -->
+                                    <form action="{{ route('concepto.update', $concepto->idConceptoDePago) }}" method="POST" style="display:inline">
+                                        @csrf
+                                        @method('PUT')
+                                        <button type="submit" title="Suspender/Habilitar" class="accion-boton" name="accion" value="Suspender/Habilitar">
+
+                                            <img 
+                                                src="{{ $concepto->idEstatus == 2 
+                                                    ? asset('imagenes/IconoHabilitar.png') 
+                                                    : asset('imagenes/IconoSuspender.png') }}" 
+                                                alt="Suspender/Habilitar"
+                                            >
+                                        </button>
+                                    </form>
+
+                                    <!-- BOTÓN ELIMINAR -->
+                                    <form action="{{ route('concepto.destroy', $concepto->idConceptoDePago) }}" method="POST" style="display:inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="button" class="accion-boton" title="Eliminar"
+                                            onclick="mostrarPopupConfirmacion('{{ $concepto->nombreConceptoDePago }}', this)">
+                                            <img 
+                                                src="{{ $concepto->idEstatus == 2 
+                                                    ? asset('imagenes/IconoEliminarGris.png') 
+                                                    : asset('imagenes/IconoEliminar.png') }}" 
+                                                alt="Eliminar"
+                                            >
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>
@@ -90,8 +119,49 @@
                     
                 </tbody>
             </table>
+            <div class="popup-confirmacion" id="popupConfirmacion">
+                <div class="popup-contenido">
+                    <p id="mensajeConfirmacion">¿Seguro?</p>
+                    <div class="popup-botones">
+                        <button class="btn-confirmar" onclick="confirmarEliminacion()">Eliminar</button>
+                        <button class="btn-cancelar-confirmacion" onclick="cerrarPopupConfirmacion()">Cancelar</button>
+                    </div>
+                </div>
+            </div>
         </section>
     </main>
+
+    <script>
+        function cerrarPopup() {
+            document.getElementById('popup').style.display = 'none';
+        }
+
+        let formularioAEliminar = null;
+
+        function mostrarPopupConfirmacion(nombreConceptoDePago, boton) {
+            // Guardar el formulario del DELETE
+            formularioAEliminar = boton.closest('form');
+
+            // Cambiar texto del popup
+            document.getElementById('mensajeConfirmacion').innerText =
+                `¿Estás seguro de eliminar el concepto "${nombreConceptoDePago}"?`;
+
+            // Mostrar popup
+            document.getElementById('popupConfirmacion').style.display = 'flex';
+        }
+
+        function cerrarPopupConfirmacion() {
+            document.getElementById('popupConfirmacion').style.display = 'none';
+            formularioAEliminar = null;
+        }
+
+        // Enviar el formulario real DELETE
+        function confirmarEliminacion() {
+            if (formularioAEliminar) {
+                formularioAEliminar.submit();
+            }
+        }
+    </script>
     
 </body>
 </html>
