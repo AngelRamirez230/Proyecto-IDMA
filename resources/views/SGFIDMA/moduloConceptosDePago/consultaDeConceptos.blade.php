@@ -9,30 +9,44 @@
 <body>
     @include('layouts.barraNavegacion')
 
+    @if (session('success'))
+        <div class="popup-notificacion" id="popup">
+            <div class="popup-contenido">
+                <p>{{ session('success') }}</p>
+                <button class="popup-boton" onclick="cerrarPopup()">Aceptar</button>
+            </div>
+        </div>
+    @endif
+
     <main class="consulta">
         <h1 class="consulta-titulo">Lista de conceptos de pago</h1>
 
         <section class="consulta-controles">
-            <!-- Barra de búsqueda -->
-            <div class="consulta-busqueda-group">
-                <img src="{{ asset('imagenes/IconoBusqueda.png') }}" alt="Buscar">
-                <input
-                    type="text"
-                    id="buscarConcepto"
-                    name="buscarConcepto"
-                    placeholder="Ingresa nombre del concepto de pago"
-                >
-            </div>
+            <form action="{{ route('consultaConcepto') }}">
+                <div class="consulta-busqueda-group">
+                    <img src="{{ asset('imagenes/IconoBusqueda.png') }}" alt="Buscar">
+                    <input type="text" id="buscarConcepto" name="buscarConcepto" placeholder="Ingresa nombre del concepto de pago"value="{{ $buscar ?? '' }}" onkeydown="if(event.key === 'Enter') this.form.submit();"/>
+                </div>
+            </form>
 
-            <!-- Filtros del lado derecho -->
             <div class="consulta-selects">
-                <select type="button" class="select select-boton">
-                    <option value="" disabled selected>Filtrar por</option>
-                </select>
+                <form action="{{ route('consultaConcepto') }}" method="GET" id="formFiltro">
+                    <select name="filtro" class="select select-boton" onchange="this.form.submit()">
+                        <option value="" disabled selected>Filtrar por</option>
+                        <option value="todas" {{ ($filtro ?? '') == 'todas' ? 'selected' : '' }}>Ver todas</option>
+                        <option value="activas" {{ ($filtro ?? '') == 'activas' ? 'selected' : '' }}>Activo(a)</option>
+                        <option value="suspendidas" {{ ($filtro ?? '') == 'suspendidas' ? 'selected' : '' }}>Suspendido(a)</option>
+                        <option value="pieza" {{ ($filtro ?? '') == 'pieza' ? 'selected' : '' }}>Pieza</option>
+                        <option value="servicio" {{ ($filtro ?? '') == 'servicio' ? 'selected' : '' }}>Servicio</option>
+                    </select>
 
-                <select type="button" class="select select-boton">
-                    <option value="" disabled selected>Ordenar por</option>
-                </select>
+                    <select name="orden" class="select select-boton" onchange="this.form.submit()">
+                        <option value="" disabled selected>Ordenar por</option>
+                        <option value="alfabetico" {{ ($orden ?? '') == 'alfabetico' ? 'selected' : '' }}>Alfabéticamente (A-Z)</option>
+                        <option value="costo_mayor" {{ ($orden ?? '') == 'costo_mayor' ? 'selected' : '' }}>Mayor costo</option>
+                        <option value="costo_menor" {{ ($orden ?? '') == 'costo_menor' ? 'selected' : '' }}>Menor costo</option>
+                    </select>
+                </form>
             </div>
         </section>
 
@@ -49,34 +63,113 @@
                     </tr>
                 </thead>
                 <tbody class="tabla-cuerpo">
-                    {{-- Aquí se iterarán las becas registradas --}}
-                    {{--
-                    @foreach($concepto_de_pago as $concepto)
-                        <tr class="tabla-fila">
-                            <td>{{ $concepto->nombreDeBeca }}</td>
-                            <td>{{ $concepto->porcentajeDeDescuento }}</td>
-                            <td>{{ $concepto->unidad }}</td>
-                            <td>{{ $concepto->estatus }}</td>
-                            <td>
-                                <div class="tabla-acciones">
-                                    <button type="button" class="accion-boton" title="Ver detalles">
-                                        <img src="{{ asset('imagenes/IconoInicioUsuarios.png') }}" alt="Ver">
-                                    </button>
-                                    <button type="button" class="accion-boton" title="Editar">
-                                        <img src="{{ asset('imagenes/IconoInicioUsuarios.png') }}" alt="Editar">
-                                    </button>
-                                    <button type="button" class="accion-boton" title="Suspender">
-                                        <img src="{{ asset('imagenes/IconoInicioUsuarios.png') }}" alt="Desactivar">
-                                    </button>
-                                </div>
-                            </td>
+                    @if ($conceptos->isEmpty())
+                        <tr>
+                            <td colspan="5" class="tablaVacia"> No existen conceptos de pago disponibles.</td>
                         </tr>
-                    @endforeach
-                    --}}
+                    @else
+                        @foreach($conceptos as $concepto)
+                            <tr class="tabla-fila {{ $concepto->idEstatus == 2 ? 'fila-suspendida' : '' }}">
+                                <td>{{ $concepto->nombreConceptoDePago }}</td>
+                                <td>${{ $concepto->costo }}</td>
+                                <td>{{ $concepto->unidad->nombreUnidad ?? 'Sin unidad' }}</td>
+                                <td>{{ $concepto->estatus->nombreTipoDeEstatus ?? 'Sin estatus' }}</td>
+                                <td>
+                                    <div class="tabla-acciones">
+                                        <!-- BOTÓN EDITAR -->
+                                        <a href="{{route('concepto.edit', $concepto->idConceptoDePago)}}" class="accion-boton" title="Editar">
+                                            <img 
+                                                src="{{ $concepto->idEstatus == 2 
+                                                    ? asset('imagenes/IconoEditarGris.png') 
+                                                    : asset('imagenes/IconoEditar.png') }}" 
+                                                alt="Editar">
+                                        </a>
+
+                                        <!-- BOTÓN SUSPENDER/HABILITAR -->
+                                        <form action="{{ route('concepto.update', $concepto->idConceptoDePago) }}" method="POST" style="display:inline">
+                                            @csrf
+                                            @method('PUT')
+                                            <button type="submit" title="Suspender/Habilitar" class="accion-boton" name="accion" value="Suspender/Habilitar">
+
+                                                <img 
+                                                    src="{{ $concepto->idEstatus == 2 
+                                                        ? asset('imagenes/IconoHabilitar.png') 
+                                                        : asset('imagenes/IconoSuspender.png') }}" 
+                                                    alt="Suspender/Habilitar"
+                                                >
+                                            </button>
+                                        </form>
+
+                                        <!-- BOTÓN ELIMINAR -->
+                                        <form action="{{ route('concepto.destroy', $concepto->idConceptoDePago) }}" method="POST" style="display:inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="button" class="accion-boton" title="Eliminar"
+                                                onclick="mostrarPopupConfirmacion('{{ $concepto->nombreConceptoDePago }}', this)">
+                                                <img 
+                                                    src="{{ $concepto->idEstatus == 2 
+                                                        ? asset('imagenes/IconoEliminarGris.png') 
+                                                        : asset('imagenes/IconoEliminar.png') }}" 
+                                                    alt="Eliminar"
+                                                >
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    @endif
+                    
                 </tbody>
             </table>
+            <div class="popup-confirmacion" id="popupConfirmacion">
+                <div class="popup-contenido">
+                    <p id="mensajeConfirmacion">¿Seguro?</p>
+                    <div class="popup-botones">
+                        <button class="btn-confirmar" onclick="confirmarEliminacion()">Eliminar</button>
+                        <button class="btn-cancelar-confirmacion" onclick="cerrarPopupConfirmacion()">Cancelar</button>
+                    </div>
+                </div>
+            </div>
         </section>
+
+        <div class="paginacion">
+            {!! $conceptos->links() !!}
+        </div>
+        
     </main>
+
+    <script>
+        function cerrarPopup() {
+            document.getElementById('popup').style.display = 'none';
+        }
+
+        let formularioAEliminar = null;
+
+        function mostrarPopupConfirmacion(nombreConceptoDePago, boton) {
+            // Guardar el formulario del DELETE
+            formularioAEliminar = boton.closest('form');
+
+            // Cambiar texto del popup
+            document.getElementById('mensajeConfirmacion').innerText =
+                `¿Estás seguro de eliminar el concepto "${nombreConceptoDePago}"?`;
+
+            // Mostrar popup
+            document.getElementById('popupConfirmacion').style.display = 'flex';
+        }
+
+        function cerrarPopupConfirmacion() {
+            document.getElementById('popupConfirmacion').style.display = 'none';
+            formularioAEliminar = null;
+        }
+
+        // Enviar el formulario real DELETE
+        function confirmarEliminacion() {
+            if (formularioAEliminar) {
+                formularioAEliminar.submit();
+            }
+        }
+    </script>
     
 </body>
 </html>

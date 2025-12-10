@@ -20,10 +20,13 @@ class BecaController extends Controller
             'porcentajeBeca' => 'required|numeric|min:1|max:100',
         ]);
 
+        // Formatear nombre
+        $nombre = $this->mbUcwords($request->nombreBeca);
+
         // Validar si ya existe un registro idéntico
-        $existe = Beca::where('nombreDeBeca', $request->nombreBeca)
-                      ->where('porcentajeDeDescuento', $request->porcentajeBeca)
-                      ->exists();
+        $existe = Beca::whereRaw('LOWER(nombreDeBeca) = ?', [mb_strtolower($request->nombreBeca)])
+                    ->where('porcentajeDeDescuento', $request->porcentajeBeca)
+                    ->exists();
 
         if ($existe) {
             return back()
@@ -31,25 +34,78 @@ class BecaController extends Controller
                 ->withInput();
         }
 
-        // Crear registro
-        Beca::create([
-            'nombreDeBeca' => $request->nombreBeca,
-            'porcentajeDeDescuento' => $request->porcentajeBeca,
-            'idEstatus' => 1
-        ]);
+        try {
 
-        return redirect()->route('altaBeca')
-                         ->with('success', 'Beca registrada correctamente');
-        
+            // Intentar guardar el registro
+            Beca::create([
+                'nombreDeBeca' => $nombre,
+                'porcentajeDeDescuento' => $request->porcentajeBeca,
+                'idEstatus' => 1
+            ]);
 
+            return redirect()->route('altaBeca')
+                            ->with('success', 'Beca registrada correctamente');
+
+        } catch (\Exception $e) {
+
+            // Error inesperado → NO se guardó
+            return back()
+                ->with('popupError', 'Error: No se pudo registrar la beca. Inténtalo nuevamente.')
+                ->withInput();
+        }
     }
 
-     public function index()
-    {
-        // Obtener todas las becas con su estatus
-        $becas = Beca::with('estatus')->get();
 
-        return view('SGFIDMA.moduloBecas.consultaDeBeca', compact('becas'));
+
+    private function mbUcwords($string, $encoding = 'UTF-8')
+    {
+        $string = mb_strtolower($string, $encoding);
+        $words = explode(' ', $string);
+
+        foreach ($words as &$word) {
+            if ($word !== '') {
+                $first = mb_substr($word, 0, 1, $encoding);
+                $rest = mb_substr($word, 1, null, $encoding);
+                $word = mb_strtoupper($first, $encoding) . $rest;
+            }
+        }
+
+        return implode(' ', $words);
+    }
+
+    public function index(Request $request)
+    {
+        $orden = $request->orden;
+        $filtro = $request->filtro;
+        $buscar = $request->buscarBeca;
+
+        $query = Beca::with('estatus');
+
+        if ($request->filled('buscarBeca')) {
+            $query->where('nombreDeBeca', 'LIKE', '%' . $buscar . '%');
+        }
+
+
+        if ($filtro === 'activas') {
+            $query->where('idEstatus', 1);
+        } elseif ($filtro === 'suspendidas') {
+            $query->where('idEstatus', 2);
+        } elseif ($filtro === 'todas') {
+
+        }
+
+        // Aplicar orden
+        if ($orden === 'alfabetico') {
+            $query->orderBy('nombreDeBeca', 'asc');
+        } elseif ($orden === 'porcentaje_mayor') {
+            $query->orderBy('porcentajeDeDescuento', 'desc');
+        } elseif ($orden === 'porcentaje_menor') {
+            $query->orderBy('porcentajeDeDescuento', 'asc');
+        }
+
+        $becas = $query->paginate(5)->withQueryString();
+
+        return view('SGFIDMA.moduloBecas.consultaDeBeca', compact('becas', 'orden', 'filtro','buscar'));
     }
 
     public function edit($id)
@@ -102,6 +158,10 @@ class BecaController extends Controller
 
         return redirect()->route('consultaBeca')->with('success', "La beca {$beca->nombreDeBeca} ha sido eliminada.");
     }
+
+
+
+    
 
 
 

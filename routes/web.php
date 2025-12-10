@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BecaController;
+use App\Http\Controllers\ConceptoController;
 
 
 
@@ -80,22 +81,24 @@ Route::post('/becas/store', [BecaController::class, 'store'])->name('becas.store
 Route::delete('/becas/{id}', [BecaController::class, 'destroy'])->name('becas.destroy');
 
 
+
+
 /*CONCEPTOS*/
 Route::get('/apartadoConceptos', function () {
     return view('SGFIDMA.moduloConceptosDePago.apartadoConceptos');
 })->name('apartadoConceptos');
 
-Route::get('/altaConceptos', function () {
-    return view('SGFIDMA.moduloConceptosDePago.altaDeConcepto');
-})->name('altaConcepto');
+Route::get('/altaConceptos', [ConceptoController::class, 'create'])->name('altaConcepto');
 
-Route::get('/consultaConceptos', function () {
-    return view('SGFIDMA.moduloConceptosDePago.consultaDeConceptos');
-})->name('consultaConceptos');
+Route::post('/Conceptos/store', [ConceptoController::class, 'store'])->name('concepto.store');
 
-Route::get('/modificacionConceptos', function () {
-    return view('SGFIDMA.moduloConceptosDePago.modificacionConcepto');
-})->name('modificacionConceptos');
+Route::get('/consultaConceptos', [ConceptoController::class, 'index'])->name('consultaConcepto');
+
+Route::get('/concepto/{idConceptoDePago}/modificar', [ConceptoController::class, 'edit'])->name('concepto.edit');
+
+Route::put('/concepto/{idConceptoDePago}/actualizar', [ConceptoController::class, 'update'])->name('concepto.update');
+
+Route::delete('/concepto/{idConceptoDePago}/eliminar', [ConceptoController::class, 'destroy'])->name('concepto.destroy');
 
 
 
