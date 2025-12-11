@@ -1,4 +1,21 @@
 @vite(['resources/css/app.css'])
+    @if (session('success'))
+        <div class="popup-notificacion" id="popup">
+            <div class="popup-contenido">
+                <p>{{ session('success') }}</p>
+                <button class="popup-boton" onclick="cerrarPopup()">Aceptar</button>
+            </div>
+        </div>
+    @endif
+
+    @if (session('popupError'))
+        <div class="popup-notificacion" id="popup">
+            <div class="popup-contenido" style="color: red;">
+                <p>{{ session('popupError') }}</p>
+                <button class="popup-boton" onclick="cerrarPopup()">Aceptar</button>
+            </div>
+        </div>
+    @endif
 <div class="navbar">
     <div class="nav-left">
         <img src="/imagenes/LogoIDMABlanco.png" alt="Logo" class="nav-logo">
@@ -32,3 +49,33 @@
 </div>
 
 <img src="{{ asset('imagenes/ImagenDeFondo.png') }}" class="fondoInferior" alt="imagenInferior">
+
+<div class="popup-confirmacion" id="popupConfirmacion">
+    <div class="popup-contenido">
+        <p id="mensajeConfirmacion">¿Seguro?</p>
+        <div class="popup-botones">
+            <button class="btn-confirmar" onclick="confirmarEliminacion()">Eliminar</button>
+            <button class="btn-cancelar-confirmacion" onclick="cerrarPopupConfirmacion()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function cerrarPopup() {
+        document.getElementById('popup').style.display = 'none';
+    }
+
+    let formularioAEliminar = null;
+
+    function cerrarPopupConfirmacion() {
+        document.getElementById('popupConfirmacion').style.display = 'none';
+        formularioAEliminar = null;
+    }
+
+    // Enviar el formulario real DELETE
+    function confirmarEliminacion() {
+        if (formularioAEliminar) {
+            formularioAEliminar.submit();
+         }
+    }
+    </script>

@@ -9,24 +9,6 @@
 <body>
     @include('layouts.barraNavegacion')
 
-    @if (session('success'))
-        <div class="popup-notificacion" id="popup">
-            <div class="popup-contenido">
-                <p>{{ session('success') }}</p>
-                <button class="popup-boton" onclick="cerrarPopup()">Aceptar</button>
-            </div>
-        </div>
-    @endif
-
-    @if (session('popupError'))
-        <div class="popup-notificacion" id="popup">
-            <div class="popup-contenido" style="color: red;">
-                <p>{{ session('popupError') }}</p>
-                <button class="popup-boton" onclick="cerrarPopup()">Aceptar</button>
-            </div>
-        </div>
-    @endif
-
     <form id="formBeca" action="{{ route('becas.store') }}" method="POST" class="formulario">
     @csrf
 
@@ -54,11 +36,6 @@
     </form>
 
       <script>
-
-        
-        function cerrarPopup() {
-            document.getElementById('popup').style.display = 'none';
-        }
     
         const inputPorcentaje = document.getElementById('porcentajeBeca');
         const errorPorcentaje = document.getElementById('porcentajeError');

@@ -9,25 +9,6 @@
 <body>
     @include('layouts.barraNavegacion')
 
-    @if (session('success'))
-        <div class="popup-notificacion" id="popup">
-            <div class="popup-contenido">
-                <p>{{ session('success') }}</p>
-                <button class="popup-boton" onclick="cerrarPopup()">Aceptar</button>
-            </div>
-        </div>
-    @endif
-
-    @if (session('popupError'))
-        <div class="popup-notificacion" id="popup">
-            <div class="popup-contenido" style="color: red;">
-                <p>{{ session('popupError') }}</p>
-                <button class="popup-boton" onclick="cerrarPopup()">Aceptar</button>
-            </div>
-        </div>
-    @endif
-
-
     <form action="{{ route('concepto.store') }}" method="POST" class="formulario">
     @csrf
 
@@ -62,11 +43,7 @@
         </div>
 
         <Script>
-            function cerrarPopup() {
-                document.getElementById('popup').style.display = 'none';
-            }
-
-
+        
             const inputCosto = document.getElementById('costo');
             const errorCosto = document.getElementById('costoError');
             const form = document.querySelector('form');

@@ -9,23 +9,7 @@
 <body>
 
     @include('layouts.barraNavegacion')
-    @if (session('success'))
-        <div class="popup-notificacion" id="popup">
-            <div class="popup-contenido">
-                <p>{{ session('success') }}</p>
-                <button class="popup-boton" onclick="cerrarPopup()">Aceptar</button>
-            </div>
-        </div>
-    @endif
-
-    @if (session('popupError'))
-        <div class="popup-notificacion" id="popup">
-            <div class="popup-contenido" style="color: red;">
-                <p>{{ session('popupError') }}</p>
-                <button class="popup-boton" onclick="cerrarPopup()">Aceptar</button>
-            </div>
-        </div>
-    @endif
+    
 
     <form action="{{ route('planes.store') }}" method="POST" class="formulario">
         @csrf
@@ -89,9 +73,6 @@
 
     <!-- Script para sumar/restar -->
     <script>
-        function cerrarPopup() {
-            document.getElementById('popup').style.display = 'none';
-        }
 
         function cambiarCantidad(id, cambio) {
             const input = document.getElementById("cantidad_" + id);
