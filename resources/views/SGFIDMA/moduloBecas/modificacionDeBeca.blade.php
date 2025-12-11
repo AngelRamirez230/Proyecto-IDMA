@@ -38,10 +38,6 @@
 
     <script>
 
-        
-        function cerrarPopup() {
-            document.getElementById('popup').style.display = 'none';
-        }
     
         const inputPorcentaje = document.getElementById('porcentajeBeca');
         const errorPorcentaje = document.getElementById('porcentajeError');

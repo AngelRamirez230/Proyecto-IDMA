@@ -10,15 +10,6 @@
 
     @include('layouts.barraNavegacion')
 
-    @if (session('success'))
-        <div class="popup-notificacion" id="popup">
-            <div class="popup-contenido">
-                <p>{{ session('success') }}</p>
-                <button class="popup-boton" onclick="cerrarPopup()">Aceptar</button>
-            </div>
-        </div>
-    @endif
-
     <main class="consulta">
         <h1 class="consulta-titulo">Lista de becas</h1>
 
@@ -141,12 +132,6 @@
     </main>
 
     <script>
-        // Cerrar popup de notificación
-        function cerrarPopup() {
-            document.getElementById('popup').style.display = 'none';
-        }
-
-        let formularioAEliminar = null;
 
         function mostrarPopupConfirmacion(nombreBeca, boton) {
             // Guardamos el formulario DELETE
@@ -158,18 +143,6 @@
 
             // Mostrar popup
             document.getElementById('popupConfirmacion').style.display = 'flex';
-        }
-
-        function cerrarPopupConfirmacion() {
-            document.getElementById('popupConfirmacion').style.display = 'none';
-            formularioAEliminar = null;
-        }
-
-        // Enviar el formulario real
-        function confirmarEliminacion() {
-            if (formularioAEliminar) {
-                formularioAEliminar.submit(); // SE ENVÍA DELETE
-            }
         }
 
 

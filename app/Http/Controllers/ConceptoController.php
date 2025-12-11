@@ -168,10 +168,18 @@ class ConceptoController extends Controller
         // Buscar el concepto
         $concepto = ConceptoDePago::findOrFail($idConceptoDePago);
 
-        // Eliminarlo
+        // Verificar si está siendo usado en algún plan de pago
+        $estaEnUso = \App\Models\PlanConcepto::where('idConceptoDePago', $idConceptoDePago)->exists();
+
+        if ($estaEnUso) {
+            return redirect()
+                ->route('consultaConcepto')
+                ->with('popupError', "El concepto '{$concepto->nombreConceptoDePago}' no puede eliminarse porque está siendo usado en un plan de pago.");
+        }
+
+        // Si no está en uso, eliminarlo
         $concepto->delete();
 
-        // Redirigir con mensaje
         return redirect()
             ->route('consultaConcepto')
             ->with('success', "El concepto {$concepto->nombreConceptoDePago} ha sido eliminado.");
