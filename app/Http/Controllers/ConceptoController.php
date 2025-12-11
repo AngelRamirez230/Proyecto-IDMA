@@ -141,14 +141,22 @@ class ConceptoController extends Controller
             $concepto->idUnidad = $request->unidad; 
             $concepto->save();
 
-            return redirect()->route('consultaConcepto')
-                            ->with('success', 'Concepto actualizado correctamente.');
+            return redirect()->route('consultaConcepto')->with('success', 'Concepto actualizado correctamente.');
         }
 
         elseif ($request->accion === 'Suspender/Habilitar') {
 
             // Guardar estatus anterior
             $estatusAnterior = $concepto->idEstatus;
+
+            $estaEnUso = \App\Models\PlanConcepto::where('idConceptoDePago', $idConceptoDePago)->exists();
+
+            if ($estaEnUso) {
+                return redirect()
+                    ->route('consultaConcepto')
+                    ->with('popupError', "El concepto {$concepto->nombreConceptoDePago} no puede suspenderse porque está siendo usado en un plan de pago.");
+            }
+
 
             // Alternar estatus
             $concepto->idEstatus = ($concepto->idEstatus == 1) ? 2 : 1;
@@ -174,7 +182,7 @@ class ConceptoController extends Controller
         if ($estaEnUso) {
             return redirect()
                 ->route('consultaConcepto')
-                ->with('popupError', "El concepto '{$concepto->nombreConceptoDePago}' no puede eliminarse porque está siendo usado en un plan de pago.");
+                ->with('popupError', "El concepto {$concepto->nombreConceptoDePago} no puede eliminarse porque está siendo usado en un plan de pago.");
         }
 
         // Si no está en uso, eliminarlo

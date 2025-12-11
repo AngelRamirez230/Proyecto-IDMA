@@ -50,6 +50,16 @@
 
 <img src="{{ asset('imagenes/ImagenDeFondo.png') }}" class="fondoInferior" alt="imagenInferior">
 
+<div class="popup-confirmacion" id="popupConfirmacion">
+    <div class="popup-contenido">
+        <p id="mensajeConfirmacion">¿Seguro?</p>
+        <div class="popup-botones">
+            <button class="btn-confirmar" onclick="confirmarEliminacion()">Eliminar</button>
+            <button class="btn-cancelar-confirmacion" onclick="cerrarPopupConfirmacion()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
 <script>
     function cerrarPopup() {
         document.getElementById('popup').style.display = 'none';
