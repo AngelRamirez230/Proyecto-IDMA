@@ -1,7 +1,6 @@
 /* ==============================
    Consulta - Layout
    ============================== */
-
 .consulta {
     margin-top: 130px; /* navbar + subnav */
     padding: 0 20px 40px;
@@ -17,7 +16,7 @@
 
 /* Controles */
 .consulta-controles {
-    display:flex;
+    display: flex;
     flex-direction: column; /* barra arriba, selects abajo */
     align-items: flex-start;
     justify-content: space-between;
@@ -25,15 +24,14 @@
 }
 
 /* ==============================
-   BUSCADOR (CORREGIDO)
+   BUSCADOR
    ============================== */
-
 .consulta-busqueda-group {
     display: flex;
     align-items: center;
     border: 1px solid #000;
     border-radius: 6px;
-    overflow: hidden; /* evita que el borde se rompa */
+    overflow: hidden;
     height: 42px;
     background: #ffffff;
 }
@@ -55,13 +53,17 @@
 }
 
 /* ==============================
-   Selects del lado derecho
+   SELECTS
    ============================== */
-
 .consulta-selects {
     display: flex;
     align-items: center;
     margin-left: auto;
+}
+
+.consulta-selects form {
+    display: flex;
+    align-items: center;
 }
 
 .select-boton {
@@ -88,90 +90,121 @@
     object-fit: contain;
 }
 
-/* ===============================
-   RESPONSIVE PARA SELECTS
-================================ */
-
-/* Cuando la pantalla sea menor a 992px → selects abajo */
-@media (max-width: 992px) {
-    .consulta-usuarios-controles {
-        flex-direction: column; /* barra arriba, selects abajo */
-        gap: 20px;
-        align-items: flex-start; /* todo alineado a la izquierda */
-    }
-
-    .consulta-selects {
-        width: 100%;
-        margin-top: 30px;
-        display: flex;
-        justify-content: flex-start;
-        gap: 10px;
-    }
-}
-
-/* Cuando sea menor a 566px → botones al 50% */
-@media (max-width: 566px) {
-    .consulta-selects {
-        flex-wrap: wrap; /* permite que se vayan a otra línea */
-    }
-
-    .consulta-selects .select-boton + .select-boton {
-    margin-left: 0px;
-}
-
-    .select-boton {
-        width: 50%; /* cada uno ocupa la mitad del ancho */
-    }
-}
-
 /* ==============================
    TABLA
    ============================== */
-
 .consulta-tabla-contenedor {
     margin-top: 42px;
+    overflow-x: auto; /* para responsive */
 }
 
 .tabla {
     width: 100%;
     border-collapse: collapse;
+    font-family: "Poppins", sans-serif;
 }
 
-.tabla-encabezado {
-    display: flex;
+.tabla thead {
     background: #79272C;
-    color: #FFFFFF;
+    color: #fff;
 }
 
-.tabla-encabezado th {
-    flex: 1;
+.tabla thead th {
     padding: 12px 16px;
     font-weight: 500;
     text-align: center;
+    white-space: nowrap;
 }
 
-.tabla-encabezado th:last-child {
-    text-align: center;
-}
-
-.tabla-cuerpo {
-    display: block;
-}
-
-.tabla-fila {
-    display: flex;
+/* ==============================
+   REGISTROS DE LA TABLA
+   ============================== */
+.tabla tbody tr {
     border-top: 1px solid #5B5B5B;
+    transition: background 0.2s ease;
 }
 
-.tabla-fila td {
-    flex: 1;
+.tabla tbody tr:nth-child(even) {
+    background: #f7f7f7; /* filas alternadas */
+}
+
+.tabla tbody tr:hover {
+    background: #eaeaea; /* resaltar fila al pasar el mouse */
+}
+
+.tabla tbody td {
     padding: 12px 16px;
-}
-
-.tabla-fila td:last-child {
     text-align: center;
+    white-space: nowrap; /* evita que se rompa el texto */
+    vertical-align: middle;
 }
 
+.fila-suspendida td {
+    color: #6A737B !important;
+}
+
+.tablaVacia{
+text-align:center; 
+padding: 20px; 
+color: #79272C; 
+font-size: 18px;
+}
+
+/* ==============================
+   PAGINACIÓN
+   ============================== */
+/* CONTENEDOR GENERAL */
+.paginacion .pagination {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.paginacion {
+    margin-top: 35px; 
+}
+
+/* Quitar puntos de la lista */
+.paginacion ul.pagination,
+.paginacion ul.pagination li {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Estilos de los botones */
+.paginacion .page-link {
+    color: #79272C;
+    border: 1px solid #79272C;
+    padding: 8px 14px;
+    font-size: 15px;
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+.paginacion .page-link:hover {
+    background-color: #79272C;
+    color: #fff;
+}
+
+.paginacion .active .page-link {
+    background-color: #79272C;
+    border-color: #79272C;
+    color: #fff;
+}
+
+.paginacion .disabled .page-link {
+    opacity: 0.4;
+    color: #79272C;
+    border-color: #79272C;
+}
+
+
+
+
+/* ==============================
+   ACCIONES
+   ============================== */
 .tabla-acciones {
     display: flex;
     justify-content: center;
@@ -189,3 +222,96 @@
     width: 20px;
     height: 20px;
 }
+
+/* ==============================
+   ERROR / POPUP
+   ============================== */
+.mensajeError {
+    color: red;
+    font-size: 14px;
+    margin-top: 5px;
+    display: block;
+}
+
+.popup-notificacion {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 5000;
+}
+
+.popup-contenido {
+    background: #ffffff;
+    padding: 25px 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    text-align: center;
+    max-width: 300px;
+    font-size: 18px;
+    color: #333;
+    animation: aparecer 0.3s ease-out;
+}
+
+.popup-boton {
+    margin-top: 15px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background-color: #79272C;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.popup-boton:hover {
+    background-color: #5e1f23;
+}
+
+@keyframes aparecer {
+    from { transform: scale(0.7); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* ==============================
+   RESPONSIVE
+   ============================== */
+@media (max-width: 992px) {
+    .consulta-controles {
+        flex-direction: column;
+        gap: 20px;
+        align-items: flex-start;
+    }
+
+    .consulta-selects {
+        width: 100%;
+        margin-top: 20px;
+        gap: 10px;
+    }
+}
+
+@media (max-width: 566px) {
+    .consulta-selects form {
+        flex-direction: column !important; /* uno debajo del otro */
+        align-items: flex-start !important; /* alineación izquierda */
+        width: 100%;
+        gap: 10px; /* separación entre los selects */
+    }
+
+    .consulta-busqueda-group input {
+        width: calc(100% - 40px);
+    }
+
+    .select-boton {
+        width: 180px; /* mismo tamaño */
+        margin: 0 !important;
+    }
+}
+
+
+
