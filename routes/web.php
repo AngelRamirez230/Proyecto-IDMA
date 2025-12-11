@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BecaController;
+use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\ConceptoController;
 
 
@@ -25,8 +26,17 @@ Route::get('/seleccionarRol', function () {
     return view('shared.moduloUsuarios.seleccionarRol');
 })->name('seleccionarRol');
 
+/* Nueva ruta: mostrar formulario de creación */
+Route::get('/usuarios/crear', [UsuarioController::class, 'create'])
+    ->name('usuarios.create');
+
+/* Nueva ruta: guardar usuario */
+Route::post('/usuarios', [UsuarioController::class, 'store'])
+    ->name('usuarios.store');
+
+/* Ruta antigua → ahora redirige a la nueva */
 Route::get('/altaUsuarios', function () {
-    return view('shared.moduloUsuarios.altaDeUsuario');
+    return redirect()->route('usuarios.create');
 })->name('altaUsuarios');
 
 Route::get('/consultaUsuarios', function () {
@@ -149,9 +159,4 @@ Route::get('/eleccionFechas', function () {
 Route::get('/reportePagosAprobados', function () {
     return view('SGFIDMA.moduloReportesFinanzas.reportePagosAprobados');
 })->name('reportePagosAprobados');
-
-Route::get('/reportePagosAprobados', function () {
-    return view('SGFIDMA.moduloReportesFinanzas.reportePagosAprobados');
-})->name('reportePagosAprobados');
-
 
