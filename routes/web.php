@@ -121,9 +121,13 @@ Route::get('/altaPlanDePago', [PlanDePagoController::class, 'create'])->name('al
 
 Route::post('/altaPlanDePago', [PlanDePagoController::class, 'store'])->name('planes.store');
 
-Route::get('/consultaPlanDePago', function () {
-    return view('SGFIDMA.moduloPlanDePago.consultaPlanDePago');
-})->name('consultaPlan');
+Route::get('/consultaPlanDePago', [PlanDePagoController::class, 'index'])->name('consultaPlan');
+
+Route::get('/planes/{id}/edit', [PlanDePagoController::class, 'edit'])->name('planes.edit');
+
+Route::put('/planes/{id}', [PlanDePagoController::class, 'update'])->name('planes.update');
+
+Route::delete('/planes/{id}', [PlanDePagoController::class, 'destroy'])->name('planes.destroy');
 
 
 /*SOLICITU DE BECA*/

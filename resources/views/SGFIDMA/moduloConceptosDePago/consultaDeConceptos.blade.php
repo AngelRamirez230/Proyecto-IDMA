@@ -9,15 +9,6 @@
 <body>
     @include('layouts.barraNavegacion')
 
-    @if (session('success'))
-        <div class="popup-notificacion" id="popup">
-            <div class="popup-contenido">
-                <p>{{ session('success') }}</p>
-                <button class="popup-boton" onclick="cerrarPopup()">Aceptar</button>
-            </div>
-        </div>
-    @endif
-
     <main class="consulta">
         <h1 class="consulta-titulo">Lista de conceptos de pago</h1>
 
@@ -122,15 +113,6 @@
                     
                 </tbody>
             </table>
-            <div class="popup-confirmacion" id="popupConfirmacion">
-                <div class="popup-contenido">
-                    <p id="mensajeConfirmacion">¿Seguro?</p>
-                    <div class="popup-botones">
-                        <button class="btn-confirmar" onclick="confirmarEliminacion()">Eliminar</button>
-                        <button class="btn-cancelar-confirmacion" onclick="cerrarPopupConfirmacion()">Cancelar</button>
-                    </div>
-                </div>
-            </div>
         </section>
 
         <div class="paginacion">
@@ -140,11 +122,6 @@
     </main>
 
     <script>
-        function cerrarPopup() {
-            document.getElementById('popup').style.display = 'none';
-        }
-
-        let formularioAEliminar = null;
 
         function mostrarPopupConfirmacion(nombreConceptoDePago, boton) {
             // Guardar el formulario del DELETE
@@ -158,17 +135,6 @@
             document.getElementById('popupConfirmacion').style.display = 'flex';
         }
 
-        function cerrarPopupConfirmacion() {
-            document.getElementById('popupConfirmacion').style.display = 'none';
-            formularioAEliminar = null;
-        }
-
-        // Enviar el formulario real DELETE
-        function confirmarEliminacion() {
-            if (formularioAEliminar) {
-                formularioAEliminar.submit();
-            }
-        }
     </script>
     
 </body>

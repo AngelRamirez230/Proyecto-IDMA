@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\TipoDeEstatus;
 
 class PlanDePago extends Model
 {
@@ -19,5 +20,10 @@ class PlanDePago extends Model
     public function conceptos()
     {
         return $this->hasMany(PlanConcepto::class, 'idPlanDePago', 'idPlanDePago');
+    }
+
+    public function estatus()
+    {
+        return $this->belongsTo(TipoDeEstatus::class, 'idEstatus', 'idTipoDeEstatus');
     }
 }

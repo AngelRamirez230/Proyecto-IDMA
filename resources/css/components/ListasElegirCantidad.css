@@ -6,6 +6,7 @@
     margin-top: 20px;
     gap: 12px;                 /* Espacio entre cada fila */
     width: 100%;
+    margin-bottom: 40px;
 }
 
 /* Cada fila: Botón - + Nombre + Botón + Input */
