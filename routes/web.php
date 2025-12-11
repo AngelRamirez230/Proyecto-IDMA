@@ -136,6 +136,11 @@ Route::get('/apartadoSolicitudDeBeca', function () {
 })->name('apartadoSolicitudBeca');
 
 
+Route::get('/formularioSolicitudDeBeca', function () {
+    return view('SGFIDMA.moduloSolicitudBeca.formularioSolicitudDeBeca');
+})->name('formularioSolicitudBeca');
+
+
 
 /*PAGOS*/
 Route::get('/apartadoPago', function () {
