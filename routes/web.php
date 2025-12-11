@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BecaController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\ConceptoController;
-
+use App\Http\Controllers\PlanDePagoController;
 
 
 
@@ -117,9 +117,9 @@ Route::get('/apartadoPlanDePago', function () {
     return view('SGFIDMA.moduloPlanDePago.apartadoPlanDePago');
 })->name('apartadoPlanDePago');
 
-Route::get('/altaPlanDePago', function () {
-    return view('SGFIDMA.moduloPlanDePago.altaPlan');
-})->name('altaPlan');
+Route::get('/altaPlanDePago', [PlanDePagoController::class, 'create'])->name('altaPlan');
+
+Route::post('/altaPlanDePago', [PlanDePagoController::class, 'store'])->name('planes.store');
 
 Route::get('/consultaPlanDePago', function () {
     return view('SGFIDMA.moduloPlanDePago.consultaPlanDePago');
