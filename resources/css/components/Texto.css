@@ -32,3 +32,88 @@
 .lista-letras li {
     margin-bottom: 8px;
 }
+
+
+.textoNormal {
+    font-size: 14px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    text-align: justify;
+}
+
+.link-descarga {
+    color: #094B88;
+    font-weight: 600;
+    text-decoration: none;
+    margin-bottom: 20px;
+}
+
+.link-descarga:hover {
+    text-decoration: underline;
+}
+
+/* Contenedor general */
+.subir-documento {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+
+}
+
+/* Label */
+.label-documento {
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #79272C;
+    white-space: nowrap;
+}
+
+/* Contenedor del botón + nombre */
+.contenedor-archivo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Botón subir */
+.boton-subir {
+    padding: 8px 30px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    background-color: #79272C;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.boton-subir:hover {
+    background-color: #5f1f23;
+}
+
+/* Nombre del archivo */
+.nombre-archivo {
+    font-size: 14px;
+    color: #79272C;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+
+    .subir-documento {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .contenedor-archivo {
+        flex-direction: row;
+        gap: 8px;
+    }
+
+    .nombre-archivo {
+        white-space: normal;
+    }
+}

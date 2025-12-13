@@ -44,6 +44,8 @@
                 </li>
             </ol>
 
+
+
         </div>
 
 
@@ -66,17 +68,111 @@
         </div>
 
         <div class="form-group">
-            <label for="examenExtraordinario">¿En el semestre cursado ¿Presentaste algún examen extraordinario? ¿Cuál?</label>
+            <label for="examenExtraordinario">En el semestre cursado ¿Presentaste algún examen extraordinario? ¿Cuál?</label>
              <input type="text" id="examenExtraordinario" name="examenExtraordinario" class="input-grande" required>
         </div>
+
+
+        <div class="textoNormal">
+            <p><strong>Solicitud de renovación de BECA</strong></p>
+
+            <p>Llenado en <strong>tinta azul y a mano</strong> </p>
+
+            <p>
+                Escaneo de buena calidad <strong>(no se admiten fotografías).  
+                El escaneo puedes hacerlo en una papelería, te pedimos lo hagas en la mejor calidad posible.</strong> 
+            </p>
+
+            <p>Formato PDF</p>
+            
+        </div>
+
+        <a href="documentos/DocumentoDePrueba.pdf" class="link-descarga" download>
+                Descárguelo aquí
+        </a>
+
+        <div>
+            <div class="textoNormal">
+                <p>Beca por Padre o Madre soltera</p>
+            </div>
+
+            <div class="textoNormal">
+                <p>Si tu solicitud de beca es por "padre o madre soltera", adjunta a continuación tus documentos probatorios en un solo archivo PDF:</p>
+
+                <li>-Constancia de Padre o Madre soltera, expedida por el Registro civil, DIF o Ayuntamiento de tu residencia. </li>
+                <li>-Documento que acredite la tutoría legal. </li>
+                <li>-Puedes agregar otro documento que consideres oportuno.</li>
+            </div>
+
+            <div class="textoNormal">
+                <p><strong>Puede ser alguno de esos, no necesariamente todos</strong></p>
+            </div>
+        </div>
+
+        <div class="subir-documento">
+            <label for="documento" class="label-documento">
+                Adjuntar documento
+            </label>
+
+            <div class="contenedor-archivo">
+                <input 
+                    type="file" 
+                    id="documento" 
+                    name="documento"
+                    accept=".pdf"
+                    hidden
+                    onchange="validarPDF(this)"
+                >
+
+                <button type="button" class="boton-subir"
+                    onclick="document.getElementById('documento').click()">
+                    Seleccionar archivo
+                </button>
+
+                <span id="nombreArchivo" class="nombre-archivo">
+                    Ningún archivo seleccionado
+                </span>
+            </div>
+        </div>
+
         
+
+
 
 
         <div class="form-group">
             <button type="submit"  name="accion" value="guardar" class="btn-boton-formulario">Solicitar beca</button>
             <a href="{{ route('consultaBeca') }}" class="btn-boton-formulario btn-cancelar">Cancelar</a>
         </div>
+
+
+        
     </form>
+
+
+    <script>
+    function validarPDF(input) {
+        const archivo = input.files[0];
+        const nombreArchivo = document.getElementById("nombreArchivo");
+
+        if (!archivo) {
+            nombreArchivo.textContent = "Ningún archivo seleccionado";
+            return;
+        }
+
+        const extension = archivo.name.split('.').pop().toLowerCase();
+
+        if (extension !== "pdf") {
+            alert("Solo se permiten archivos PDF");
+            input.value = "";
+            nombreArchivo.textContent = "Ningún archivo seleccionado";
+            return;
+        }
+
+        nombreArchivo.textContent = archivo.name;
+    }
+    </script>
+
     
     
 </body>
