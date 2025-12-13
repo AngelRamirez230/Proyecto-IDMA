@@ -14,7 +14,7 @@ class LoginController extends Controller
      */
     public function showLogin()
     {
-        return view('login'); // ajusta el nombre si tu vista es distinta
+        return view('layouts.login'); // ajusta el nombre si tu vista es distinta
     }
 
     /**

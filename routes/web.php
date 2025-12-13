@@ -5,13 +5,53 @@ use App\Http\Controllers\BecaController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\ConceptoController;
 use App\Http\Controllers\PlanDePagoController;
+use App\Http\Controllers\LoginController;
 
 /*--------------------------Acceso al sistema--------------------------------*/
-Route::get('/login', [LoginController::class, 'showLogin'])->name('login.form');
-Route::post('/login', [LoginController::class, 'login'])->name('login');
-Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
+Route::middleware('guest.manual')->group(function () {
+
+    // Login (raíz)
+    Route::get('/', function () {
+        return view('layouts.login');
+    })->name('login');
+
+    // Mostrar formulario
+    Route::get('/login', [LoginController::class, 'showLogin'])
+        ->name('login.form');
+
+    // Procesar login
+    Route::post('/login', [LoginController::class, 'login'])
+        ->name('login.process');
+});
 
 
+/*
+|--------------------------------------------------------------------------
+| Cerrar sesión (solo con sesión activa)
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth.manual')->get('/logout', [LoginController::class, 'logout'])
+    ->name('logout');
+
+
+/*
+|--------------------------------------------------------------------------
+| Ruta de prueba del middleware
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth.manual')->get('/prueba-middleware', function () {
+    return '✅ Acceso autorizado: sesión activa';
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| Inicio del sistema (PROTEGIDO)
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth.manual')->get('/inicio', function () {
+    return view('layouts.inicio');
+})->name('inicio');
 
 
 /*--------------------------SHARED--------------------------------*/
