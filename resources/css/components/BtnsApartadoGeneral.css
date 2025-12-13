@@ -14,10 +14,9 @@
     padding-bottom: 60px;
 }
 
-/* --- Estilo unificado para button y a --- */
-
+/* Botón normal */
 .apartado-general a.btn-boton {
-    width: 100%;
+    width: 80%;
     padding: 14px 0;
     font-size: 16px;
     font-weight: bold;
@@ -26,15 +25,16 @@
     border: none;
     border-radius: 0px;
     cursor: pointer;
-    transition: transform 0.2s;
+    transition: transform 0.2s, background-color 0.2s, color 0.2s;
     font-family: 'Poppins', sans-serif;
     display: block;
     text-align: center;
-    text-decoration: none;  /* Solo afecta a los <a> */
+    text-decoration: none;
 }
 
-/* Hover */
-
+/* Hover para cambiar color */
 .apartado-general a.btn-boton:hover {
-    transform: scale(1.01);
+    background-color: #79272C !important;
+    color: #FFFFFF !important;
+    transform: scale(1.03);
 }

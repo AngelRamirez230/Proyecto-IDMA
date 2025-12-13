@@ -58,11 +58,10 @@
     </div>
 
     <div class="form-group">
-        <button type="submit" name="accion" value="guardar" class="btn-boton-formulario">Guardar cambios</button>
 
-        <button type="submit" name="accion" value="Suspender/Habilitar" class="btn-boton-formulario">
-            Suspender/Habilitar
-        </button>
+        <button type="submit" name="accion" value="Suspender/Habilitar" class="btn-boton-formulario">Suspender/Habilitar</button>
+
+        <button type="submit" name="accion" value="guardar" class="btn-boton-formulario">Guardar cambios</button>
 
         <a href="{{ route('consultaPlan') }}" class="btn-boton-formulario btn-cancelar">Cancelar</a>
     </div>
