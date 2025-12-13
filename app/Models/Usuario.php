@@ -74,4 +74,10 @@ class Usuario extends Model
     {
         return $this->belongsTo(Domicilio::class, 'idDomicilio', 'idDomicilio');
     }
+
+
+    public function estudiante()
+    {
+        return $this->hasOne(Estudiante::class, 'idUsuario', 'idUsuario');
+    }
 }

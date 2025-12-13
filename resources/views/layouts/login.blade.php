@@ -14,7 +14,7 @@
     <div class="rectanguloAmarillo">
         <img src="{{ asset('imagenes/LOGO_INTERIOR_IDMA.png') }}" class="imagenIDMA" alt="imagenidma">
         
-        <form class="formularioLogin">
+        <form class="formularioLogin" method="POST" action="{{ route('login') }}">
             
 
             <div class="cajaDeTexto">

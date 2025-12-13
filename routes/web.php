@@ -6,6 +6,12 @@ use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\ConceptoController;
 use App\Http\Controllers\PlanDePagoController;
 
+/*--------------------------Acceso al sistema--------------------------------*/
+Route::get('/login', [LoginController::class, 'showLogin'])->name('login.form');
+Route::post('/login', [LoginController::class, 'login'])->name('login');
+Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
+
+
 
 
 /*--------------------------SHARED--------------------------------*/
