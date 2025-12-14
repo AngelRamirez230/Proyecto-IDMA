@@ -10,25 +10,24 @@ use App\Http\Controllers\LoginController;
 /*--------------------------RUTAS PARA INVITADOS (LOGIN)--------------------------*/
 Route::middleware(['guest.manual', 'nocache'])->group(function () {
 
-    // Login (raíz)
     Route::get('/', [LoginController::class, 'showLogin'])->name('login.view');
 
-    // Formulario de login explícito
+
     Route::get('/login', [LoginController::class, 'showLogin'])->name('login.form');
 
-    // Procesar login
+    
     Route::post('/login', [LoginController::class, 'login'])->name('login.process');
 });
 
 /*--------------------------RUTAS PROTEGIDAS (USUARIOS AUTENTICADOS)--------------------------*/
 Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(function () {
 
-    /*----------- Inicio y Logout -----------*/
+    /*------------INICIO------------*/
     Route::get('/inicio', function () {
         return view('layouts.inicio');
     })->name('inicio');
 
-    Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
     Route::get('/prueba-middleware', function () {
         return '✅ Acceso autorizado: sesión activa';
