@@ -107,7 +107,7 @@ class ConceptoController extends Controller
 ;
 
         // Retorna la vista
-        return view('SGFIDMA.moduloConceptosDePago.consultaDeConceptos', compact('conceptos','filtro'));
+        return view('SGFIDMA.moduloConceptosDePago.consultaDeConceptos', compact('conceptos','filtro','orden'));
     }
 
 
