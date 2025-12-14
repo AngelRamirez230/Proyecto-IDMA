@@ -26,7 +26,7 @@
 
             <!-- Filtros del lado derecho -->
             <div class="consulta-selects">
-                <select type="button" class="select select-boton">
+                <select type="button" class="select select-boton"> 
                     <option value="" disabled selected>Filtrar por</option>
                 </select>
 

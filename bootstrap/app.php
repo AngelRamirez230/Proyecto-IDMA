@@ -5,6 +5,12 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Middleware\AuthManual;
+use App\Http\Middleware\RolUsuario;
+use App\Http\Middleware\RedirectManual;
+use App\Http\Middleware\NoCache;
+use App\Http\Middleware\SessionTimeout;
+
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -22,7 +28,14 @@ return Application::configure(basePath: dirname(__DIR__))
     health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'auth.manual' => AuthManual::class,
+            'rol' => RolUsuario::class,
+            'guest.manual' => RedirectManual::class,
+            'nocache'      => NoCache::class,
+            'activity.timeout'  => SessionTimeout::class,
+
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -21,12 +21,13 @@
         <img src="/imagenes/LogoIDMABlanco.png" alt="Logo" class="nav-logo">
     </div>
 
-    <div class="nav-right">
-        <button class="logout-btn">
+    <form method="POST" action="{{ route('logout') }}" class="nav-right">
+        @csrf
+        <button type="submit" class="logout-btn">
             <img src="/imagenes/IconoCerrarSesionNav.png" alt="icon" class="logout-icon">
             <span>Cerrar sesión</span>
         </button>
-    </div>
+    </form>
 </div>
 
 <div class="subnav">
