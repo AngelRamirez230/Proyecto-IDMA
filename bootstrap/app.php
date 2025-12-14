@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\AuthManual;
 use App\Http\Middleware\RolUsuario;
 use App\Http\Middleware\RedirectManual;
+use App\Http\Middleware\NoCache;
+use App\Http\Middleware\SessionTimeout;
 
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -30,6 +32,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth.manual' => AuthManual::class,
             'rol' => RolUsuario::class,
             'guest.manual' => RedirectManual::class,
+            'nocache'      => NoCache::class,
+            'activity.timeout'  => SessionTimeout::class,
+
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

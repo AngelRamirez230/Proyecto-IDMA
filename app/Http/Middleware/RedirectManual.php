@@ -13,13 +13,13 @@ class RedirectManual
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next)
     {
-        // Si existe sesión de usuario, redirigir al inicio
-        if (session()->has('usuario')) {
+        if (session()->has('idUsuario')) {
             return redirect()->route('inicio');
         }
 
         return $next($request);
     }
+
 }
