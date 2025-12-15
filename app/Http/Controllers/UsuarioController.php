@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Http\Requests\UsuarioRequest;
 use App\Models\Usuario;
 use App\Models\Sexo;
+use App\Models\EstadoCivil;
 use App\Models\Entidad;
 use App\Models\Municipio;
 use App\Models\Localidad;
 use App\Models\Domicilio;
+use App\Models\Pais;
 use Illuminate\Support\Facades\Hash;
 
 class UsuarioController extends Controller
@@ -18,39 +20,28 @@ class UsuarioController extends Controller
      */
     public function create()
     {
-        // 1. Recuperar el rol desde el query string
         $rol = request()->query('rol');
 
-        // Validar que el rol sea un número entre 1 y 4
         if (!in_array($rol, [1, 2, 3, 4])) {
-            abort(404, "Rol no válido.");
+            abort(404, 'Rol no válido.');
         }
 
-        // 2. Nombres de roles
         $roles = [
             1 => 'Administrador',
             2 => 'Empleado',
             3 => 'Docente',
-            4 => 'Estudiante'
+            4 => 'Estudiante',
         ];
 
-        $nombreRol = $roles[$rol];
-
-        // 3. Catálogos reales desde BD
-        $sexos = Sexo::all();
-        $entidades = Entidad::all();
-
-        // Para municipios y localidades, normalmente se cargarán vía AJAX.
-        $municipios = Municipio::where('idEntidad', $entidades->first()->idEntidad ?? null)->get();
-        $localidades = collect(); // Inicialmente vacío
-
         return view('shared.moduloUsuarios.altaDeUsuario', [
-            'rol'        => $rol,
-            'nombreRol'  => $nombreRol,
-            'sexos'      => $sexos,
-            'entidades'  => $entidades,
-            'municipios' => $municipios,
-            'localidades'=> $localidades,
+            'rol'            => $rol,
+            'nombreRol'      => $roles[$rol],
+            'sexos'          => Sexo::orderBy('nombreSexo')->get(),
+            'estadosCiviles' => EstadoCivil::orderBy('nombreEstadoCivil')->get(),
+            'entidades'      => Entidad::orderBy('nombreEntidad')->get(),
+            'municipios'     => collect(),
+            'localidades'    => collect(),
+            'paises'         => Pais::orderBy('nombrePais')->get(),
         ]);
     }
 
@@ -58,53 +49,100 @@ class UsuarioController extends Controller
      * Guarda un nuevo usuario en la base de datos.
      */
     public function store(UsuarioRequest $request)
-{
-    // 1. Crear domicilio si se proporcionaron datos
-    $domicilioId = null;
-
-    if ($request->filled('localidad') || 
-        $request->filled('calle') || 
-        $request->filled('codigoPostal')) 
     {
-        $domicilio = Domicilio::create([
-            'codigoPostal'   => $request->codigoPostal,
-            'calle'          => $request->calle,
-            'numeroExterior' => $request->numeroExterior,
-            'numeroInterior' => $request->numeroInterior,
-            'colonia'        => $request->colonia,
-            'idLocalidad'    => $request->localidad,
+        /*
+        |----------------------------------------------------------
+        | 1. LOCALIDAD DE NACIMIENTO (OBLIGATORIA)
+        |----------------------------------------------------------
+        */
+        $idLocalidadNacimiento = $request->localidadNacimiento;
+
+        /*
+        |----------------------------------------------------------
+        | 2. LOCALIDAD DE DOMICILIO (CATÁLOGO O MANUAL)
+        |----------------------------------------------------------
+        */
+        $idLocalidadDomicilio = null;
+
+        if ($request->filled('localidad')) {
+            $idLocalidadDomicilio = $request->localidad;
+        } elseif ($request->filled('localidadManual') && $request->filled('municipio')) {
+
+            $localidadExistente = Localidad::where('nombreLocalidad', $request->localidadManual)
+                ->where('idMunicipio', $request->municipio)
+                ->first();
+
+            if ($localidadExistente) {
+                $idLocalidadDomicilio = $localidadExistente->idLocalidad;
+            } else {
+                $localidad = Localidad::create([
+                    'nombreLocalidad' => $request->localidadManual,
+                    'idMunicipio'     => $request->municipio,
+                    'idTipoDeEstatus' => 3, // Pendiente
+                ]);
+
+                $idLocalidadDomicilio = $localidad->idLocalidad;
+            }
+        }
+
+        /*
+        |----------------------------------------------------------
+        | 3. CREAR DOMICILIO (SI APLICA)
+        |----------------------------------------------------------
+        */
+        $domicilioId = null;
+
+        if (
+            $idLocalidadDomicilio ||
+            $request->filled('calle') ||
+            $request->filled('codigoPostal')
+        ) {
+            $domicilio = Domicilio::create([
+                'codigoPostal'   => $request->codigoPostal,
+                'calle'          => $request->calle,
+                'numeroExterior' => $request->numeroExterior,
+                'numeroInterior' => $request->numeroInterior,
+                'colonia'        => $request->colonia,
+                'idLocalidad'    => $idLocalidadDomicilio,
+            ]);
+
+            $domicilioId = $domicilio->idDomicilio;
+        }
+
+        /*
+        |----------------------------------------------------------
+        | 4. CREAR USUARIO
+        |----------------------------------------------------------
+        */
+        Usuario::create([
+            'primerNombre'            => $request->primer_nombre,
+            'segundoNombre'           => $request->segundo_nombre,
+            'primerApellido'          => $request->primer_apellido,
+            'segundoApellido'         => $request->segundo_apellido,
+
+            'idSexo'                  => $request->sexo,
+            'idEstadoCivil'           => $request->estadoCivil,
+
+            'telefono'                => $request->telefono,
+            'correoInstitucional'     => $request->emailInstitucional,
+
+            'nombreUsuario'           => $request->nombreUsuario,
+            'contraseña'              => Hash::make($request->password),
+
+            'fechaDeNacimiento'       => $request->fechaNacimiento,
+            'RFC'                     => $request->rfc,
+            'CURP'                    => $request->curp,
+            'correoElectronico'       => $request->email,
+
+            'idLocalidadNacimiento'   => $idLocalidadNacimiento,
+            'idDomicilio'             => $domicilioId,
+
+            'idtipoDeUsuario'         => session('rol_seleccionado', 1),
+            'idestatus'               => 1,
         ]);
 
-        $domicilioId = $domicilio->idDomicilio;
-    }
-        
-    // 2. Crear usuario asociado al domicilio
-    Usuario::create([
-        'primerNombre'       => $request->primer_nombre,
-        'segundoNombre'      => $request->segundo_nombre,
-        'primerApellido'     => $request->primer_apellido,
-        'segundoApellido'    => $request->segundo_apellido,
-
-        'idSexo'             => $request->sexo,
-        'telefono'           => $request->telefono,
-        'correoInstitucional'=> $request->emailInstitucional,
-
-        'nombreUsuario'      => $request->nombreUsuario,
-        'contraseña'         => Hash::make($request->password),
-
-        'fechaDeNacimiento'  => $request->fechaNacimiento,
-        'RFC'                => $request->rfc,
-        'CURP'               => $request->curp,
-        'correoElectronico'  => $request->email,
-
-        'idDomicilio'        => $domicilioId,
-
-        'idtipoDeUsuario'    => session('rol_seleccionado', 1),
-        'idestatus'          => 1,
-    ]);
-
-    return redirect()
-        ->route('consultaUsuarios')
-        ->with('success', 'Usuario creado correctamente');
+        return redirect()
+            ->route('consultaUsuarios')
+            ->with('success', 'Usuario creado correctamente');
     }
 }

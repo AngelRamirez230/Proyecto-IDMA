@@ -12,9 +12,14 @@ class Municipio extends Model
 
     protected $fillable = [
         'nombreMunicipio',
+        'nombreMunicipioNormalizado',
         'idEntidad',
-        'otroMunicipio',
+        'idTipoDeEstatus',
     ];
+
+    /* ============================
+       RELACIONES
+    ============================ */
 
     public function entidad()
     {

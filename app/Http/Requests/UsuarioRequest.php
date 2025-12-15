@@ -15,60 +15,125 @@ class UsuarioRequest extends FormRequest
     {
         return [
 
-            // =======================
-            // DATOS PERSONALES
-            // =======================
+            /* =======================
+               DATOS PERSONALES
+            ======================= */
             'primer_nombre'    => ['required', 'string', 'max:45'],
             'segundo_nombre'   => ['nullable', 'string', 'max:45'],
 
             'primer_apellido'  => ['required', 'string', 'max:45'],
             'segundo_apellido' => ['nullable', 'string', 'max:45'],
 
-            'sexo'             => ['required', 'integer', 'exists:Sexo,idSexo'],
+            'sexo' => [
+                'required',
+                'integer',
+                'exists:Sexo,idSexo'
+            ],
 
-            'telefono'         => ['nullable', 'string', 'digits:10'],
+            // 👉 NUEVO: ESTADO CIVIL (CATÁLOGO)
+            'estadoCivil' => [
+                'required',
+                'integer',
+                'exists:Estado_civil,idEstadoCivil'
+            ],
 
-            'emailInstitucional' => ['nullable','email','max:100','unique:Usuario,correoInstitucional'],
+            'telefono' => ['nullable', 'digits:10'],
 
-            'password'           => ['required','string','min:8','max:255'],
+            'emailInstitucional' => [
+                'nullable',
+                'email',
+                'max:100',
+                'unique:Usuario,correoInstitucional'
+            ],
 
-            'nombreUsuario'      => ['required','string','max:100'],
+            'password' => ['required', 'string', 'min:8'],
 
-            'fechaNacimiento'    => ['nullable','date','before_or_equal:today'],
+            'nombreUsuario' => ['required', 'string', 'max:100'],
 
-            'curp'               => ['nullable','string','max:18'],
-            'rfc'                => ['nullable','string','max:13'],
+            'fechaNacimiento' => [
+                'nullable',
+                'date',
+                'before_or_equal:today'
+            ],
 
-            'email'              => ['nullable','email','max:100','unique:Usuario,correoElectronico'],
+            'curp' => ['nullable', 'string', 'max:18'],
+            'rfc'  => ['nullable', 'string', 'max:13'],
 
+            'email' => [
+                'nullable',
+                'email',
+                'max:100',
+                'unique:Usuario,correoElectronico'
+            ],
 
-            // =======================
-            // DOMICILIO (COINCIDE CON EL FORMULARIO)
-            // =======================
-            'entidad'           => ['nullable','integer','exists:Entidad,idEntidad'],
-            'municipio'         => ['nullable','integer','exists:Municipio,idMunicipio'],
-            'localidad'         => ['nullable','integer','exists:Localidad,idLocalidad'],
+            /* =======================
+               LUGAR DE NACIMIENTO
+               (Usuario.idLocalidadNacimiento)
+            ======================= */
+            'localidadNacimiento' => [
+                'required',
+                'integer',
+                'exists:Localidad,idLocalidad'
+            ],
 
-            'codigoPostal'      => ['nullable','string','max:10'],
-            'calle'             => ['nullable','string','max:150'],
-            'numeroExterior'    => ['nullable','string','max:20'],
-            'numeroInterior'    => ['nullable','string','max:20'],
-            'colonia'           => ['nullable','string','max:100'],
+            /* =======================
+               DOMICILIO
+            ======================= */
+            'entidad' => [
+                'nullable',
+                'integer',
+                'exists:Entidad,idEntidad'
+            ],
+
+            'municipio' => [
+                'nullable',
+                'integer',
+                'exists:Municipio,idMunicipio'
+            ],
+
+            // Localidad seleccionada (catálogo)
+            'localidad' => [
+                'nullable',
+                'integer',
+                'exists:Localidad,idLocalidad',
+                'required_without:localidadManual'
+            ],
+
+            // Localidad escrita manualmente
+            'localidadManual' => [
+                'nullable',
+                'string',
+                'max:150',
+                'required_without:localidad'
+            ],
+
+            'codigoPostal'   => ['nullable', 'string', 'max:10'],
+            'calle'          => ['nullable', 'string', 'max:150'],
+            'numeroExterior' => ['nullable', 'string', 'max:20'],
+            'numeroInterior' => ['nullable', 'string', 'max:20'],
+            'colonia'        => ['nullable', 'string', 'max:100'],
         ];
     }
 
     public function attributes(): array
     {
         return [
-            'primer_nombre' => 'primer nombre',
-            'primer_apellido' => 'primer apellido',
-            'sexo' => 'sexo',
-            'emailInstitucional' => 'correo institucional',
-            'nombreUsuario' => 'nombre de usuario',
-            'fechaNacimiento' => 'fecha de nacimiento',
-            'entidad' => 'entidad',
-            'municipio' => 'municipio',
-            'localidad' => 'localidad',
+            'primer_nombre'        => 'primer nombre',
+            'primer_apellido'      => 'primer apellido',
+            'sexo'                 => 'sexo',
+            'estadoCivil'          => 'estado civil',
+            'emailInstitucional'   => 'correo institucional',
+            'nombreUsuario'        => 'nombre de usuario',
+            'fechaNacimiento'      => 'fecha de nacimiento',
+
+            // Nacimiento
+            'localidadNacimiento'  => 'localidad de nacimiento',
+
+            // Domicilio
+            'entidad'              => 'entidad',
+            'municipio'            => 'municipio',
+            'localidad'            => 'localidad',
+            'localidadManual'      => 'localidad (manual)',
         ];
     }
 }
