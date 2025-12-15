@@ -12,7 +12,19 @@ class Entidad extends Model
 
     protected $fillable = [
         'nombreEntidad',
+        'nombreEntidadNormalizado',
+        'idPais',
+        'idTipoDeEstatus',
     ];
+
+    /* ============================
+       RELACIONES
+    ============================ */
+
+    public function pais()
+    {
+        return $this->belongsTo(Pais::class, 'idPais', 'idPais');
+    }
 
     public function municipios()
     {

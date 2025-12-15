@@ -6,44 +6,74 @@ use Illuminate\Database\Eloquent\Model;
 
 class Usuario extends Model
 {
-    // Nombre real de la tabla
+    /**
+     * Nombre real de la tabla
+     */
     protected $table = 'Usuario';
 
-    // Primary key
+    /**
+     * Llave primaria
+     */
     protected $primaryKey = 'idUsuario';
 
-    // La tabla NO usa created_at ni updated_at
+    /**
+     * La tabla no usa timestamps
+     */
     public $timestamps = false;
 
-    // Campos asignables de manera masiva
+    /**
+     * Campos asignables de forma masiva
+     */
     protected $fillable = [
+        // ======================
+        // DATOS PERSONALES
+        // ======================
         'primerNombre',
         'segundoNombre',
         'primerApellido',
         'segundoApellido',
+
         'idSexo',
-        'telefono',
-        'correoInstitucional',
-        'nombreUsuario',
-        'contraseña',
+        'idEstadoCivil',
+
         'fechaDeNacimiento',
         'RFC',
         'CURP',
+
+        // ======================
+        // CONTACTO
+        // ======================
+        'telefono',
+        'telefonoFijo',
+        'correoInstitucional',
         'correoElectronico',
-        'domicilio',
+
+        // ======================
+        // ACCESO
+        // ======================
+        'nombreUsuario',
+        'contraseña',
+
+        // ======================
+        // UBICACIÓN
+        // ======================
+        'idLocalidadNacimiento',
+        'idDomicilio',
+
+        // ======================
+        // CONTROL
+        // ======================
         'idtipoDeUsuario',
         'idestatus',
-        'idDomicilio',
     ];
 
     /*
-     * ===========================
-     *     RELACIONES ELOQUENT
-     * ===========================
-     */
+    |--------------------------------------------------------------------------
+    | RELACIONES ELOQUENT
+    |--------------------------------------------------------------------------
+    */
 
     /**
-     * Relación con Sexo (antes Genero)
      * Usuario pertenece a un Sexo
      */
     public function sexo()
@@ -52,26 +82,58 @@ class Usuario extends Model
     }
 
     /**
-     * Relación con Tipo de Usuario
+     * Usuario pertenece a un Estado Civil
+     */
+    public function estadoCivil()
+    {
+        return $this->belongsTo(EstadoCivil::class, 'idEstadoCivil', 'idEstadoCivil');
+    }
+
+    /**
+     * Usuario pertenece a un Tipo de Usuario
      */
     public function tipoDeUsuario()
     {
-        return $this->belongsTo(TipoDeUsuario::class, 'idtipoDeUsuario', 'idTipoDeUsuario');
+        return $this->belongsTo(
+            TipoDeUsuario::class,
+            'idtipoDeUsuario',
+            'idTipoDeUsuario'
+        );
     }
 
     /**
-     * Relación con Estatus
+     * Usuario pertenece a un Estatus
      */
     public function estatus()
     {
-        return $this->belongsTo(TipoDeEstatus::class, 'idestatus', 'idTipoDeEstatus');
+        return $this->belongsTo(
+            TipoDeEstatus::class,
+            'idestatus',
+            'idTipoDeEstatus'
+        );
     }
 
     /**
-     * Relación con Domicilio
+     * Usuario pertenece a un Domicilio
      */
     public function domicilio()
     {
-        return $this->belongsTo(Domicilio::class, 'idDomicilio', 'idDomicilio');
+        return $this->belongsTo(
+            Domicilio::class,
+            'idDomicilio',
+            'idDomicilio'
+        );
+    }
+
+    /**
+     * Lugar de nacimiento del usuario
+     */
+    public function localidadNacimiento()
+    {
+        return $this->belongsTo(
+            Localidad::class,
+            'idLocalidadNacimiento',
+            'idLocalidad'
+        );
     }
 }

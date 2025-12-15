@@ -12,7 +12,23 @@
 
 <main class="form-container">
 
-    {{-- TÍTULO DEL FORMULARIO --}}
+    {{-- BLOQUE DE ERRORES DE VALIDACIÓN --}}
+    @if ($errors->any())
+        <div style="background:#ffdddd; padding:12px; border:1px solid #cc0000; margin:10px 0;">
+            <strong>Corrige los siguientes errores:</strong>
+            <ul style="margin: 8px 0 0 18px;">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    {{-- FORMULARIO --}}
+    <form action="{{ route('usuarios.store') }}" method="POST" class="formulario">
+        @csrf
+
+        {{-- TÍTULO DEL FORMULARIO --}}
     <h1 class="titulo-form">
         Alta de usuario - Rol:
         <strong>
@@ -30,24 +46,11 @@
         </strong>
     </h1>
 
-    {{-- BLOQUE DE ERRORES DE VALIDACIÓN --}}
-    @if ($errors->any())
-        <div style="background:#ffdddd; padding:12px; border:1px solid #cc0000; margin:10px 0;">
-            <strong>Corrige los siguientes errores:</strong>
-            <ul style="margin: 8px 0 0 18px;">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
-    {{-- FORMULARIO --}}
-    <form action="{{ route('usuarios.store') }}" method="POST" class="formulario">
-        @csrf
 
         {{-- ENVIAR ROL SELECCIONADO --}}
         <input type="hidden" name="rol" value="{{ $rol ?? '' }}">
+
+        <h3 class="subtitulo-form">Datos personales</h3>
 
         {{-- PRIMER NOMBRE --}}
         <div class="form-group">
@@ -119,6 +122,21 @@
             </select>
         </div>
 
+        <div class="form-group">
+            <label for="estadoCivil">Estado civil:</label>
+            <select id="estadoCivil" name="estadoCivil" class="select" required>
+                <option value="" disabled {{ old('estadoCivil') ? '' : 'selected' }}>Seleccionar</option>
+                @foreach($estadosCiviles as $ec)
+                    <option
+                        value="{{ $ec->idEstadoCivil }}"
+                        {{ old('estadoCivil') == $ec->idEstadoCivil ? 'selected' : '' }}
+                    >
+                        {{ $ec-> nombreEstadoCivil }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
         {{-- TELÉFONO --}}
         <div class="form-group">
             <label for="telefono">Teléfono:</label>
@@ -131,6 +149,20 @@
                 value="{{ old('telefono') }}"
             >
         </div>
+
+        {{-- TELÉFONO FIJO --}}
+        <div class="form-group">
+            <label for="telefonoFijo">Teléfono fijo:</label>
+            <input
+                type="text"
+                id="telefonoFijo"
+                name="telefonoFijo"
+                class="input-chico"
+                placeholder="Teléfono fijo"
+                value="{{ old('telefonoFijo') }}"
+            >
+        </div>
+
 
         {{-- CORREO INSTITUCIONAL --}}
         <div class="form-group">
@@ -224,36 +256,99 @@
             >
         </div>
 
+        <h3 class="subtitulo-form">Domicilio</h3>
+
         {{-- ENTIDAD --}}
-        <div class="form-group">
-            <label for="entidad">Entidad:</label>
-            <select id="entidad" name="entidad" class="select" required>
-                <option value="" disabled {{ old('entidad') ? '' : 'selected' }}>Seleccionar</option>
-                @foreach($entidades as $e)
-                    <option
-                        value="{{ $e->idEntidad }}"
-                        {{ old('entidad') == $e->idEntidad ? 'selected' : '' }}
-                    >
-                        {{ $e->nombreEntidad }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
+            <div class="form-group">
+                <label>Entidad:</label>
+                <select id="entidad" name="entidad" class="select select-buscable">
+                    <option value="">Seleccionar</option>
+                    @foreach($entidades as $e)
+                        <option value="{{ $e->idEntidad }}">{{ $e->nombreEntidad }}</option>
+                    @endforeach
+                </select>
+            </div>
+
 
         {{-- MUNICIPIO --}}
         <div class="form-group">
-            <label for="municipio">Municipio:</label>
-            <select id="municipio" name="municipio" class="select" required>
-                <option value="" disabled selected>Seleccionar</option>
-            </select>
+            <label>Municipio:</label>
+
+            <div class="select-buscable-wrapper">
+                <input
+                    type="text"
+                    class="input-mediano select-buscable-input"
+                    placeholder="Seleccione entidad"
+                    data-target="municipio"
+                    autocomplete="off"
+                    readonly
+                >
+
+                <ul class="select-buscable-list"></ul>
+
+                <select
+                    id="municipio"
+                    name="municipio"
+                    required
+                    hidden
+                    disabled
+                >
+                    <option value="">Seleccionar</option>
+                </select>
+            </div>
         </div>
 
         {{-- LOCALIDAD --}}
         <div class="form-group">
-            <label for="localidad">Localidad:</label>
-            <select id="localidad" name="localidad" class="select" required>
-                <option value="" disabled selected>Seleccionar</option>
-            </select>
+            <label>Localidad:</label>
+
+            <div class="select-buscable-wrapper">
+                <input
+                    type="text"
+                    class="input-mediano select-buscable-input"
+                    placeholder="Buscar localidad..."
+                    data-target="localidad"
+                    autocomplete="off"
+                    readonly
+                >
+
+                <ul class="select-buscable-list"></ul>
+
+                <select
+                    id="localidad"
+                    name="localidad"
+                    required
+                    hidden
+                    disabled
+                >
+                    <option value="">Seleccionar</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group" id="localidadManualDomicilio" style="display:none;">
+            <label for="localidadManual">Localidad (manual):</label>
+            <input
+                type="text"
+                id="localidadManual"
+                name="localidadManual"
+                class="input-mediano"
+                placeholder="Escribe la localidad"
+                value="{{ old('localidadManual') }}"
+            >
+        </div>
+
+        {{-- COLONIA --}}
+        <div class="form-group">
+            <label for="colonia">Colonia:</label>
+            <input
+                type="text"
+                id="colonia"
+                name="colonia"
+                class="input-mediano"
+                placeholder="Colonia"
+                value="{{ old('colonia') }}"
+            >
         </div>
 
         {{-- CÓDIGO POSTAL --}}
@@ -308,17 +403,86 @@
             >
         </div>
 
-        {{-- COLONIA --}}
+        <h3 class="subtitulo-form">Lugar de nacimiento</h3>
+
         <div class="form-group">
-            <label for="colonia">Colonia:</label>
-            <input
-                type="text"
-                id="colonia"
-                name="colonia"
-                class="input-mediano"
-                placeholder="Colonia"
-                value="{{ old('colonia') }}"
-            >
+            <label for="paisNacimiento">País:</label>
+            <select id="paisNacimiento" name="paisNacimiento" class="select select-buscable" required>
+                <option value="">Seleccionar</option>
+                @foreach($paises as $pais)
+                    <option
+                        value="{{ $pais->idPais }}"
+                        data-normalizado="{{ $pais->nombrePaisNormalizado }}"
+                        {{ old('paisNacimiento') == $pais->idPais ? 'selected' : '' }}
+                    >
+                        {{ $pais->nombrePais }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        <div id="bloque-select-nacimiento">
+            {{-- ENTIDAD --}}
+            <div class="form-group">
+                <label>Entidad de nacimiento:</label>
+                <select id="entidadNacimientoSelect" name="entidadNacimiento" class="select select-buscable">
+                    <option value="">Seleccionar</option>
+                    @foreach($entidades as $e)
+                        <option value="{{ $e->idEntidad }}">{{ $e->nombreEntidad }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- MUNICIPIO --}}
+            <div class="form-group">
+                <label>Municipio de nacimiento:</label>
+                <select id="municipioNacimientoSelect" name="municipioNacimiento" class="select select-buscable">
+                    <option value="">Seleccionar</option>
+                </select>
+            </div>
+
+            {{-- LOCALIDAD --}}
+            <div class="form-group">
+                <label>Localidad de nacimiento:</label>
+                <select id="localidadNacimientoSelect" name="localidadNacimiento" class="select select-buscable">
+                    <option value="">Seleccionar</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="bloque-input-nacimiento" style="display:none;">
+            <div class="form-group">
+                <label>Entidad de nacimiento:</label>
+                <input
+                    type="text"
+                    name="entidadNacimientoManual"
+                    class="input-mediano"
+                    placeholder="Escribe la entidad"
+                    disabled
+                >
+            </div>
+
+            <div class="form-group">
+                <label>Municipio de nacimiento:</label>
+                <input
+                    type="text"
+                    name="municipioNacimientoManual"
+                    class="input-mediano"
+                    placeholder="Escribe el municipio"
+                    disabled
+                >
+            </div>
+
+            <div class="form-group">
+                <label>Localidad de nacimiento:</label>
+                <input
+                    type="text"
+                    name="localidadNacimientoManual"
+                    class="input-mediano"
+                    placeholder="Escribe la localidad"
+                    disabled
+                >
+            </div>
         </div>
 
         {{-- BOTONES --}}
@@ -332,46 +496,358 @@
     </form>
 </main>
 
-{{-- ============================================
-     JS DINÁMICO PARA MUNICIPIOS Y LOCALIDADES
-   ============================================ --}}
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    /* =========================================================
+       HELPERS GENERALES
+    ========================================================= */
+    const resetSelect = (select, placeholder, disabled = true) => {
+        if (!select) return;
+        select.innerHTML = `<option value="">${placeholder}</option>`;
+        select.disabled = disabled;
+    };
+
+    const fillSelect = (select, placeholder, data, valueKey, textKey) => {
+        if (!select) return;
+        select.innerHTML = `<option value="">${placeholder}</option>`;
+        data.forEach(item => {
+            const opt = document.createElement('option');
+            opt.value = item[valueKey];
+            opt.textContent = item[textKey];
+            select.appendChild(opt);
+        });
+        select.disabled = false;
+    };
+
+    /* =========================================================
+   DOMICILIO
+   entidad → municipio → localidad
+========================================================= */
+const domEntidad   = document.getElementById('entidad');
+const domMunicipio = document.getElementById('municipio');
+const domLocalidad = document.getElementById('localidad');
+
+if (domEntidad && domMunicipio && domLocalidad) {
+
+    // Referencias a los inputs buscables
+    const municipioInput = domMunicipio
+        .closest('.select-buscable-wrapper')
+        ?.querySelector('.select-buscable-input');
+
+    const localidadInput = domLocalidad
+        .closest('.select-buscable-wrapper')
+        ?.querySelector('.select-buscable-input');
+
+    /* ===== ESTADO INICIAL ===== */
+    if (municipioInput) {
+        municipioInput.placeholder = 'Seleccione entidad';
+        municipioInput.setAttribute('readonly', 'readonly');
+    }
+
+    if (localidadInput) {
+        localidadInput.placeholder = 'Seleccione municipio';
+        localidadInput.setAttribute('readonly', 'readonly');
+    }
+
+    /* ===== ENTIDAD → MUNICIPIOS ===== */
+    domEntidad.addEventListener('change', () => {
+        const idEntidad = domEntidad.value;
+
+        // Reset municipio y localidad
+        resetSelect(domMunicipio, 'Seleccionar', true);
+        resetSelect(domLocalidad, 'Selecciona un municipio', true);
+
+        if (municipioInput) {
+            municipioInput.value = '';
+            municipioInput.placeholder = idEntidad
+                ? 'Buscar municipio...'
+                : 'Seleccione entidad';
+        }
+
+        if (localidadInput) {
+            localidadInput.value = '';
+            localidadInput.placeholder = 'Seleccione municipio';
+            localidadInput.setAttribute('readonly', 'readonly');
+        }
+
+        if (!idEntidad) return;
+
+        fetch(`/api/municipios/${idEntidad}`)
+            .then(r => r.json())
+            .then(data => {
+                fillSelect(
+                    domMunicipio,
+                    'Seleccionar',
+                    data,
+                    'idMunicipio',
+                    'nombreMunicipio',
+                    false
+                );
+
+                // Habilitar input buscable de municipio
+                if (municipioInput) {
+                    municipioInput.removeAttribute('readonly');
+                }
+            });
+    });
+
+    /* ===== MUNICIPIO → LOCALIDADES ===== */
+    domMunicipio.addEventListener('change', () => {
+        const idMunicipio = domMunicipio.value;
+
+        resetSelect(domLocalidad, 'Seleccionar', true);
+
+        if (localidadInput) {
+            localidadInput.value = '';
+            localidadInput.placeholder = idMunicipio
+                ? 'Buscar localidad...'
+                : 'Seleccione municipio';
+        }
+
+        if (!idMunicipio) return;
+
+        fetch(`/api/localidades/${idMunicipio}`)
+            .then(r => r.json())
+            .then(data => {
+                fillSelect(
+                    domLocalidad,
+                    'Seleccionar',
+                    data,
+                    'idLocalidad',
+                    'nombreLocalidad',
+                    false
+                );
+
+                // Habilitar input buscable de localidad
+                if (localidadInput) {
+                    localidadInput.removeAttribute('readonly');
+                }
+            });
+    });
+}
+
+
+    /* =========================================================
+       LUGAR DE NACIMIENTO
+    ========================================================= */
+    const paisSelect      = document.getElementById('paisNacimiento');
+    const nacEntidad      = document.getElementById('entidadNacimientoSelect');
+    const nacMunicipio    = document.getElementById('municipioNacimientoSelect');
+    const nacLocalidad    = document.getElementById('localidadNacimientoSelect');
+
+    const bloqueSelect    = document.getElementById('bloque-select-nacimiento');
+    const bloqueInput     = document.getElementById('bloque-input-nacimiento');
+    const inputsManual    = bloqueInput ? bloqueInput.querySelectorAll('input') : [];
+
+    const setModoNacimiento = (modo) => {
+        // modo: NONE | MEXICO | EXTRANJERO
+
+        if (modo === 'NONE') {
+            bloqueSelect.style.display = 'block';
+            bloqueInput.style.display  = 'none';
+
+            nacEntidad.disabled   = true;
+            nacMunicipio.disabled = true;
+            nacLocalidad.disabled = true;
+
+            resetSelect(nacMunicipio, 'Seleccionar municipio', true);
+            resetSelect(nacLocalidad, 'Seleccionar localidad', true);
+
+            inputsManual.forEach(i => {
+                i.disabled = true;
+                i.value = '';
+            });
+        }
+
+        if (modo === 'MEXICO') {
+            bloqueSelect.style.display = 'block';
+            bloqueInput.style.display  = 'none';
+
+            nacEntidad.disabled   = false;
+            nacMunicipio.disabled = true;
+            nacLocalidad.disabled = true;
+
+            resetSelect(nacMunicipio, 'Seleccionar municipio', true);
+            resetSelect(nacLocalidad, 'Seleccionar localidad', true);
+
+            inputsManual.forEach(i => {
+                i.disabled = true;
+                i.value = '';
+            });
+        }
+
+        if (modo === 'EXTRANJERO') {
+            bloqueSelect.style.display = 'none';
+            bloqueInput.style.display  = 'block';
+
+            nacEntidad.value = '';
+            resetSelect(nacMunicipio, 'Seleccionar municipio', true);
+            resetSelect(nacLocalidad, 'Seleccionar localidad', true);
+
+            nacEntidad.disabled   = true;
+            nacMunicipio.disabled = true;
+            nacLocalidad.disabled = true;
+
+            inputsManual.forEach(i => {
+                i.disabled = false;
+            });
+        }
+    };
+
+    const paisNormalizado = () => {
+        const opt = paisSelect?.options[paisSelect.selectedIndex];
+        return opt?.dataset?.normalizado?.toUpperCase() || '';
+    };
+
+    // Estado inicial
+    if (!paisSelect || !paisSelect.value) {
+        setModoNacimiento('NONE');
+    } else {
+        setModoNacimiento(paisNormalizado() === 'MEXICO' ? 'MEXICO' : 'EXTRANJERO');
+    }
+
+    // Cambio de país
+    paisSelect?.addEventListener('change', () => {
+        if (!paisSelect.value) {
+            setModoNacimiento('NONE');
+            return;
+        }
+        setModoNacimiento(paisNormalizado() === 'MEXICO' ? 'MEXICO' : 'EXTRANJERO');
+    });
+
+    // Entidad → municipios (nacimiento)
+    nacEntidad?.addEventListener('change', () => {
+        if (paisNormalizado() !== 'MEXICO') return;
+
+        const idEntidad = nacEntidad.value;
+
+        resetSelect(nacMunicipio, 'Cargando...', true);
+        resetSelect(nacLocalidad, 'Seleccionar municipio', true);
+
+        if (!idEntidad) return;
+
+        fetch(`/api/municipios/${idEntidad}`)
+            .then(r => r.json())
+            .then(data => {
+                fillSelect(nacMunicipio, 'Seleccionar', data, 'idMunicipio', 'nombreMunicipio');
+            });
+    });
+
+    // Municipio → localidades (nacimiento)
+    nacMunicipio?.addEventListener('change', () => {
+        if (paisNormalizado() !== 'MEXICO') return;
+
+        const idMunicipio = nacMunicipio.value;
+
+        resetSelect(nacLocalidad, 'Cargando...', true);
+
+        if (!idMunicipio) return;
+
+        fetch(`/api/localidades/${idMunicipio}`)
+            .then(r => r.json())
+            .then(data => {
+                fillSelect(nacLocalidad, 'Seleccionar', data, 'idLocalidad', 'nombreLocalidad');
+            });
+    });
+});
+</script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    const entidadSelect   = document.getElementById('entidad');
-    const municipioSelect = document.getElementById('municipio');
-    const localidadSelect = document.getElementById('localidad');
+    function initSelectBuscable(wrapper) {
+        const input  = wrapper.querySelector('.select-buscable-input');
+        const list   = wrapper.querySelector('.select-buscable-list');
+        const select = wrapper.querySelector('select');
 
-    entidadSelect.addEventListener('change', function () {
-        const idEntidad = this.value;
+        if (!input || !list || !select) return;
 
-        municipioSelect.innerHTML = '<option value="" disabled selected>Cargando...</option>';
-        localidadSelect.innerHTML = '<option value="" disabled selected>Selecciona un municipio</option>';
+        /* =====================================================
+           SINCRONIZAR ESTADO
+           - select.disabled  → input.readonly
+        ===================================================== */
+        function syncDisabled() {
+            if (select.disabled) {
+                input.setAttribute('readonly', 'readonly');
+                input.value = '';
+                list.style.display = 'none';
+            } else {
+                input.removeAttribute('readonly');
+            }
+        }
 
-        fetch(`/api/municipios/${idEntidad}`)
-            .then(response => response.json())
-            .then(data => {
-                municipioSelect.innerHTML = '<option value="" disabled selected>Seleccionar</option>';
-                data.forEach(mun => {
-                    municipioSelect.innerHTML += `<option value="${mun.idMunicipio}">${mun.nombreMunicipio}</option>`;
-                });
+        // Estado inicial
+        syncDisabled();
+
+        /* =====================================================
+           INPUT → FILTRADO
+        ===================================================== */
+        input.addEventListener('input', function () {
+
+            // Si está bloqueado, no permitir escribir
+            if (input.hasAttribute('readonly')) return;
+
+            const term = this.value.toLowerCase().trim();
+            list.innerHTML = '';
+
+            if (!term) {
+                list.style.display = 'none';
+                return;
+            }
+
+            [...select.options].forEach(opt => {
+                if (!opt.value) return;
+
+                const text = opt.textContent.trim();
+
+                if (text.toLowerCase().includes(term)) {
+                    const li = document.createElement('li');
+                    li.textContent = text;
+
+                    li.addEventListener('click', () => {
+                        select.value = opt.value;
+                        input.value  = text;
+                        list.style.display = 'none';
+
+                        // Disparar change para cascadas (fetch)
+                        select.dispatchEvent(new Event('change', { bubbles: true }));
+                    });
+
+                    list.appendChild(li);
+                }
             });
-    });
 
-    municipioSelect.addEventListener('change', function () {
-        const idMunicipio = this.value;
+            list.style.display = list.children.length ? 'block' : 'none';
+        });
 
-        localidadSelect.innerHTML = '<option value="" disabled selected>Cargando...</option>';
+        /* =====================================================
+           CLICK FUERA → CERRAR LISTA
+        ===================================================== */
+        document.addEventListener('click', function (e) {
+            if (!wrapper.contains(e.target)) {
+                list.style.display = 'none';
+            }
+        });
 
-        fetch(`/api/localidades/${idMunicipio}`)
-            .then(response => response.json())
-            .then(data => {
-                localidadSelect.innerHTML = '<option value="" disabled selected>Seleccionar</option>';
-                data.forEach(loc => {
-                    localidadSelect.innerHTML += `<option value="${loc.idLocalidad}">${loc.nombreLocalidad}</option>`;
-                });
-            });
-    });
+        /* =====================================================
+           OBSERVAR CAMBIOS EN disabled DEL SELECT
+           (cuando fetch habilita municipio / localidad)
+        ===================================================== */
+        const observer = new MutationObserver(syncDisabled);
+        observer.observe(select, {
+            attributes: true,
+            attributeFilter: ['disabled']
+        });
+    }
+
+    /* =====================================================
+       INICIALIZAR TODOS LOS SELECTS BUSCABLES
+    ===================================================== */
+    document
+        .querySelectorAll('.select-buscable-wrapper')
+        .forEach(initSelectBuscable);
 
 });
 </script>
