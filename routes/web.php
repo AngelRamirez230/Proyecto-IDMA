@@ -30,7 +30,7 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
     Route::get('/prueba-middleware', function () {
-        return '✅ Acceso autorizado: sesión activa';
+        return 'Acceso autorizado: sesión activa';
     });
 
     /*----------- USUARIOS -----------*/
@@ -143,3 +143,4 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
     })->name('reportePagosAprobados');
 
 });
+

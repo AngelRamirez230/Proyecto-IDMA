@@ -9,7 +9,7 @@ use App\Models\EstadoCivil;
 use App\Models\Entidad;
 use App\Models\Municipio;
 use App\Models\Localidad;
-use App\Models\Domicilio;
+use App\Models\Domicilio; 
 use App\Models\Pais;
 use Illuminate\Support\Facades\Hash;
 

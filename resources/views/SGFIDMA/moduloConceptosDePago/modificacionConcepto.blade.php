@@ -31,7 +31,7 @@
 
                 @foreach ($unidades as $u)
                     <option value="{{ $u->idTipoDeUnidad }}"
-                        {{ $concepto->idTipoDeUnidad == $u->idTipoDeUnidad ? 'selected' : '' }}>
+                        {{ $concepto->idUnidad == $u->idTipoDeUnidad ? 'selected' : '' }}>
                         {{ $u->nombreUnidad }}
                     </option>
                 @endforeach
@@ -40,9 +40,14 @@
 
 
         <div class="form-group">
-            <button type="submit" name="accion" value="Suspender/Habilitar" class="btn-boton-formulario">Suspender/Habilitar</button>
             <button type="submit" name="accion" value="guardar" class="btn-boton-formulario">Guardar cambios</button>
-            <a href="{{ route('apartadoConceptos') }}" class="btn-boton-formulario btn-cancelar">Cancelar</a>
+            <button type="submit"
+                    name="accion"
+                    value="Suspender/Habilitar"
+                    class="btn-boton-formulario">
+                {{ $concepto->idEstatus == 1 ? 'Suspender' : 'Habilitar' }}
+            </button>
+            <a href="{{ route('consultaConcepto') }}" class="btn-boton-formulario btn-cancelar">Cancelar</a>
         </div>
     </form>
 
@@ -66,8 +71,8 @@
                 return false;
             }
 
-            if (valor < 1) {
-                errorCosto.textContent = "El costo debe ser mayor o igual a 1.";
+            if (valor < 0) {
+                errorCosto.textContent = "El costo debe ser mayor o igual a 0.";
                 return false;
             }
 

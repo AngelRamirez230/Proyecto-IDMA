@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\TipoDeUnidad;
 use App\Models\ConceptoDePago;
+use Illuminate\Support\Facades\Validator;
 
 class ConceptoController extends Controller
 {
@@ -18,11 +19,18 @@ class ConceptoController extends Controller
     // Guardar concepto
     public function store(Request $request)
     {
-        $request->validate([
+         $validator = Validator::make($request->all(), [
             'nombreConcepto' => 'required|string|max:150',
-            'costo' => 'required|numeric|min:1',
-            'unidad' => 'required|numeric',
+            'costo' => 'required|numeric|min:0|max:9999999.99',
+            'unidad' => 'required|exists:tipo_de_unidad,idTipoDeUnidad',
         ]);
+
+        if ($validator->fails()) {
+            return back()
+                ->with('popupError', 'No se pudo crear el concepto de pago. Verifica los datos ingresados.')
+                ->withErrors($validator)
+                ->withInput();
+        }
 
         // Convertir a tipo oración con acentos
         $nombre = $this->mbUcwords($request->nombreConcepto);
@@ -132,8 +140,8 @@ class ConceptoController extends Controller
 
             // Validar cambios
             $request->validate([
-                'costo' => 'required|numeric|min:1',
-                'unidad' => 'required|numeric',
+                'costo' => 'required|numeric|min:1|max:9999999.99',
+                'unidad' => 'required|exists:tipo_de_unidad,idTipoDeUnidad',
             ]);
 
             // Guardar cambios

@@ -30,8 +30,13 @@
 
 
         <div class="form-group">
-            <button type="submit"  name="accion" value="Suspender/Habilitar" class="btn-boton-formulario">Suspender/Habilitar</button>
             <button type="submit"  name="accion" value="guardar" class="btn-boton-formulario">Guardar cambios</button>
+            <button type="submit"
+                    name="accion"
+                    value="Suspender/Habilitar"
+                    class="btn-boton-formulario">
+                {{ $beca->idEstatus == 1 ? 'Suspender' : 'Habilitar' }}
+            </button>
             <a href="{{ route('consultaBeca') }}" class="btn-boton-formulario btn-cancelar">Cancelar</a>
         </div>
     </form>
