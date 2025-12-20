@@ -30,7 +30,7 @@ class UsuarioRequest extends FormRequest
                 'exists:Sexo,idSexo'
             ],
 
-            // 👉 NUEVO: ESTADO CIVIL (CATÁLOGO)
+            // NUEVO: ESTADO CIVIL (CATÁLOGO)
             'estadoCivil' => [
                 'required',
                 'integer',
@@ -67,13 +67,24 @@ class UsuarioRequest extends FormRequest
             ],
 
             /* =======================
-               LUGAR DE NACIMIENTO
-               (Usuario.idLocalidadNacimiento)
+                LUGAR DE NACIMIENTO
             ======================= */
+            'paisNacimiento' => ['required', 'integer', 'exists:Pais,idPais'],
+
+            // México → selects
             'localidadNacimiento' => [
-                'required',
+                'nullable',
                 'integer',
-                'exists:Localidad,idLocalidad'
+                'exists:Localidad,idLocalidad',
+                'required_if:paisNacimiento,1', // ASUME que 1 = México
+            ],
+
+            // Extranjero → inputs manuales
+            'localidadNacimientoManual' => [
+                'nullable',
+                'string',
+                'max:150',
+                'required_unless:paisNacimiento,1',
             ],
 
             /* =======================
@@ -134,6 +145,44 @@ class UsuarioRequest extends FormRequest
             'municipio'            => 'municipio',
             'localidad'            => 'localidad',
             'localidadManual'      => 'localidad (manual)',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+
+            /* =======================
+            PASSWORD
+            ======================= */
+            'password.required' => 'La contraseña es obligatoria.',
+            'password.min'      => 'La contraseña debe tener al menos 8 caracteres.',
+
+            /* =======================
+            RFC
+            ======================= */
+            'rfc.max' => 'El RFC no debe tener más de 13 caracteres.',
+
+            /* =======================
+            EMAIL PERSONAL
+            ======================= */
+            'email.email'  => 'El correo electrónico no tiene un formato válido.',
+            'email.unique' => 'El correo electrónico ya está registrado.',
+
+            /* =======================
+            EMAIL INSTITUCIONAL
+            ======================= */
+            'emailInstitucional.email'  => 'El correo institucional no tiene un formato válido.',
+            'emailInstitucional.unique' => 'El correo institucional ya está registrado.',
+
+            /* =======================
+            LOCALIDAD
+            ======================= */
+            'localidad.required_without' =>
+                'Debes seleccionar una localidad o escribir una manualmente.',
+
+            'localidadManual.required_without' =>
+                'Debes escribir la localidad si no seleccionas una del catálogo.',
         ];
     }
 }
