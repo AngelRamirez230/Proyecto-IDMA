@@ -63,8 +63,8 @@
                     return false;
                 }
 
-                if (valor < 1) {
-                    errorCosto.textContent = "El costo debe ser mayor o igual a 1.";
+                if (valor < 0) {
+                    errorCosto.textContent = "El costo debe ser mayor o igual a 0.";
                     return false;
                 }
 

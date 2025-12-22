@@ -9,7 +9,7 @@ use App\Models\EstadoCivil;
 use App\Models\Entidad;
 use App\Models\Municipio;
 use App\Models\Localidad;
-use App\Models\Domicilio;
+use App\Models\Domicilio; 
 use App\Models\Pais;
 use Illuminate\Support\Facades\Hash;
 
@@ -127,7 +127,7 @@ class UsuarioController extends Controller
             'correoInstitucional'     => $request->emailInstitucional,
 
             'nombreUsuario'           => $request->nombreUsuario,
-            'contraseña'              => Hash::make($request->password),
+            'contrasena'              => Hash::make($request->password),
 
             'fechaDeNacimiento'       => $request->fechaNacimiento,
             'RFC'                     => $request->rfc,

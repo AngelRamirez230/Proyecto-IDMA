@@ -59,9 +59,14 @@
 
     <div class="form-group">
 
-        <button type="submit" name="accion" value="Suspender/Habilitar" class="btn-boton-formulario">Suspender/Habilitar</button>
-
         <button type="submit" name="accion" value="guardar" class="btn-boton-formulario">Guardar cambios</button>
+
+        <button type="submit"
+                    name="accion"
+                    value="Suspender/Habilitar"
+                    class="btn-boton-formulario">
+                {{ $plan->idEstatus == 1 ? 'Suspender' : 'Habilitar' }}
+            </button>
 
         <a href="{{ route('consultaPlan') }}" class="btn-boton-formulario btn-cancelar">Cancelar</a>
     </div>
@@ -69,13 +74,13 @@
 </form>
 
 <script>
-function cambiarCantidad(id, cambio) {
-    const input = document.getElementById("cantidad_" + id);
-    let valor = parseInt(input.value);
-    valor += cambio;
-    if (valor < 0) valor = 0;
-    input.value = valor;
-}
+    function cambiarCantidad(id, cambio) {
+        const input = document.getElementById("cantidad_" + id);
+        let valor = parseInt(input.value);
+        valor += cambio;
+        if (valor < 0) valor = 0;
+        input.value = valor;
+    }
 </script>
 
 </body>

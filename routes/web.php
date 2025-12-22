@@ -6,6 +6,7 @@ use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\ConceptoController;
 use App\Http\Controllers\PlanDePagoController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\EstudianteController;
 
 /*--------------------------RUTAS PARA INVITADOS (LOGIN)--------------------------*/
 Route::middleware(['guest.manual', 'nocache'])->group(function () {
@@ -30,7 +31,7 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
     Route::get('/prueba-middleware', function () {
-        return '✅ Acceso autorizado: sesión activa';
+        return 'Acceso autorizado: sesión activa';
     });
 
     /*----------- USUARIOS -----------*/
@@ -58,9 +59,7 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
         return view('shared.moduloEstudiantes.apartadoEstudiantes');
     })->name('apartadoEstudiantes');
 
-    Route::get('/altaEstudiante', function () {
-        return view('shared.moduloEstudiantes.altaEstudiante');
-    })->name('altaEstudiante');
+    Route::get('/altaEstudiante', [EstudianteController::class, 'create'])->name('altaEstudiante');
 
     /*----------- REPORTES -----------*/
     Route::get('/apartadoReporte', function () {
@@ -143,3 +142,4 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
     })->name('reportePagosAprobados');
 
 });
+
