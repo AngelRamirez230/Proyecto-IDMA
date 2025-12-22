@@ -79,7 +79,7 @@ class LoginController extends Controller
         /**
          * 5️⃣ Validar contraseña (bcrypt)
          */
-        if (!Hash::check($password, $usuario->contrasena)) {
+        if (!Hash::check($password, $usuario->contraseña)) {
             return back()->withErrors([
                 'password' => 'Contraseña incorrecta'
             ])->withInput();
