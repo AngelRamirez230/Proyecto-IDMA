@@ -47,7 +47,7 @@ class Estudiante extends Model
 
     public function tipoDeInscripcion()
     {
-        return $this->belongsTo(TipoDeInscripcion::class, 'idTipoDeInscripcion', 'idTipoDeInscripcion');
+        return $this->belongsTo(TipoDeInscripcion::class, 'idTipoDeInscripcion', 'idTipoDeInscripcin');
     }
 
     public function estatus()

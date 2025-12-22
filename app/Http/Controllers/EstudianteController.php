@@ -37,8 +37,8 @@ class EstudianteController extends Controller
 
             // Catálogos académicos
             'planes' => PlanDeEstudios::orderBy('nombrePlanDeEstudios')->get(),
-            'generaciones'     => Generacion::orderBy('anioInicio')->get(),
-            'tiposInscripcion' => TipoDeInscripcion::orderBy('nombreTipo')->get(),
+            'generaciones'     => Generacion::orderBy('añoDeInicio')->get(),
+            'tiposInscripcion' => TipoDeInscripcion::orderBy('nombreTipoDeInscripcion')->get(),
         ]);
     }
 
