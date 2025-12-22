@@ -444,103 +444,104 @@
         </div>
 
         {{-- MUNICIPIO (BUSCABLE) --}}
-    <div class="form-group">
-        <label>Municipio de nacimiento:</label>
+        <div class="form-group">
+            <label>Municipio de nacimiento:</label>
 
-        <div class="select-buscable-wrapper">
-            <input
-                type="text"
-                class="input-mediano select-buscable-input"
-                placeholder="Seleccione entidad"
-                data-target="municipioNacimientoSelect"
-                autocomplete="off"
-                readonly
-            >
+            <div class="select-buscable-wrapper">
+                <input
+                    type="text"
+                    class="input-mediano select-buscable-input"
+                    placeholder="Seleccione entidad"
+                    data-target="municipioNacimientoSelect"
+                    autocomplete="off"
+                    readonly
+                >
 
-            <ul class="select-buscable-list"></ul>
+                <ul class="select-buscable-list"></ul>
 
-            <select
-                id="municipioNacimientoSelect"
-                name="municipioNacimiento"
-                hidden
-                disabled
-            >
-                <option value="">Seleccionar</option>
-            </select>
+                <select
+                    id="municipioNacimientoSelect"
+                    name="municipioNacimiento"
+                    hidden
+                    disabled
+                >
+                    <option value="">Seleccionar</option>
+                </select>
+            </div>
+
+            <x-error-field field="municipioNacimiento" />
         </div>
 
-        <x-error-field field="municipioNacimiento" />
+        {{-- LOCALIDAD (BUSCABLE) --}}
+        <div class="form-group">
+            <label>Localidad de nacimiento:</label>
+
+            <div class="select-buscable-wrapper">
+                <input
+                    type="text"
+                    class="input-mediano select-buscable-input"
+                    placeholder="Seleccione municipio"
+                    data-target="localidadNacimientoSelect"
+                    autocomplete="off"
+                    readonly
+                >
+
+                <ul class="select-buscable-list"></ul>
+
+                <select
+                    id="localidadNacimientoSelect"
+                    name="localidadNacimiento"
+                    hidden
+                    disabled
+                >
+                    <option value="">Seleccionar</option>
+                </select>
+            </div>
+
+            <x-error-field field="localidadNacimiento" />
+        </div>
     </div>
 
-    {{-- LOCALIDAD (BUSCABLE) --}}
-    <div class="form-group">
-        <label>Localidad de nacimiento:</label>
+    <div id="bloque-input-nacimiento" style="display:none;">
 
-        <div class="select-buscable-wrapper">
+        <div class="form-group">
+            <label>Entidad de nacimiento:</label>
             <input
                 type="text"
-                class="input-mediano select-buscable-input"
-                placeholder="Seleccione municipio"
-                data-target="localidadNacimientoSelect"
-                autocomplete="off"
-                readonly
-            >
-
-            <ul class="select-buscable-list"></ul>
-
-            <select
-                id="localidadNacimientoSelect"
-                name="localidadNacimiento"
-                hidden
+                name="entidadNacimientoManual"
+                class="input-mediano"
+                placeholder="Escribe la entidad"
+                value="{{ old('entidadNacimientoManual') }}"
                 disabled
             >
-                <option value="">Seleccionar</option>
-            </select>
+            <x-error-field field="entidadNacimientoManual" />
         </div>
 
-        <x-error-field field="localidadNacimiento" />
-    </div>
-</div>
+        <div class="form-group">
+            <label>Municipio de nacimiento:</label>
+            <input
+                type="text"
+                name="municipioNacimientoManual"
+                class="input-mediano"
+                placeholder="Escribe el municipio"
+                value="{{ old('municipioNacimientoManual') }}"
+                disabled
+            >
+            <x-error-field field="municipioNacimientoManual" />
+        </div>
 
-<div id="bloque-input-nacimiento" style="display:none;">
-
-    <div class="form-group">
-        <label>Entidad de nacimiento:</label>
-        <input
-            type="text"
-            name="entidadNacimientoManual"
-            class="input-mediano"
-            placeholder="Escribe la entidad"
-            value="{{ old('entidadNacimientoManual') }}"
-            disabled
-        >
-        <x-error-field field="entidadNacimientoManual" />
-    </div>
-
-    <div class="form-group">
-        <label>Municipio de nacimiento:</label>
-        <input
-            type="text"
-            name="municipioNacimientoManual"
-            class="input-mediano"
-            placeholder="Escribe el municipio"
-            value="{{ old('municipioNacimientoManual') }}"
-            disabled
-        >
-        <x-error-field field="municipioNacimientoManual" />
-    </div>
-
-    <div class="form-group">
-        <label>Localidad de nacimiento:</label>
-        <input
-            type="text"
-            name="localidadNacimientoManual"
-            class="input-mediano"
-            placeholder="Escribe la localidad"
-            value="{{ old('localidadNacimientoManual') }}"
-            disabled
-        >
-        <x-error-field field="localidadNacimientoManual" />
+        <div class="form-group">
+            <label>Localidad de nacimiento:</label>
+            <input
+                type="text"
+                name="localidadNacimientoManual"
+                class="input-mediano"
+                placeholder="Escribe la localidad"
+                value="{{ old('localidadNacimientoManual') }}"
+                disabled
+            >
+            <x-error-field field="localidadNacimientoManual" />
+        </div>
     </div>
 
     {{-- BOTONES --}}
@@ -550,6 +551,7 @@
             Cancelar
         </a>
     </div>
+
 </main>
 
 {{-- BLOQUE DE ERRORES DE VALIDACIÓN --}}
