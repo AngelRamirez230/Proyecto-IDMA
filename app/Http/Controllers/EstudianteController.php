@@ -27,6 +27,27 @@ class EstudianteController extends Controller
      */
     public function create()
     {
+
+        // Mes y año actuales
+        $mesActual = date('n'); // 1-12
+        $añoActual = date('Y');
+
+        // Buscar si ya existe la generación actual
+        $generacionActual = Generacion::where('añoDeInicio', $añoActual)
+            ->where('idMes', $mesActual)
+            ->first();
+
+        // Si no existe, crear automáticamente
+        if (!$generacionActual) {
+            $generacionActual = Generacion::create([
+                'añoDeInicio' => $añoActual,
+                'idMes' => $mesActual,
+                'idEstatus' => 1, // Activa
+            ]);
+        }
+
+        // Construir clave visual 22A/22B
+        $claveGeneracion = substr($añoActual, -2) . (($mesActual <= 6) ? 'A' : 'B');
         return view('shared.moduloEstudiantes.altaEstudiante', [
             'sexos'            => Sexo::orderBy('nombreSexo')->get(),
             'estadosCiviles'   => EstadoCivil::orderBy('nombreEstadoCivil')->get(),
@@ -39,6 +60,8 @@ class EstudianteController extends Controller
             'planes' => PlanDeEstudios::orderBy('nombrePlanDeEstudios')->get(),
             'generaciones'     => Generacion::orderBy('añoDeInicio')->get(),
             'tiposInscripcion' => TipoDeInscripcion::orderBy('nombreTipoDeInscripcion')->get(),
+            'generacionActualId' => $generacionActual->idGeneracion,
+            'claveGeneracion'    => $claveGeneracion
         ]);
     }
 

@@ -18,7 +18,7 @@
         {{-- TÍTULO DEL FORMULARIO --}}
     <h1 class="titulo-form">Alta de estudiante</h1>
 
-        <h3 class="subtitulo-form">Datos personales</h3>
+    <h3 class="subtitulo-form">Datos personales</h3>
 
             {{-- PRIMER NOMBRE --}}
     <div class="form-group">
@@ -232,6 +232,104 @@
         >
         <x-error-field field="email" />
     </div>
+
+    <h3 class="subtitulo-form">Datos académicos</h3>
+
+    {{-- Matricula Alfanumerica --}}
+    <div class="form-group">
+        <label for="matriculaAlfanumerica">Matrícula alfanumérica:</label>
+        <input
+            type="text"
+            id="matriculaAlfanumerica"
+            name="matriculaAlfanumerica"
+            class="input-mediano"
+            placeholder="Matricula alfanumerica"
+            value="{{ old('matriculaAlfanumerica') }}"
+        >
+        <x-error-field field="matriculaAlfanumerica" />
+    </div>
+
+    {{-- Matricula númerica --}}
+    <div class="form-group">
+        <label for="matriculaNumerica">Matrícula númerica:</label>
+        <input
+            type="text"
+            id="matriculaNumerica"
+            name="matriculaNumerica"
+            class="input-mediano"
+            placeholder="Matrícula númerica"
+            value="{{ old('matriculaNumerica') }}"
+        >
+        <x-error-field field="matriculaNumerica" />
+    </div>
+
+
+    {{-- Plan de estudios --}}
+    <div class="form-group">
+        <label for="planEstudios">Plan de estudios:</label>
+        <select id="planEstudios" name="planEstudios" class="select" required>
+            <option value="" disabled {{ old('planEstudios') ? '' : 'selected' }}>
+                Seleccionar
+            </option>
+
+            @foreach($planes as $plan)
+                <option
+                    value="{{ $plan->idPlanDeEstudios }}"
+                    licenciatura="{{ $plan->licenciatura->nombreLicenciatura ?? '' }}"
+                    {{ old('planEstudios') == $plan->idPlanDeEstudios ? 'selected' : '' }}
+                >
+                    {{ $plan->nombrePlanDeEstudios }}
+                </option>
+            @endforeach
+        </select>
+
+        <x-error-field field="planEstudios" />
+    </div>
+
+
+    {{-- Licenciatura --}}
+    <div class="form-group">
+        <label for="licenciatura">Licenciatura:</label>
+        <input
+            type="text"
+            id="licenciatura"
+            name="licenciatura"
+            class="input-mediano"
+            readonly
+        >
+    </div>
+
+    {{-- Grado --}}
+    <div class="form-group">
+        <label for="grado">Grado:</label>
+        <input
+            type="number"
+            id="grado"
+            name="grado"
+            class="input-chico"
+            placeholder="Grado"
+            value="{{ old('grado') }}"
+            min="1"
+            max="9"
+            step="1"
+        >
+        <x-error-field field="grado" />
+    </div>
+
+    <div class="form-group">
+        <label for="generacion">Generación:</label>
+        <input
+            type="text"
+            id="generacion"
+            name="generacion"
+            class="input-mediano"
+            value="{{ old('generacion', $claveGeneracion) }}"
+            readonly
+        >
+        <input type="hidden" name="generacion" value="{{ old('generacion', $generacionActualId) }}">
+        <x-error-field field="generacion" />
+    </div>
+
 
     <h3 class="subtitulo-form">Datos del domicilio</h3>
 
@@ -532,6 +630,8 @@
         </a>
     </div>
 </main>
+
+@include('layouts.alta')
 
 </body>
 </html>
