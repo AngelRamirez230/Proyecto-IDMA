@@ -127,7 +127,7 @@ class UsuarioController extends Controller
             'correoInstitucional'     => $request->emailInstitucional,
 
             'nombreUsuario'           => $request->nombreUsuario,
-            'contrasena'              => Hash::make($request->password),
+            'contraseña'              => Hash::make($request->password),
 
             'fechaDeNacimiento'       => $request->fechaNacimiento,
             'RFC'                     => $request->rfc,

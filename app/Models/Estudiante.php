@@ -37,7 +37,7 @@ class Estudiante extends Model
 
     public function generacion()
     {
-        return $this->belongsTo(Generacion::class, 'idGeneración', 'idGeneración');
+        return $this->belongsTo(Generacion::class, 'idGeneracion', 'idGeneracion');
     }
 
     public function planDeEstudios()
@@ -47,7 +47,7 @@ class Estudiante extends Model
 
     public function tipoDeInscripcion()
     {
-        return $this->belongsTo(TipoDeInscripcion::class, 'idTipoDeInscripción', 'idTipoDeInscripción');
+        return $this->belongsTo(TipoDeInscripcion::class, 'idTipoDeInscripcion', 'idTipoDeInscripcion');
     }
 
     public function estatus()

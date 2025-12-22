@@ -52,7 +52,7 @@ class Usuario extends Model
         // ACCESO
         // ======================
         'nombreUsuario',
-        'contrasena',
+        'contraseña',
 
         // ======================
         // UBICACIÓN
