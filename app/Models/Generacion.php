@@ -8,24 +8,30 @@ class Generacion extends Model
 {
     protected $table = 'Generacion';
     protected $primaryKey = 'idGeneracion';
-
-
     public $timestamps = false;
 
     protected $fillable = [
         'añoDeInicio',
-        'idMes',
+        'idMesInicio',
+        'añoDeFinalizacion',
+        'idMesFin',
+        'nombreGeneracion',
         'idEstatus'
     ];
 
-    public function mes()
+    public function mesInicio()
     {
-        return $this->belongsTo(Mes::class, 'idMes', 'idMes');
+        return $this->belongsTo(Mes::class, 'idMesInicio', 'idMes');
+    }
+
+    public function mesFin()
+    {
+        return $this->belongsTo(Mes::class, 'idMesFin', 'idMes');
     }
 
     public function estatus()
     {
-        return $this->belongsTo(Tipo_de_estatus::class, 'idEstatus', 'idTipoDeEstatus');
+        return $this->belongsTo(TipoDeEstatus::class, 'idEstatus', 'idTipoDeEstatus');
     }
 
     public function estudiantes()

@@ -7,6 +7,8 @@ use App\Http\Controllers\ConceptoController;
 use App\Http\Controllers\PlanDePagoController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\EstudianteController;
+use App\Http\Controllers\GeneracionController;
+use App\Http\Controllers\InicioController;
 
 /*--------------------------RUTAS PARA INVITADOS (LOGIN)--------------------------*/
 Route::middleware(['guest.manual', 'nocache'])->group(function () {
@@ -24,9 +26,7 @@ Route::middleware(['guest.manual', 'nocache'])->group(function () {
 Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(function () {
 
     /*------------INICIO------------*/
-    Route::get('/inicio', function () {
-        return view('layouts.inicio');
-    })->name('inicio');
+    Route::get('/inicio', [InicioController::class, 'index'])->name('inicio');
 
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
@@ -61,6 +61,7 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
 
     Route::get('/altaEstudiante', [EstudianteController::class, 'create'])->name('altaEstudiante');
     Route::post('/estudiantes/store', [EstudianteController::class, 'store'])->name('estudiantes.store');
+    Route::post('/generaciones/crear-dashboard',[GeneracionController::class, 'crearDesdeDashboard'])->name('generaciones.crearDashboard');
     
 
     /*----------- REPORTES -----------*/

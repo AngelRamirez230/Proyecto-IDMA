@@ -31,36 +31,20 @@ class EstudianteController extends Controller
         $mesActual = date('n');
         $añoActual = date('Y');
 
-        // Generación actual
         $generacionActual = Generacion::where('añoDeInicio', $añoActual)
-            ->where('idMes', $mesActual)
+            ->where('idMesInicio', $mesActual)
             ->first();
 
-        if (!$generacionActual) {
-            $generacionActual = Generacion::create([
-                'añoDeInicio' => $añoActual,
-                'idMes' => $mesActual,
-                'idEstatus' => 1,
-                'abreviacionGeneracion' => substr($añoActual, -2) . (($mesActual <= 6) ? 'A' : 'B'), // guardamos la abreviación
-            ]);
-        }
-
-        // Aquí usamos la abreviación de la BD
-        $claveGeneracion = $generacionActual->abreviacionGeneracion;
-
-
         return view('shared.moduloEstudiantes.altaEstudiante', [
-            'sexos'             => Sexo::orderBy('nombreSexo')->get(),
-            'estadosCiviles'    => EstadoCivil::orderBy('nombreEstadoCivil')->get(),
-            'entidades'         => Entidad::orderBy('nombreEntidad')->get(),
-            'municipios'        => collect(),
-            'localidades'       => collect(),
-            'paises'            => Pais::orderBy('nombrePais')->get(),
-            'planes'            => PlanDeEstudios::orderBy('nombrePlanDeEstudios')->get(),
-            'generaciones'      => Generacion::orderBy('añoDeInicio')->get(),
-            'tiposInscripcion'  => TipoDeInscripcion::orderBy('nombreTipoDeInscripcion')->get(),
-            'generacionActualId'=> $generacionActual->idGeneracion,
-            'claveGeneracion'   => $claveGeneracion,
+            'sexos'              => Sexo::orderBy('nombreSexo')->get(),
+            'estadosCiviles'     => EstadoCivil::orderBy('nombreEstadoCivil')->get(),
+            'entidades'          => Entidad::orderBy('nombreEntidad')->get(),
+            'municipios'         => collect(),
+            'localidades'        => collect(),
+            'paises'             => Pais::orderBy('nombrePais')->get(),
+            'planes'             => PlanDeEstudios::orderBy('nombrePlanDeEstudios')->get(),
+            'tipoInscripcion'   => TipoDeInscripcion::orderBy('nombreTipoDeInscripcion')->get(),
+            'generacionActual'   => $generacionActual
         ]);
     }
 

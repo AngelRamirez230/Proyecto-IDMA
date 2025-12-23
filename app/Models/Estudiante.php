@@ -18,9 +18,9 @@ class Estudiante extends Model
         'creditosAcumulados',
         'promedioGeneral',
         'fechaDeIngreso',
-        'idGeneración',
+        'idGeneracion',
         'idPlanDeEstudios',
-        'idTipoDeInscripción',
+        'idTipoDeInscripcion',
         'idEstatus',
     ];
 

@@ -317,15 +317,51 @@
             </div>
 
             <div class="form-group">
-                <label for="generacionTexto">Generación:</label>
-                <input
-                    type="text"
-                    id="generacionTexto"
-                    class="input-mediano"
-                    value="{{ $claveGeneracion }}"  
-                    readonly
-                >
-                <input type="hidden" name="generacion" value="{{ $generacionActualId }}">
+                <label for="generacion">Generación:</label>
+
+                @if($generacionActual)
+                    <input
+                        type="text"
+                        class="input-mediano"
+                        value="{{ $generacionActual->nombreGeneracion }}"
+                        readonly
+                    >
+                    <input
+                        type="hidden"
+                        name="generacion"
+                        value="{{ $generacionActual->idGeneracion }}"
+                    >
+                @else
+                    <input
+                        type="text"
+                        class="input-mediano"
+                        value="No existe generación activa"
+                        readonly
+                    >
+                    <p class="texto-alerta">
+                        Debe crearse una nueva generación (Marzo o Septiembre)
+                    </p>
+                @endif
+            </div>
+
+                {{-- Tipo de Inscripcion --}}
+            <div class="form-group">
+                <label>Tipo de inscripcion:</label>
+
+                <select id="tipoInscripcion"
+                        name="tipoInscripcion"
+                        class="select select-buscable">
+
+                    <option value="">Seleccionar</option>
+
+                    @foreach($tipoInscripcion as $tipo)
+                        <option value="{{ $tipo->idTipoDeInscripcion }}">
+                            {{ $tipo->nombreTipoDeInscripcion }}
+                        </option>
+                    @endforeach
+                </select>
+
+                <x-error-field field="tipoInscripcion" />
             </div>
 
 

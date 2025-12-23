@@ -90,4 +90,9 @@
             formularioAEliminar.submit();
          }
     }
+
+    function cerrarPopupGeneracion() {
+        document.getElementById('popupGeneracion').style.display = 'none';
+    }
+
     </script>

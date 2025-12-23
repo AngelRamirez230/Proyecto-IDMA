@@ -8,6 +8,40 @@
 </head>
 <body>
     @include('layouts.barraNavegacion')
+
+    @if(isset($datosGeneracion) && $datosGeneracion)
+        <div id="popupGeneracion" class="popup-confirmacion" style="display:flex;">
+            <div class="popup-contenido">
+                <h3>Nueva generacion detectada</h3>
+
+                <p>
+                    Se sugiere crear la generacion:
+                    <strong>{{ $datosGeneracion['nombreGeneracion'] }}</strong>
+                </p>
+
+                <form action="{{ route('generaciones.crearDashboard') }}" method="POST">
+                    @csrf
+
+                    @foreach($datosGeneracion as $key => $value)
+                        <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                    @endforeach
+
+                    <div class="popup-botones">
+                        <button type="submit" class="btn-confirmar">
+                            Crear generacion
+                        </button>
+
+                        <button type="button"
+                                class="btn-cancelar-confirmacion"
+                                onclick="cerrarPopupGeneracion()">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
+
 <!-- CONTENIDO -->
 <div class="content">
 
