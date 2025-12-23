@@ -60,6 +60,8 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
     })->name('apartadoEstudiantes');
 
     Route::get('/altaEstudiante', [EstudianteController::class, 'create'])->name('altaEstudiante');
+    Route::post('/estudiantes/store', [EstudianteController::class, 'store'])->name('estudiantes.store');
+    
 
     /*----------- REPORTES -----------*/
     Route::get('/apartadoReporte', function () {

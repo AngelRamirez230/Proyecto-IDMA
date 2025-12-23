@@ -22,46 +22,45 @@ use App\Models\TipoDeInscripcion;
 
 class EstudianteController extends Controller
 {
+
     /**
      * Mostrar formulario de alta de estudiante
      */
     public function create()
     {
-
-        // Mes y año actuales
-        $mesActual = date('n'); // 1-12
+        $mesActual = date('n');
         $añoActual = date('Y');
 
-        // Buscar si ya existe la generación actual
+        // Generación actual
         $generacionActual = Generacion::where('añoDeInicio', $añoActual)
             ->where('idMes', $mesActual)
             ->first();
 
-        // Si no existe, crear automáticamente
         if (!$generacionActual) {
             $generacionActual = Generacion::create([
                 'añoDeInicio' => $añoActual,
                 'idMes' => $mesActual,
-                'idEstatus' => 1, // Activa
+                'idEstatus' => 1,
+                'abreviacionGeneracion' => substr($añoActual, -2) . (($mesActual <= 6) ? 'A' : 'B'), // guardamos la abreviación
             ]);
         }
 
-        // Construir clave visual 22A/22B
-        $claveGeneracion = substr($añoActual, -2) . (($mesActual <= 6) ? 'A' : 'B');
-        return view('shared.moduloEstudiantes.altaEstudiante', [
-            'sexos'            => Sexo::orderBy('nombreSexo')->get(),
-            'estadosCiviles'   => EstadoCivil::orderBy('nombreEstadoCivil')->get(),
-            'entidades'        => Entidad::orderBy('nombreEntidad')->get(),
-            'municipios'       => collect(),
-            'localidades'      => collect(),
-            'paises'           => Pais::orderBy('nombrePais')->get(),
+        // Aquí usamos la abreviación de la BD
+        $claveGeneracion = $generacionActual->abreviacionGeneracion;
 
-            // Catálogos académicos
-            'planes' => PlanDeEstudios::orderBy('nombrePlanDeEstudios')->get(),
-            'generaciones'     => Generacion::orderBy('añoDeInicio')->get(),
-            'tiposInscripcion' => TipoDeInscripcion::orderBy('nombreTipoDeInscripcion')->get(),
-            'generacionActualId' => $generacionActual->idGeneracion,
-            'claveGeneracion'    => $claveGeneracion
+
+        return view('shared.moduloEstudiantes.altaEstudiante', [
+            'sexos'             => Sexo::orderBy('nombreSexo')->get(),
+            'estadosCiviles'    => EstadoCivil::orderBy('nombreEstadoCivil')->get(),
+            'entidades'         => Entidad::orderBy('nombreEntidad')->get(),
+            'municipios'        => collect(),
+            'localidades'       => collect(),
+            'paises'            => Pais::orderBy('nombrePais')->get(),
+            'planes'            => PlanDeEstudios::orderBy('nombrePlanDeEstudios')->get(),
+            'generaciones'      => Generacion::orderBy('añoDeInicio')->get(),
+            'tiposInscripcion'  => TipoDeInscripcion::orderBy('nombreTipoDeInscripcion')->get(),
+            'generacionActualId'=> $generacionActual->idGeneracion,
+            'claveGeneracion'   => $claveGeneracion,
         ]);
     }
 
@@ -72,58 +71,33 @@ class EstudianteController extends Controller
     {
         DB::transaction(function () use ($request) {
 
-            /*
-            |----------------------------------------------------------
-            | 1. LOCALIDAD DE NACIMIENTO (OBLIGATORIA)
-            |----------------------------------------------------------
-            */
+            // Localidad de nacimiento
             $idLocalidadNacimiento = $request->localidadNacimiento;
 
-            /*
-            |----------------------------------------------------------
-            | 2. LOCALIDAD DE DOMICILIO (CATÁLOGO O MANUAL)
-            |----------------------------------------------------------
-            */
+            // Localidad domicilio
             $idLocalidadDomicilio = null;
-
             if ($request->filled('localidad')) {
-
                 $idLocalidadDomicilio = $request->localidad;
-
             } elseif ($request->filled('localidadManual') && $request->filled('municipio')) {
-
                 $localidadExistente = Localidad::where('nombreLocalidad', $request->localidadManual)
                     ->where('idMunicipio', $request->municipio)
                     ->first();
 
                 if ($localidadExistente) {
-
                     $idLocalidadDomicilio = $localidadExistente->idLocalidad;
-
                 } else {
-
                     $localidad = Localidad::create([
                         'nombreLocalidad' => $request->localidadManual,
                         'idMunicipio'     => $request->municipio,
                         'idTipoDeEstatus' => 3, // Pendiente
                     ]);
-
                     $idLocalidadDomicilio = $localidad->idLocalidad;
                 }
             }
 
-            /*
-            |----------------------------------------------------------
-            | 3. CREAR DOMICILIO (SI APLICA)
-            |----------------------------------------------------------
-            */
+            // Crear domicilio
             $domicilioId = null;
-
-            if (
-                $idLocalidadDomicilio ||
-                $request->filled('calle') ||
-                $request->filled('codigoPostal')
-            ) {
+            if ($idLocalidadDomicilio || $request->filled('calle') || $request->filled('codigoPostal')) {
                 $domicilio = Domicilio::create([
                     'codigoPostal'   => $request->codigoPostal,
                     'calle'          => $request->calle,
@@ -132,64 +106,60 @@ class EstudianteController extends Controller
                     'colonia'        => $request->colonia,
                     'idLocalidad'    => $idLocalidadDomicilio,
                 ]);
-
                 $domicilioId = $domicilio->idDomicilio;
             }
 
-            /*
-            |----------------------------------------------------------
-            | 4. CREAR USUARIO (ESTUDIANTE)
-            |----------------------------------------------------------
-            */
+            // Validar teléfono único
+            if (Usuario::where('telefono', $request->telefono)->exists()) {
+                return back()->with('popupError', 'El teléfono ya está registrado')->withInput();
+            }
+
+            // Validar generación
+            $idGeneracion = $request->generacion;
+            if (!$idGeneracion || !Generacion::find($idGeneracion)) {
+                return back()->with('popupError', 'Generación inválida')->withInput();
+            }
+
+            // Crear usuario
             $usuario = Usuario::create([
                 'primerNombre'          => $request->primer_nombre,
                 'segundoNombre'         => $request->segundo_nombre,
                 'primerApellido'        => $request->primer_apellido,
                 'segundoApellido'       => $request->segundo_apellido,
-
                 'idSexo'                => $request->sexo,
                 'idEstadoCivil'         => $request->estadoCivil,
-
                 'fechaDeNacimiento'     => $request->fechaNacimiento,
                 'RFC'                   => $request->rfc,
                 'CURP'                  => $request->curp,
-
                 'telefono'              => $request->telefono,
-                'correoInstitucional'   => $request->correoInstitucional,
-                'correoElectronico'     => $request->correo,
-
+                'correoInstitucional'   => $request->emailInstitucional,
+                'correoElectronico'     => $request->email,
                 'nombreUsuario'         => $request->nombreUsuario,
                 'contraseña'            => Hash::make($request->password),
-
                 'idLocalidadNacimiento' => $idLocalidadNacimiento,
                 'idDomicilio'           => $domicilioId,
-
-                'idtipoDeUsuario'       => 4, // ESTUDIANTE
+                'idtipoDeUsuario'       => 4,
                 'idestatus'             => 1,
             ]);
 
-            /*
-            |----------------------------------------------------------
-            | 5. CREAR ESTUDIANTE
-            |----------------------------------------------------------
-            */
+            // Crear estudiante
             Estudiante::create([
-                'idUsuario'              => $usuario->idUsuario,
-                'matriculaNumerica'      => $request->matriculaNumerica,
-                'matriculaAlfanumerica'  => $request->matriculaAlfanumerica,
-                'grado'                  => $request->grado,
-                'creditosAcumulados'     => 0,
-                'promedioGeneral'        => 0,
-                'fechaDeIngreso'         => now(),
-                'idGeneracion'           => $request->generacion,
-                'idTipoDeInscripcion'    => $request->tipoInscripcion,
-                'idPlanDeEstudios'       => $request->planEstudios,
-                'idEstatus'              => 1,
+                'idUsuario'             => $usuario->idUsuario,
+                'matriculaNumerica'     => $request->matriculaNumerica,
+                'matriculaAlfanumerica' => $request->matriculaAlfanumerica,
+                'grado'                 => $request->grado,
+                'creditosAcumulados'    => 0,
+                'promedioGeneral'       => 0,
+                'fechaDeIngreso'        => now(),
+                'idGeneracion'          => $idGeneracion,
+                'idTipoDeInscripcion'   => $request->tipoInscripcion,
+                'idPlanDeEstudios'      => $request->planEstudios,
+                'idEstatus'             => 1,
             ]);
         });
 
         return redirect()
-            ->route('consultaEstudiantes')
+            ->route('apartadoEstudiantes')
             ->with('success', 'Estudiante registrado correctamente');
     }
 }
