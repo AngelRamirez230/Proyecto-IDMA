@@ -56,36 +56,71 @@ class EstudianteController extends Controller
     {
 
 
-        $validator = Validator::make($request->all(), [
-            // Datos personales
-            'primer_nombre'     => 'required|string|max:50',
-            'primer_apellido'   => 'required|string|max:50',
-            'sexo'              => 'required|exists:sexo,idSexo',
-            'estadoCivil'       => 'required|exists:estado_civil,idEstadoCivil',
-            'fechaNacimiento'   => 'required|date',
+        $validator = Validator::make(
+            $request->all(),
+            [
+                // Datos personales
+                'primer_nombre'     => 'required|string|max:50',
+                'primer_apellido'   => 'required|string|max:50',
+                'sexo'              => 'required|exists:sexo,idSexo',
+                'estadoCivil'       => 'required|exists:estado_civil,idEstadoCivil',
+                'fechaNacimiento'   => 'required|date',
 
-            // Contacto
-            'telefono'          => 'required|string|max:15|unique:usuario,telefono',
-            'email'             => 'nullable|email',
-            'emailInstitucional'=> 'nullable|email',
+                // Contacto
+                'telefono'          => 'required|string|max:15|unique:usuario,telefono',
+                'email'             => 'nullable|email|unique:usuario,correoElectronico',
+                'emailInstitucional'=> 'nullable|email|unique:usuario,correoInstitucional',
 
-            // Usuario
-            'nombreUsuario'     => 'required|string|unique:usuario,nombreUsuario',
-            'password'          => 'required|string|min:8',
+                // Usuario
+                'nombreUsuario'     => 'required|string|unique:usuario,nombreUsuario',
+                'password'          => 'required|string|min:8',
 
-            // Estudiante
-            'matriculaNumerica'     => 'required|numeric|unique:estudiante,matriculaNumerica',
-            'matriculaAlfanumerica' => 'required|string|unique:estudiante,matriculaAlfanumerica',
-            'grado'                 => 'required|integer|min:1',
+                // Estudiante
+                'matriculaNumerica'     => 'required|numeric|unique:estudiante,matriculaNumerica',
+                'matriculaAlfanumerica' => 'required|string|unique:estudiante,matriculaAlfanumerica',
+                'grado'                 => 'required|integer|min:1',
 
-            // Relaciones clave
-            'generacion'        => 'required|exists:generacion,idGeneracion',
-            'planEstudios'      => 'required|exists:plan_de_estudios,idPlanDeEstudios',
-            'tipoInscripcion'   => 'required|exists:tipo_de_inscripcion,idTipoDeInscripcion',
+                // Relaciones
+                'generacion'        => 'required|exists:generacion,idGeneracion',
+                'planEstudios'      => 'required|exists:plan_de_estudios,idPlanDeEstudios',
+                'tipoInscripcion'   => 'required|exists:tipo_de_inscripcion,idTipoDeInscripcion',
 
-            // Localidad nacimiento
-            'localidadNacimiento' => 'required|exists:localidad,idLocalidad',
-        ]);
+                // Nacimiento
+                'localidadNacimiento' => 'required|exists:localidad,idLocalidad',
+            ],
+            [
+                // 🔹 MENSAJES PERSONALIZADOS
+                'required' => 'El campo :attribute es obligatorio.',
+                'string'   => 'El campo :attribute debe ser texto.',
+                'max'      => 'El campo :attribute no debe exceder :max caracteres.',
+                'min'      => 'El campo :attribute debe tener al menos :min caracteres.',
+                'email'    => 'El campo :attribute debe ser un correo válido.',
+                'numeric'  => 'El campo :attribute debe ser numérico.',
+                'integer'  => 'El campo :attribute debe ser un número entero.',
+                'unique'   => 'El valor ingresado en :attribute ya está registrado.',
+                'exists'   => 'La opción seleccionada en :attribute no es válida.',
+                'date'     => 'El campo :attribute debe ser una fecha válida.',
+            ],
+            [
+                'primer_nombre'           => 'primer nombre',
+                'primer_apellido'         => 'primer apellido',
+                'sexo'                    => 'sexo',
+                'estadoCivil'             => 'estado civil',
+                'fechaNacimiento'         => 'fecha de nacimiento',
+                'telefono'                => 'teléfono',
+                'email'                   => 'correo electrónico',
+                'emailInstitucional'      => 'correo institucional',
+                'nombreUsuario'           => 'nombre de usuario',
+                'password'                => 'contraseña',
+                'matriculaNumerica'       => 'matrícula numérica',
+                'matriculaAlfanumerica'   => 'matrícula alfanumérica',
+                'grado'                   => 'grado',
+                'generacion'              => 'generación',
+                'planEstudios'            => 'plan de estudios',
+                'tipoInscripcion'         => 'tipo de inscripción',
+                'localidadNacimiento'     => 'localidad de nacimiento',
+            ]
+        );
 
         // 🔴 SI FALLA → POPUP + DATOS CONSERVADOS
         if ($validator->fails()) {
