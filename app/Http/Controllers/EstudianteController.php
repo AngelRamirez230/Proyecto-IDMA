@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 
 // MODELOS
 use App\Models\Usuario;
@@ -53,6 +54,46 @@ class EstudianteController extends Controller
      */
     public function store(Request $request)
     {
+
+
+        $validator = Validator::make($request->all(), [
+            // Datos personales
+            'primer_nombre'     => 'required|string|max:50',
+            'primer_apellido'   => 'required|string|max:50',
+            'sexo'              => 'required|exists:sexo,idSexo',
+            'estadoCivil'       => 'required|exists:estado_civil,idEstadoCivil',
+            'fechaNacimiento'   => 'required|date',
+
+            // Contacto
+            'telefono'          => 'required|string|max:15|unique:usuario,telefono',
+            'email'             => 'nullable|email',
+            'emailInstitucional'=> 'nullable|email',
+
+            // Usuario
+            'nombreUsuario'     => 'required|string|unique:usuario,nombreUsuario',
+            'password'          => 'required|string|min:8',
+
+            // Estudiante
+            'matriculaNumerica'     => 'required|numeric|unique:estudiante,matriculaNumerica',
+            'matriculaAlfanumerica' => 'required|string|unique:estudiante,matriculaAlfanumerica',
+            'grado'                 => 'required|integer|min:1',
+
+            // Relaciones clave
+            'generacion'        => 'required|exists:generacion,idGeneracion',
+            'planEstudios'      => 'required|exists:plan_de_estudios,idPlanDeEstudios',
+            'tipoInscripcion'   => 'required|exists:tipo_de_inscripcion,idTipoDeInscripcion',
+
+            // Localidad nacimiento
+            'localidadNacimiento' => 'required|exists:localidad,idLocalidad',
+        ]);
+
+        // 🔴 SI FALLA → POPUP + DATOS CONSERVADOS
+        if ($validator->fails()) {
+            return back()
+                ->withErrors($validator)   // mantiene x-error-field
+                ->with('popupError', 'No se pudo crear el estudiante, verifique bien los datos')
+                ->withInput();              // conserva los valores
+        }
         DB::transaction(function () use ($request) {
 
             // Localidad de nacimiento

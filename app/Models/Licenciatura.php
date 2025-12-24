@@ -11,7 +11,8 @@ class Licenciatura extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'nombreLicenciatura'
+        'nombreLicenciatura',
+        'abreviacionLicenciatura'
     ];
 
     public function planesDeEstudio()

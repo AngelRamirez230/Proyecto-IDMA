@@ -275,7 +275,7 @@
                     @foreach($planes as $plan)
                         <option
                             value="{{ $plan->idPlanDeEstudios }}"
-                            licenciatura="{{ $plan->licenciatura->nombreLicenciatura ?? '' }}"
+                            data-licenciatura="{{ $plan->licenciatura->nombreLicenciatura ?? '' }}"
                             {{ old('planEstudios') == $plan->idPlanDeEstudios ? 'selected' : '' }}
                         >
                             {{ $plan->nombrePlanDeEstudios }}
