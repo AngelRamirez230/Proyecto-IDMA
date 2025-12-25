@@ -23,9 +23,8 @@ use App\Models\TipoDeInscripcion;
 
 class EstudianteController extends Controller
 {
-
     /**
-     * Mostrar formulario de alta de estudiante
+     * Mostrar formulario
      */
     public function create()
     {
@@ -37,15 +36,15 @@ class EstudianteController extends Controller
             ->first();
 
         return view('shared.moduloEstudiantes.altaEstudiante', [
-            'sexos'              => Sexo::orderBy('nombreSexo')->get(),
-            'estadosCiviles'     => EstadoCivil::orderBy('nombreEstadoCivil')->get(),
-            'entidades'          => Entidad::orderBy('nombreEntidad')->get(),
-            'municipios'         => collect(),
-            'localidades'        => collect(),
-            'paises'             => Pais::orderBy('nombrePais')->get(),
-            'planes'             => PlanDeEstudios::orderBy('nombrePlanDeEstudios')->get(),
-            'tipoInscripcion'   => TipoDeInscripcion::orderBy('nombreTipoDeInscripcion')->get(),
-            'generacionActual'   => $generacionActual
+            'sexos'            => Sexo::orderBy('nombreSexo')->get(),
+            'estadosCiviles'   => EstadoCivil::orderBy('nombreEstadoCivil')->get(),
+            'entidades'        => Entidad::orderBy('nombreEntidad')->get(),
+            'municipios'       => collect(),
+            'localidades'      => collect(),
+            'paises'           => Pais::orderBy('nombrePais')->get(),
+            'planes'           => PlanDeEstudios::orderBy('nombrePlanDeEstudios')->get(),
+            'tipoInscripcion'  => TipoDeInscripcion::orderBy('nombreTipoDeInscripcion')->get(),
+            'generacionActual' => $generacionActual
         ]);
     }
 
@@ -54,110 +53,74 @@ class EstudianteController extends Controller
      */
     public function store(Request $request)
     {
-
-
+        /* ================= VALIDACIONES ================= */
         $validator = Validator::make(
             $request->all(),
             [
-                // Datos personales
-                'primer_nombre'     => 'required|string|max:50',
-                'primer_apellido'   => 'required|string|max:50',
-                'sexo'              => 'required|exists:sexo,idSexo',
-                'estadoCivil'       => 'required|exists:estado_civil,idEstadoCivil',
-                'fechaNacimiento'   => 'required|date',
+                // USUARIO
+                'primer_nombre'       => 'required|string|max:45',
+                'segundo_nombre'      => 'nullable|string|max:45',
+                'primer_apellido'     => 'required|string|max:45',
+                'segundo_apellido'    => 'nullable|string|max:45',
+                'telefono'            => 'nullable|string|max:10|unique:usuario,telefono',
+                'telefonoFijo'        => 'nullable|string|max:10|unique:usuario,telefono',
+                'correoInstitucional' => 'required|email|max:100|unique:usuario,correoInstitucional',
+                'correoElectronico'   => 'nullable|email|max:100|unique:usuario,correoElectronico',
+                'nombreUsuario'       => 'required|string|max:100|unique:usuario,nombreUsuario',
+                'contraseña'          => 'required|string|min:8',
+                'fechaNacimiento'     => 'required|date',
+                'CURP'                => 'nullable|string|max:18|unique:usuario,CURP',
+                'RFC'                 => 'nullable|string|max:13|unique:usuario,RFC',
+                'idSexo'              => 'required|exists:sexo,idSexo',
+                'idEstadoCivil'       => 'required|exists:estado_civil,idEstadoCivil',
 
-                // Contacto
-                'telefono'          => 'required|string|max:15|unique:usuario,telefono',
-                'email'             => 'nullable|email|unique:usuario,correoElectronico',
-                'emailInstitucional'=> 'nullable|email|unique:usuario,correoInstitucional',
-
-                // Usuario
-                'nombreUsuario'     => 'required|string|unique:usuario,nombreUsuario',
-                'password'          => 'required|string|min:8',
-
-                // Estudiante
-                'matriculaNumerica'     => 'required|numeric|unique:estudiante,matriculaNumerica',
-                'matriculaAlfanumerica' => 'required|string|unique:estudiante,matriculaAlfanumerica',
-                'grado'                 => 'required|integer|min:1',
-
-                // Relaciones
-                'generacion'        => 'required|exists:generacion,idGeneracion',
-                'planEstudios'      => 'required|exists:plan_de_estudios,idPlanDeEstudios',
-                'tipoInscripcion'   => 'required|exists:tipo_de_inscripcion,idTipoDeInscripcion',
-
-                // Nacimiento
-                'localidadNacimiento' => 'required|exists:localidad,idLocalidad',
-            ],
-            [
-                // 🔹 MENSAJES PERSONALIZADOS
-                'required' => 'El campo :attribute es obligatorio.',
-                'string'   => 'El campo :attribute debe ser texto.',
-                'max'      => 'El campo :attribute no debe exceder :max caracteres.',
-                'min'      => 'El campo :attribute debe tener al menos :min caracteres.',
-                'email'    => 'El campo :attribute debe ser un correo válido.',
-                'numeric'  => 'El campo :attribute debe ser numérico.',
-                'integer'  => 'El campo :attribute debe ser un número entero.',
-                'unique'   => 'El valor ingresado en :attribute ya está registrado.',
-                'exists'   => 'La opción seleccionada en :attribute no es válida.',
-                'date'     => 'El campo :attribute debe ser una fecha válida.',
-            ],
-            [
-                'primer_nombre'           => 'primer nombre',
-                'primer_apellido'         => 'primer apellido',
-                'sexo'                    => 'sexo',
-                'estadoCivil'             => 'estado civil',
-                'fechaNacimiento'         => 'fecha de nacimiento',
-                'telefono'                => 'teléfono',
-                'email'                   => 'correo electrónico',
-                'emailInstitucional'      => 'correo institucional',
-                'nombreUsuario'           => 'nombre de usuario',
-                'password'                => 'contraseña',
-                'matriculaNumerica'       => 'matrícula numérica',
-                'matriculaAlfanumerica'   => 'matrícula alfanumérica',
-                'grado'                   => 'grado',
-                'generacion'              => 'generación',
-                'planEstudios'            => 'plan de estudios',
-                'tipoInscripcion'         => 'tipo de inscripción',
-                'localidadNacimiento'     => 'localidad de nacimiento',
+                // ESTUDIANTE
+                'matriculaNumerica'     => 'required|string|max:45|unique:estudiante,matriculaNumerica',
+                'matriculaAlfanumerica' => 'required|string|max:45|unique:estudiante,matriculaAlfanumerica',
+                'grado'                 => 'required|integer|min:1|max:9',
+                'creditosAcomulados'    => 'nullable|integer|min:0',
+                'promedioGeneral'       => 'required|numeric|between:0,10',
+                'fechaDeIngreso'        => 'required|date',
+                'idGeneracion'          => 'required|exists:generacion,idGeneracion',
+                'idPlanDeEstudios'      => 'required|exists:plan_de_estudios,idPlanDeEstudios',
+                'idTipoDeInscripcion'   => 'required|exists:tipo_de_inscripcion,idTipoDeInscripcion',
             ]
         );
 
-        // 🔴 SI FALLA → POPUP + DATOS CONSERVADOS
         if ($validator->fails()) {
             return back()
-                ->withErrors($validator)   // mantiene x-error-field
-                ->with('popupError', 'No se pudo crear el estudiante, verifique bien los datos')
-                ->withInput();              // conserva los valores
+                ->withErrors($validator)
+                ->with('popupError', 'No se pudo crear el estudiante')
+                ->withInput();
         }
+
+        /* ================= TRANSACCIÓN ================= */
         DB::transaction(function () use ($request) {
 
-            // Localidad de nacimiento
-            $idLocalidadNacimiento = $request->localidadNacimiento;
+            /* ===== LOCALIDAD NACIMIENTO ===== */
+            $idLocalidadNacimiento = $request->idLocalidadNacimiento;
 
-            // Localidad domicilio
+            /* ===== LOCALIDAD DOMICILIO ===== */
             $idLocalidadDomicilio = null;
+
             if ($request->filled('localidad')) {
                 $idLocalidadDomicilio = $request->localidad;
             } elseif ($request->filled('localidadManual') && $request->filled('municipio')) {
-                $localidadExistente = Localidad::where('nombreLocalidad', $request->localidadManual)
-                    ->where('idMunicipio', $request->municipio)
-                    ->first();
-
-                if ($localidadExistente) {
-                    $idLocalidadDomicilio = $localidadExistente->idLocalidad;
-                } else {
-                    $localidad = Localidad::create([
+                $localidad = Localidad::firstOrCreate(
+                    [
                         'nombreLocalidad' => $request->localidadManual,
                         'idMunicipio'     => $request->municipio,
-                        'idTipoDeEstatus' => 3, // Pendiente
-                    ]);
-                    $idLocalidadDomicilio = $localidad->idLocalidad;
-                }
+                    ],
+                    [
+                        'idTipoDeEstatus' => 3,
+                    ]
+                );
+                $idLocalidadDomicilio = $localidad->idLocalidad;
             }
 
-            // Crear domicilio
+            /* ===== DOMICILIO ===== */
             $domicilioId = null;
-            if ($idLocalidadDomicilio || $request->filled('calle') || $request->filled('codigoPostal')) {
+            if ($idLocalidadDomicilio || $request->filled('calle')) {
                 $domicilio = Domicilio::create([
                     'codigoPostal'   => $request->codigoPostal,
                     'calle'          => $request->calle,
@@ -169,51 +132,40 @@ class EstudianteController extends Controller
                 $domicilioId = $domicilio->idDomicilio;
             }
 
-            // Validar teléfono único
-            if (Usuario::where('telefono', $request->telefono)->exists()) {
-                return back()->with('popupError', 'El teléfono ya está registrado')->withInput();
-            }
-
-            // Validar generación
-            $idGeneracion = $request->generacion;
-            if (!$idGeneracion || !Generacion::find($idGeneracion)) {
-                return back()->with('popupError', 'Generación inválida')->withInput();
-            }
-
-            // Crear usuario
+            /* ===== USUARIO ===== */
             $usuario = Usuario::create([
                 'primerNombre'          => $request->primer_nombre,
                 'segundoNombre'         => $request->segundo_nombre,
                 'primerApellido'        => $request->primer_apellido,
                 'segundoApellido'       => $request->segundo_apellido,
-                'idSexo'                => $request->sexo,
-                'idEstadoCivil'         => $request->estadoCivil,
+                'idSexo'                => $request->idSexo,
+                'idEstadoCivil'         => $request->idEstadoCivil,
                 'fechaDeNacimiento'     => $request->fechaNacimiento,
-                'RFC'                   => $request->rfc,
-                'CURP'                  => $request->curp,
+                'RFC'                   => $request->RFC,
+                'CURP'                  => $request->CURP,
                 'telefono'              => $request->telefono,
-                'correoInstitucional'   => $request->emailInstitucional,
-                'correoElectronico'     => $request->email,
+                'correoInstitucional'   => $request->correoInstitucional,
+                'correoElectronico'     => $request->correoElectronico,
                 'nombreUsuario'         => $request->nombreUsuario,
-                'contraseña'            => Hash::make($request->password),
+                'contraseña'            => Hash::make($request->contraseña),
                 'idLocalidadNacimiento' => $idLocalidadNacimiento,
                 'idDomicilio'           => $domicilioId,
-                'idtipoDeUsuario'       => 4,
-                'idestatus'             => 1,
+                'idTipoDeUsuario'       => 4, // Estudiante
+                'idEstatus'             => 1,
             ]);
 
-            // Crear estudiante
+            /* ===== ESTUDIANTE ===== */
             Estudiante::create([
                 'idUsuario'             => $usuario->idUsuario,
                 'matriculaNumerica'     => $request->matriculaNumerica,
                 'matriculaAlfanumerica' => $request->matriculaAlfanumerica,
                 'grado'                 => $request->grado,
-                'creditosAcumulados'    => 0,
-                'promedioGeneral'       => 0,
-                'fechaDeIngreso'        => now(),
-                'idGeneracion'          => $idGeneracion,
-                'idTipoDeInscripcion'   => $request->tipoInscripcion,
-                'idPlanDeEstudios'      => $request->planEstudios,
+                'creditosAcumulados'    => $request->creditosAcomulados ?? 0,
+                'promedioGeneral'       => $request->promedioGeneral,
+                'fechaDeIngreso'        => $request->fechaDeIngreso,
+                'idGeneracion'          => $request->idGeneracion,
+                'idTipoDeInscripcion'   => $request->idTipoDeInscripcion,
+                'idPlanDeEstudios'      => $request->idPlanDeEstudios,
                 'idEstatus'             => 1,
             ]);
         });

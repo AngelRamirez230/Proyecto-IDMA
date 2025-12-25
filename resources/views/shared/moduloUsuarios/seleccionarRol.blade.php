@@ -31,7 +31,7 @@
         </a>
 
         <!-- Rol: Estudiante (id = 4) -->
-        <a href="{{ route('usuarios.create', ['rol' => 4]) }}" 
+        <a href="{{ route('altaEstudiante', ['rol' => 4]) }}" 
            class="btn-seleccionarRol">
            Estudiante
         </a>

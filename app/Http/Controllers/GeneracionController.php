@@ -88,7 +88,7 @@ class GeneracionController extends Controller
         return [
             'añoDeInicio'       => $añoDeInicio,
             'idMesInicio'      => $mesInicio,
-            'añoDeFinalizacion'          => $añoDeFinalizacion,
+            'añoDeFinalizacion'  => $añoDeFinalizacion,
             'idMesFin'         => $mesFin,
             'nombreGeneracion' => $nombreGeneracion,
         ];
