@@ -272,4 +272,57 @@ class EstudianteController extends Controller
     }
 
 
+
+    public function index(Request $request)
+    {
+        $query = Estudiante::with([
+            'usuario',
+            'generacion',
+            'planDeEstudios.licenciatura'
+        ]);
+
+        /* 🔍 BÚSQUEDA */
+        if ($request->filled('buscarEstudiante')) {
+            $buscar = $request->buscarEstudiante;
+
+            $query->where(function ($q) use ($buscar) {
+                $q->where('matriculaAlfanumerica', 'like', "%$buscar%")
+                ->orWhere('matriculaNumerica', 'like', "%$buscar%")
+                ->orWhereHas('usuario', function ($u) use ($buscar) {
+                    $u->where('primerNombre', 'like', "%$buscar%")
+                        ->orWhere('primerApellido', 'like', "%$buscar%");
+                });
+            });
+        }
+
+        /* FILTRO */
+        if ($request->filtro === 'activos') {
+            $query->whereHas('usuario', function ($q) {
+                $q->where('idestatus', 1);
+            });
+        } elseif ($request->filtro === 'suspendidos') {
+            $query->whereHas('usuario', function ($q) {
+                $q->where('idestatus', 2);
+            });
+        }
+
+        /* 🔠 ORDEN */
+        if ($request->orden === 'alfabetico') {
+            $query->join('usuario', 'estudiante.idUsuario', '=', 'usuario.idUsuario')
+                ->orderBy('usuario.primerApellido')
+                ->select('estudiante.*');
+        }
+
+        $estudiantes = $query->paginate(10)->withQueryString();
+
+        return view('shared.moduloEstudiantes.consultaEstudiantes', [
+            'estudiantes' => $estudiantes,
+            'buscar'      => $request->buscarEstudiante,
+            'filtro'      => $request->filtro,
+            'orden'       => $request->orden,
+        ]);
+    }
+
+
+
 }
