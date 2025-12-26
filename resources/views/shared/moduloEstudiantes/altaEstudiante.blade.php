@@ -241,12 +241,10 @@
                     <input
                         type="text"
                         id="matriculaAlfanumerica"
-                        name="matriculaAlfanumerica"
                         class="input-mediano"
-                        placeholder="Matricula alfanumerica"
-                        value="{{ old('matriculaAlfanumerica') }}"
+                        readonly
+                        placeholder="Se genera automáticamente"
                     >
-                    <x-error-field field="matriculaAlfanumerica" />
                 </div>
 
                 {{-- Matricula númerica --}}
