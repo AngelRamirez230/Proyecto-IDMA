@@ -150,6 +150,17 @@
 }
 
 
+.select-disabled-black {
+    color: #000 !important;
+    background-color: #fff;
+    opacity: 1 !important;          /* evita efecto gris */
+}
+
+/* Para algunos navegadores (Chrome / Edge) */
+.select-disabled-black option {
+    color: #000;
+}
+
 /* Responsive */
 @media screen and (max-width: 950px) {
 

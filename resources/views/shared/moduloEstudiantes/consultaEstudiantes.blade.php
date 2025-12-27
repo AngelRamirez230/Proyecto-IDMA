@@ -14,36 +14,36 @@
 
     <h1 class="consulta-titulo">Lista de estudiantes</h1>
 
-    {{-- 🔎 CONTROLES --}}
+    
     <section class="consulta-controles">
 
-        {{-- 🔍 BUSCADOR --}}
+        {{-- BUSCADOR --}}
         <form action="{{ route('estudiantes.index') }}" method="GET">
             <div class="consulta-busqueda-group">
                 <img src="{{ asset('imagenes/IconoBusqueda.png') }}" alt="Buscar">
                 <input
                     type="text"
-                    name="buscar"
+                    name="buscarEstudiante"
                     placeholder="Ingresa nombre o matrícula del estudiante"
-                    value="{{ request('buscar') }}"
+                    value="{{ request('buscarEstudiante') }}"
                     onkeydown="if(event.key === 'Enter') this.form.submit();"
                 />
             </div>
         </form>
 
-        {{-- 🎯 FILTROS --}}
+        
         <div class="consulta-selects">
             <form action="{{ route('estudiantes.index') }}" method="GET" id="formFiltro">
 
                 <select name="filtro" class="select select-boton" onchange="this.form.submit()">
-                    <option value="">Filtrar por</option>
+                    <option value="" disabled selected>Filtrar por</option>
                     <option value="todos" {{ request('filtro') == 'todos' ? 'selected' : '' }}>Ver todos</option>
                     <option value="activos" {{ request('filtro') == 'activos' ? 'selected' : '' }}>Activo(a)</option>
                     <option value="suspendidos" {{ request('filtro') == 'suspendidos' ? 'selected' : '' }}>Suspendido(a)</option>
                 </select>
 
                 <select name="orden" class="select select-boton" onchange="this.form.submit()">
-                    <option value="">Ordenar por</option>
+                    <option value="" disabled selected>Ordenar por</option>
                     <option value="alfabetico" {{ request('orden') == 'alfabetico' ? 'selected' : '' }}>
                         Alfabéticamente (A-Z)
                     </option>
@@ -57,7 +57,7 @@
 
     </section>
 
-    {{-- 📋 TABLA --}}
+    {{-- TABLA --}}
     <section class="consulta-tabla-contenedor">
         <table class="tabla" id="tablaEstudiantes">
 
@@ -83,28 +83,30 @@
 
                         <td>
                             {{ $estudiante->usuario->primerNombre }}
+                            {{ $estudiante->usuario->segundoNombre }}
                             {{ $estudiante->usuario->primerApellido }}
+                            {{ $estudiante->usuario->segundoApellido }}
                         </td>
 
                         <td>{{ $estudiante->generacion->nombreGeneracion }}</td>
 
-                        <td>{{ $estudiante->semestreActual }}</td>
+                        <td>{{ $estudiante->grado }}</td>
 
                         <td>{{ $estudiante->usuario->correoInstitucional }}</td>
 
                         <td>
-                            {{ $estudiante->usuario->idestatus == 1 ? 'Activo' : 'Suspendido' }}
+                            {{ $estudiante->usuario->estatus->nombreTipoDeEstatus}}
                         </td>
 
                         <td>
-                            {{ $estudiante->estatusAcademico->nombre ?? 'Sin estatus' }}
+                            {{ $estudiante->estatus->nombreTipoDeEstatus}}
                         </td>
 
                         <td>
                             <div class="tabla-acciones">
 
-                                {{-- ✏️ EDITAR --}}
-                                <a href="#"
+                                {{-- EDITAR --}}
+                                <a href="{{ route('estudiantes.edit', $estudiante->idEstudiante) }}"
                                    class="accion-boton"
                                    title="Editar">
 
@@ -115,8 +117,8 @@
                                         alt="Editar">
                                 </a>
 
-                                {{-- ⛔ SUSPENDER / HABILITAR --}}
-                                <form action="#"
+                                {{-- SUSPENDER / HABILITAR --}}
+                                <form action="{{ route('estudiantes.update', $estudiante->idEstudiante) }}"
                                       method="POST"
                                       style="display:inline">
 
@@ -132,7 +134,7 @@
                                     </button>
                                 </form>
 
-                                {{-- 🗑️ ELIMINAR --}}
+                                {{-- ELIMINAR --}}
                                 <form action="#"
                                       method="POST"
                                       style="display:inline">
@@ -168,14 +170,14 @@
         </table>
     </section>
 
-    {{-- 📄 PAGINACIÓN --}}
+    {{-- PAGINACIÓN --}}
     <div class="paginacion">
         {{ $estudiantes->links() }}
     </div>
 
 </main>
 
-{{-- ⚠️ POPUP --}}
+{{-- POPUP --}}
 <script>
     function mostrarPopupConfirmacion(matricula, boton) {
         formularioAEliminar = boton.closest('form');

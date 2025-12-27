@@ -1,13 +1,13 @@
-    <!DOCTYPE html>
-    <html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Alta de estudiante</title>
-        @vite(['resources/css/app.css']) 
-    </head>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alta de estudiante</title>
+    @vite(['resources/css/app.css']) 
+</head>
 
-    <body>
+<body>
     @include('layouts.barraNavegacion')
 
         <main class="form-container">
@@ -128,7 +128,7 @@
                         id="telefonoFijo"
                         name="telefonoFijo"
                         class="input-chico"
-                        placeholder="Teléfono fijo"
+                        placeholder="Ingresa número de teléfono fijo"
                         value="{{ old('telefonoFijo') }}"
                     >
                     <x-error-field field="telefonoFijo" />
@@ -665,5 +665,27 @@
 
     @include('layouts.alta')
 
-    </body>
-    </html>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const planSelect   = document.getElementById('idPlanDeEstudios');
+            const licInput     = document.getElementById('licenciatura');
+
+            if (!planSelect || !licInput) return;
+
+            const setLicenciatura = () => {
+                const option = planSelect.options[planSelect.selectedIndex];
+                licInput.value = option?.dataset?.licenciatura || '';
+            };
+
+            // 🔹 Cambio manual
+            planSelect.addEventListener('change', setLicenciatura);
+
+            // 🔹 Carga inicial (old() / edición)
+            setLicenciatura();
+        });
+    </script>
+
+
+</body>
+</html>

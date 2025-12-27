@@ -324,5 +324,70 @@ class EstudianteController extends Controller
     }
 
 
+    public function edit($id)
+    {
+        $estudiante = Estudiante::with([
+            'usuario',
+            'generacion',
+            'planDeEstudios.licenciatura',
+            'usuario.domicilio',
+            'usuario.localidadNacimiento'
+        ])->findOrFail($id);
+
+        return view('shared.moduloEstudiantes.modificacionEstudiante', [
+            'estudiante'        => $estudiante,
+            'usuario'           => $estudiante->usuario,
+            'sexos'             => Sexo::orderBy('nombreSexo')->get(),
+            'estadosCiviles'    => EstadoCivil::orderBy('nombreEstadoCivil')->get(),
+            'planes'            => PlanDeEstudios::orderBy('nombrePlanDeEstudios')->get(),
+            'tipoInscripcion'   => TipoDeInscripcion::orderBy('nombreTipoDeInscripcion')->get(),
+            'entidades'         => Entidad::orderBy('nombreEntidad')->get(),
+            'municipios'        => Municipio::orderBy('nombreMunicipio')->get(),
+            'localidades'       => Localidad::orderBy('nombreLocalidad')->get(),
+            'paises'            => Pais::orderBy('nombrePais')->get(),
+        ]);
+    }
+
+
+    public function update(Request $request, $id)
+    {
+        $estudiante = Estudiante::findOrFail($id);
+        $usuario    = Usuario::findOrFail($estudiante->idUsuario);
+
+        DB::transaction(function () use ($request, $usuario, $estudiante) {
+
+            /* ===== USUARIO ===== */
+            $usuario->update([
+                'primerNombre'        => $request->primer_nombre,
+                'segundoNombre'       => $request->segundo_nombre,
+                'primerApellido'      => $request->primer_apellido,
+                'segundoApellido'     => $request->segundo_apellido,
+                'telefono'            => $request->telefono,
+                'correoInstitucional' => $request->correoInstitucional,
+                'idSexo'              => $request->idSexo,
+                'idEstadoCivil'       => $request->idEstadoCivil,
+                'fechaDeNacimiento'   => $request->fechaNacimiento,
+                'RFC'                 => $request->RFC,
+                'CURP'                => $request->CURP,
+            ]);
+
+            /* ===== ESTUDIANTE ===== */
+            $estudiante->update([
+                'grado'            => $request->grado,
+                'idPlanDeEstudios' => $request->idPlanDeEstudios,
+            ]);
+        });
+
+        return redirect()
+            ->route('estudiantes.index')
+            ->with('success', 'Estudiante actualizado correctamente');
+    }
+
+
+
+    public function destroy($id)
+    {
+    
+    }
 
 }

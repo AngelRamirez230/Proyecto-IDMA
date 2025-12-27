@@ -64,6 +64,9 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
     Route::post('/generaciones/crear-dashboard',[GeneracionController::class, 'crearDesdeDashboard'])->name('generaciones.crearDashboard');
     Route::get('/consultaEstudiantes', [EstudianteController::class, 'index'])->name('consultaEstudiantes');
     Route::get('/estudiantes', [EstudianteController::class, 'index'])->name('estudiantes.index');
+    Route::get('/{id}/editar', [EstudianteController::class, 'edit'])->name('estudiantes.edit');
+    Route::put('/{id}', [EstudianteController::class, 'update'])->name('estudiantes.update');
+    Route::delete('/{id}', [EstudianteController::class, 'destroy'])->name('estudiantes.destroy');
     
 
     /*----------- REPORTES -----------*/
