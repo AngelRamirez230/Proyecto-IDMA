@@ -2,7 +2,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     /* =========================================================
-       HELPERS GENERALES
+       FUNCIONES GENERALES
     ========================================================= */
     const resetSelect = (select, placeholder, disabled = true) => {
         if (!select) return;
@@ -28,91 +28,138 @@ document.addEventListener('DOMContentLoaded', () => {
             ?.querySelector('.select-buscable-input') || null;
     };
 
+    const setFirstOptionText = (select, text) => {
+        if (!select || !select.options || select.options.length === 0) return;
+        select.options[0].textContent = text;
+    };
+
     /* =========================================================
-       DOMICILIO
+       FUNCIONALIDAD SELECT BUSCABLE
+    ========================================================= */
+    function initSelectBuscable(wrapper) {
+        const input  = wrapper.querySelector('.select-buscable-input');
+        const list   = wrapper.querySelector('.select-buscable-list');
+        const select = wrapper.querySelector('select');
+        if (!input || !list || !select) return;
+
+        const syncDisabled = () => {
+            if (select.disabled) {
+                input.setAttribute('readonly', 'readonly');
+                list.style.display = 'none';
+            } else {
+                input.removeAttribute('readonly');
+            }
+        };
+        syncDisabled();
+
+        input.addEventListener('input', function () {
+            if (input.hasAttribute('readonly')) return;
+            const term = this.value.toLowerCase().trim();
+            list.innerHTML = '';
+            if (!term) { list.style.display = 'none'; return; }
+            [...select.options].forEach(opt => {
+                if (!opt.value) return;
+                const text = opt.textContent.trim();
+                if (text.toLowerCase().includes(term)) {
+                    const li = document.createElement('li');
+                    li.textContent = text;
+                    li.addEventListener('click', () => {
+                        select.value = opt.value;
+                        input.value = text;
+                        list.style.display = 'none';
+                        select.dispatchEvent(new Event('change', { bubbles: true }));
+                    });
+                    list.appendChild(li);
+                }
+            });
+            list.style.display = list.children.length ? 'block' : 'none';
+        });
+
+        document.addEventListener('click', e => {
+            if (!wrapper.contains(e.target)) list.style.display = 'none';
+        });
+
+        const observer = new MutationObserver(syncDisabled);
+        observer.observe(select, { attributes: true, attributeFilter: ['disabled'] });
+    }
+
+    document.querySelectorAll('.select-buscable-wrapper').forEach(initSelectBuscable);
+
+    document.querySelectorAll('.select-buscable-wrapper').forEach(wrapper => {
+        const input = wrapper.querySelector('.select-buscable-input');
+        const select = wrapper.querySelector('select');
+        if (input && select) {
+            const selectedOption = select.querySelector('option[selected]');
+            if (selectedOption) input.value = selectedOption.textContent;
+        }
+    });
+
+    /* =========================================================
+       DOMICILIO: ENTIDAD → MUNICIPIO → LOCALIDAD
     ========================================================= */
     const domEntidad   = document.getElementById('entidad');
     const domMunicipio = document.getElementById('municipio');
     const domLocalidad = document.getElementById('localidad');
 
-    if (domEntidad && domMunicipio && domLocalidad) {
+    const municipioInput = getWrapperInput(domMunicipio);
+    const localidadInput = getWrapperInput(domLocalidad);
 
-        const municipioInput = getWrapperInput(domMunicipio);
-        const localidadInput = getWrapperInput(domLocalidad);
+    const inicializarDomicilio = async () => {
+        const entidadVal = domEntidad?.value;
+        const municipioVal = domMunicipio?.value;
+        const localidadVal = domLocalidad?.value;
 
-        // Estado inicial
-        if (municipioInput) {
-            municipioInput.placeholder = 'Seleccione entidad';
-            municipioInput.setAttribute('readonly', 'readonly');
+        if (!entidadVal) return;
+
+        const resMunicipios = await fetch(`/api/municipios/${entidadVal}`);
+        const dataMunicipios = await resMunicipios.json();
+        fillSelect(domMunicipio, 'Seleccionar', dataMunicipios, 'idMunicipio', 'nombreMunicipio');
+        if (municipioInput) municipioInput.removeAttribute('readonly');
+
+        if (municipioVal) {
+            domMunicipio.value = municipioVal;
+
+            const resLocalidades = await fetch(`/api/localidades/${municipioVal}`);
+            const dataLocalidades = await resLocalidades.json();
+            fillSelect(domLocalidad, 'Seleccionar', dataLocalidades, 'idLocalidad', 'nombreLocalidad');
+            if (localidadInput) localidadInput.removeAttribute('readonly');
+
+            if (localidadVal) domLocalidad.value = localidadVal;
         }
+    };
 
-        if (localidadInput) {
-            localidadInput.placeholder = 'Seleccione municipio';
-            localidadInput.setAttribute('readonly', 'readonly');
-        }
+    domEntidad?.addEventListener('change', async () => {
+        const idEntidad = domEntidad.value;
+        resetSelect(domMunicipio, 'Seleccionar', true);
+        resetSelect(domLocalidad, 'Seleccionar', true);
+        if (municipioInput) { municipioInput.value = ''; municipioInput.placeholder = idEntidad ? 'Buscar municipio...' : 'Seleccione entidad'; if(!idEntidad) municipioInput.setAttribute('readonly','readonly'); }
+        if (localidadInput) { localidadInput.value = ''; localidadInput.placeholder = 'Seleccione municipio'; localidadInput.setAttribute('readonly','readonly'); }
 
-        /* ===== ENTIDAD → MUNICIPIOS ===== */
-        domEntidad.addEventListener('change', () => {
-            const idEntidad = domEntidad.value;
+        if (!idEntidad) return;
 
-            resetSelect(domMunicipio, 'Seleccionar', true);
-            resetSelect(domLocalidad, 'Seleccionar', true);
+        const resMunicipios = await fetch(`/api/municipios/${idEntidad}`);
+        const dataMunicipios = await resMunicipios.json();
+        fillSelect(domMunicipio, 'Seleccionar', dataMunicipios, 'idMunicipio', 'nombreMunicipio');
+        if (municipioInput) municipioInput.removeAttribute('readonly');
+    });
 
-            if (municipioInput) {
-                municipioInput.value = '';
-                municipioInput.placeholder = idEntidad ? 'Buscar municipio...' : 'Seleccione entidad';
-                municipioInput.setAttribute('readonly', 'readonly');
-            }
+    domMunicipio?.addEventListener('change', async () => {
+        const idMunicipio = domMunicipio.value;
+        resetSelect(domLocalidad, 'Seleccionar', true);
+        if (localidadInput) { localidadInput.value=''; localidadInput.placeholder=idMunicipio?'Buscar localidad...':'Seleccione municipio'; if(!idMunicipio) localidadInput.setAttribute('readonly','readonly'); }
 
-            if (localidadInput) {
-                localidadInput.value = '';
-                localidadInput.placeholder = 'Seleccione municipio';
-                localidadInput.setAttribute('readonly', 'readonly');
-            }
+        if (!idMunicipio) return;
 
-            if (!idEntidad) return;
+        const resLocalidades = await fetch(`/api/localidades/${idMunicipio}`);
+        const dataLocalidades = await resLocalidades.json();
+        fillSelect(domLocalidad, 'Seleccionar', dataLocalidades, 'idLocalidad', 'nombreLocalidad');
+        if (localidadInput) localidadInput.removeAttribute('readonly');
+    });
 
-            fetch(`/api/municipios/${idEntidad}`)
-                .then(r => r.json())
-                .then(data => {
-                    fillSelect(domMunicipio, 'Seleccionar', data, 'idMunicipio', 'nombreMunicipio');
-
-                    if (municipioInput) {
-                        municipioInput.removeAttribute('readonly');
-                        municipioInput.focus(); // ✅ FIX DOBLE CLIC
-                    }
-                });
-        });
-
-        /* ===== MUNICIPIO → LOCALIDADES ===== */
-        domMunicipio.addEventListener('change', () => {
-            const idMunicipio = domMunicipio.value;
-
-            resetSelect(domLocalidad, 'Seleccionar', true);
-
-            if (localidadInput) {
-                localidadInput.value = '';
-                localidadInput.placeholder = idMunicipio ? 'Buscar localidad...' : 'Seleccione municipio';
-                localidadInput.setAttribute('readonly', 'readonly');
-            }
-
-            if (!idMunicipio) return;
-
-            fetch(`/api/localidades/${idMunicipio}`)
-                .then(r => r.json())
-                .then(data => {
-                    fillSelect(domLocalidad, 'Seleccionar', data, 'idLocalidad', 'nombreLocalidad');
-
-                    if (localidadInput) {
-                        localidadInput.removeAttribute('readonly');
-                        localidadInput.focus(); // ✅ FIX DOBLE CLIC
-                    }
-                });
-        });
-    }
+    inicializarDomicilio();
 
     /* =========================================================
-       LUGAR DE NACIMIENTO
+       LUGAR DE NACIMIENTO: PAIS → ENTIDAD → MUNICIPIO → LOCALIDAD
     ========================================================= */
     const paisSelect   = document.getElementById('paisNacimiento');
     const nacEntidad   = document.getElementById('entidadNacimientoSelect');
@@ -132,176 +179,96 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const setModoNacimiento = (modo) => {
-
-        if (modo === 'NONE') {
-            bloqueSelect.style.display = 'block';
-            bloqueInput.style.display  = 'none';
-
-            nacEntidad.value = '';
-            nacEntidad.disabled = true;
-
-            resetSelect(nacMunicipio, 'Seleccionar', true);
-            resetSelect(nacLocalidad, 'Seleccionar', true);
-
-            inputsManual.forEach(i => {
-                i.disabled = true;
-                i.value = '';
-            });
+        if (modo==='NONE') {
+            if(bloqueSelect) bloqueSelect.style.display='block';
+            if(bloqueInput) bloqueInput.style.display='none';
+            setFirstOptionText(nacEntidad,'Seleccionar país');
+            if(nacEntidad){ nacEntidad.value=''; nacEntidad.disabled=true; }
+            resetSelect(nacMunicipio,'Seleccionar',true);
+            resetSelect(nacLocalidad,'Seleccionar',true);
+            if(nacMunicipioInput){ nacMunicipioInput.value=''; nacMunicipioInput.placeholder='Seleccione entidad'; nacMunicipioInput.setAttribute('readonly','readonly'); }
+            if(nacLocalidadInput){ nacLocalidadInput.value=''; nacLocalidadInput.placeholder='Seleccione municipio'; nacLocalidadInput.setAttribute('readonly','readonly'); }
+            inputsManual.forEach(i=>{ i.disabled=true; i.value=''; });
             return;
         }
-
-        if (modo === 'MEXICO') {
-            bloqueSelect.style.display = 'block';
-            bloqueInput.style.display  = 'none';
-
-            nacEntidad.disabled = false;
-
-            resetSelect(nacMunicipio, 'Seleccionar', true);
-            resetSelect(nacLocalidad, 'Seleccionar', true);
-
-            inputsManual.forEach(i => {
-                i.disabled = true;
-                i.value = '';
-            });
+        if(modo==='MEXICO'){
+            if(bloqueSelect) bloqueSelect.style.display='block';
+            if(bloqueInput) bloqueInput.style.display='none';
+            setFirstOptionText(nacEntidad,'Seleccionar');
+            if(nacEntidad) nacEntidad.disabled=false;
+            resetSelect(nacMunicipio,'Seleccionar',true);
+            resetSelect(nacLocalidad,'Seleccionar',true);
+            if(nacMunicipioInput){ nacMunicipioInput.value=''; nacMunicipioInput.placeholder='Seleccione entidad'; nacMunicipioInput.setAttribute('readonly','readonly'); }
+            if(nacLocalidadInput){ nacLocalidadInput.value=''; nacLocalidadInput.placeholder='Seleccione municipio'; nacLocalidadInput.setAttribute('readonly','readonly'); }
+            inputsManual.forEach(i=>{ i.disabled=true; i.value=''; });
             return;
         }
-
         // EXTRANJERO
-        bloqueSelect.style.display = 'none';
-        bloqueInput.style.display  = 'block';
-
-        nacEntidad.disabled = true;
-
-        resetSelect(nacMunicipio, 'Seleccionar', true);
-        resetSelect(nacLocalidad, 'Seleccionar', true);
-
-        inputsManual.forEach(i => i.disabled = false);
+        if(bloqueSelect) bloqueSelect.style.display='none';
+        if(bloqueInput) bloqueInput.style.display='block';
+        setFirstOptionText(nacEntidad,'Seleccionar');
+        if(nacEntidad){ nacEntidad.value=''; nacEntidad.disabled=true; }
+        resetSelect(nacMunicipio,'Seleccionar',true);
+        resetSelect(nacLocalidad,'Seleccionar',true);
+        if(nacMunicipioInput){ nacMunicipioInput.value=''; nacMunicipioInput.placeholder='Seleccione entidad'; nacMunicipioInput.setAttribute('readonly','readonly'); }
+        if(nacLocalidadInput){ nacLocalidadInput.value=''; nacLocalidadInput.placeholder='Seleccione municipio'; nacLocalidadInput.setAttribute('readonly','readonly'); }
+        inputsManual.forEach(i=>{ i.disabled=false; });
     };
 
-    setModoNacimiento(!paisSelect?.value ? 'NONE' :
-        paisNormalizado() === 'MEXICO' ? 'MEXICO' : 'EXTRANJERO'
-    );
+    const inicializarNacimiento = async () => {
+        if (!paisSelect || !paisSelect.value) { setModoNacimiento('NONE'); return; }
+        setModoNacimiento(paisNormalizado()==='MEXICO'?'MEXICO':'EXTRANJERO');
 
-    paisSelect?.addEventListener('change', () => {
-        setModoNacimiento(!paisSelect.value ? 'NONE' :
-            paisNormalizado() === 'MEXICO' ? 'MEXICO' : 'EXTRANJERO'
-        );
-    });
+        if(paisNormalizado()!=='MEXICO') return;
 
-    /* ===== NACIMIENTO: ENTIDAD → MUNICIPIO ===== */
-    nacEntidad?.addEventListener('change', () => {
-        if (paisNormalizado() !== 'MEXICO') return;
+        const entidadVal = nacEntidad?.value;
+        const municipioVal = nacMunicipio?.value;
+        const localidadVal = nacLocalidad?.value;
 
-        const idEntidad = nacEntidad.value;
+        if(!entidadVal) return;
 
-        resetSelect(nacMunicipio, 'Seleccionar', true);
-        resetSelect(nacLocalidad, 'Seleccionar', true);
+        const resMunicipios = await fetch(`/api/municipios/${entidadVal}`);
+        const dataMunicipios = await resMunicipios.json();
+        fillSelect(nacMunicipio,'Seleccionar',dataMunicipios,'idMunicipio','nombreMunicipio');
+        if(nacMunicipioInput) nacMunicipioInput.removeAttribute('readonly');
 
-        if (!idEntidad) return;
-
-        fetch(`/api/municipios/${idEntidad}`)
-            .then(r => r.json())
-            .then(data => {
-                fillSelect(nacMunicipio, 'Seleccionar', data, 'idMunicipio', 'nombreMunicipio');
-
-                if (nacMunicipioInput) {
-                    nacMunicipioInput.removeAttribute('readonly');
-                    nacMunicipioInput.focus(); // ✅ FIX
-                }
-            });
-    });
-
-    /* ===== NACIMIENTO: MUNICIPIO → LOCALIDAD ===== */
-    nacMunicipio?.addEventListener('change', () => {
-        if (paisNormalizado() !== 'MEXICO') return;
-
-        const idMunicipio = nacMunicipio.value;
-
-        resetSelect(nacLocalidad, 'Seleccionar', true);
-
-        if (!idMunicipio) return;
-
-        fetch(`/api/localidades/${idMunicipio}`)
-            .then(r => r.json())
-            .then(data => {
-                fillSelect(nacLocalidad, 'Seleccionar', data, 'idLocalidad', 'nombreLocalidad');
-
-                if (nacLocalidadInput) {
-                    nacLocalidadInput.removeAttribute('readonly');
-                    nacLocalidadInput.focus(); // ✅ FIX
-                }
-            });
-    });
-
-});
-</script>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-
-    function initSelectBuscable(wrapper) {
-        const input  = wrapper.querySelector('.select-buscable-input');
-        const list   = wrapper.querySelector('.select-buscable-list');
-        const select = wrapper.querySelector('select');
-
-        if (!input || !list || !select) return;
-
-        function syncDisabled() {
-            if (select.disabled) {
-                input.setAttribute('readonly', 'readonly');
-                input.value = '';
-                list.style.display = 'none';
-            }
+        if(municipioVal){
+            nacMunicipio.value=municipioVal;
+            const resLocalidades = await fetch(`/api/localidades/${municipioVal}`);
+            const dataLocalidades = await resLocalidades.json();
+            fillSelect(nacLocalidad,'Seleccionar',dataLocalidades,'idLocalidad','nombreLocalidad');
+            if(nacLocalidadInput) nacLocalidadInput.removeAttribute('readonly');
+            if(localidadVal) nacLocalidad.value=localidadVal;
         }
+    };
 
-        syncDisabled();
+    paisSelect?.addEventListener('change', ()=>{ setModoNacimiento(paisNormalizado()==='MEXICO'?'MEXICO':'EXTRANJERO'); });
+    nacEntidad?.addEventListener('change', async ()=>{
+        if(paisNormalizado()!=='MEXICO') return;
+        const idEntidad=nacEntidad.value;
+        resetSelect(nacMunicipio,'Cargando...',true);
+        resetSelect(nacLocalidad,'Seleccionar',true);
+        if(nacMunicipioInput){ nacMunicipioInput.value=''; nacMunicipioInput.placeholder=idEntidad?'Buscar municipio...':'Seleccione entidad'; if(!idEntidad) nacMunicipioInput.setAttribute('readonly','readonly'); }
+        if(nacLocalidadInput){ nacLocalidadInput.value=''; nacLocalidadInput.placeholder='Seleccione municipio'; nacLocalidadInput.setAttribute('readonly','readonly'); }
+        if(!idEntidad) return;
+        const resMunicipios = await fetch(`/api/municipios/${idEntidad}`);
+        const dataMunicipios = await resMunicipios.json();
+        fillSelect(nacMunicipio,'Seleccionar',dataMunicipios,'idMunicipio','nombreMunicipio');
+        if(nacMunicipioInput) nacMunicipioInput.removeAttribute('readonly');
+    });
+    nacMunicipio?.addEventListener('change', async ()=>{
+        if(paisNormalizado()!=='MEXICO') return;
+        const idMunicipio = nacMunicipio.value;
+        resetSelect(nacLocalidad,'Cargando...',true);
+        if(nacLocalidadInput){ nacLocalidadInput.value=''; nacLocalidadInput.placeholder=idMunicipio?'Buscar localidad...':'Seleccione municipio'; if(!idMunicipio) nacLocalidadInput.setAttribute('readonly','readonly'); }
+        if(!idMunicipio) return;
+        const resLocalidades = await fetch(`/api/localidades/${idMunicipio}`);
+        const dataLocalidades = await resLocalidades.json();
+        fillSelect(nacLocalidad,'Seleccionar',dataLocalidades,'idLocalidad','nombreLocalidad');
+        if(nacLocalidadInput) nacLocalidadInput.removeAttribute('readonly');
+    });
 
-        input.addEventListener('input', function () {
-            if (input.hasAttribute('readonly')) return;
-
-            const term = this.value.toLowerCase().trim();
-            list.innerHTML = '';
-
-            if (!term) {
-                list.style.display = 'none';
-                return;
-            }
-
-            [...select.options].forEach(opt => {
-                if (!opt.value) return;
-
-                if (opt.textContent.toLowerCase().includes(term)) {
-                    const li = document.createElement('li');
-                    li.textContent = opt.textContent;
-
-                    li.onclick = () => {
-                        select.value = opt.value;
-                        input.value = opt.textContent;
-                        list.style.display = 'none';
-                        select.dispatchEvent(new Event('change', { bubbles: true }));
-                    };
-
-                    list.appendChild(li);
-                }
-            });
-
-            list.style.display = list.children.length ? 'block' : 'none';
-        });
-
-        document.addEventListener('click', e => {
-            if (!wrapper.contains(e.target)) {
-                list.style.display = 'none';
-            }
-        });
-
-        new MutationObserver(syncDisabled).observe(select, {
-            attributes: true,
-            attributeFilter: ['disabled']
-        });
-    }
-
-    document.querySelectorAll('.select-buscable-wrapper')
-        .forEach(initSelectBuscable);
+    inicializarNacimiento();
 
 });
 </script>

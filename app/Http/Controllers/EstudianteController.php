@@ -330,8 +330,8 @@ class EstudianteController extends Controller
             'usuario',
             'generacion',
             'planDeEstudios.licenciatura',
-            'usuario.domicilio',
-            'usuario.localidadNacimiento'
+            'usuario.localidadNacimiento.municipio.entidad.pais',
+            'usuario.domicilio.localidad.municipio.entidad.pais',
         ])->findOrFail($id);
 
         return view('shared.moduloEstudiantes.modificacionEstudiante', [
