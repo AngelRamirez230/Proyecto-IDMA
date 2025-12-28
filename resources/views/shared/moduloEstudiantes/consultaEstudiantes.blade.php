@@ -120,12 +120,12 @@
                                 {{-- SUSPENDER / HABILITAR --}}
                                 <form action="{{ route('estudiantes.update', $estudiante->idEstudiante) }}"
                                       method="POST"
-                                      style="display:inline">
+                                      style="display:inline"> 
 
                                     @csrf
                                     @method('PUT')
 
-                                    <button type="submit" class="accion-boton" title="Suspender / Habilitar">
+                                    <button type="submit" class="accion-boton" name="accion" title="Suspender/Habilitar" value="Suspender/Habilitar" >
                                         <img
                                             src="{{ $estudiante->usuario->idestatus == 2
                                                 ? asset('imagenes/IconoHabilitar.png')

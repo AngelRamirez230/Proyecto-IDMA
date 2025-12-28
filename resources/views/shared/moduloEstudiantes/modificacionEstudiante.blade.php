@@ -400,7 +400,6 @@
                 <select
                     id="municipio"
                     name="municipio"
-                    required
                     hidden
                     disabled
                 >
@@ -431,7 +430,6 @@
                 <select
                     id="localidad"
                     name="localidad"
-                    required
                     hidden
                     disabled
                 >
@@ -492,7 +490,7 @@
                 name="calle"
                 class="input-grande"
                 placeholder="Ingresa la calle"
-                value="{{ $estudiante->usuario->domicili->calle ?? '' }}"
+                value="{{ $estudiante->usuario->domicilio->calle ?? '' }}"
             >
             <x-error-field field="calle" />
         </div>
@@ -535,7 +533,7 @@
                     <option
                         value="{{ $pais->idPais }}"
                         data-normalizado="{{ $pais->nombrePaisNormalizado }}"
-                        {{ $estudiante->usuario->localidadNacimiento?->municipio?->entidad?->idPais == $pais->idPais ? 'selected' : ''  }}
+                        {{ $estudiante->usuario->localidadNacimiento?->municipio?->entidad?->pais?->idPais == $pais->idPais ? 'selected' : '' }}
                     >
                         {{ $pais->nombrePais }}
                     </option>
@@ -552,10 +550,7 @@
                 <select id="entidadNacimientoSelect" name="entidadNacimiento" class="select select-buscable">
                     <option value="">Seleccionar país</option>
                     @foreach($entidades as $e)
-                        <option value="{{ $e->idEntidad }}"
-                        {{ $estudiante->usuario->localidadNacimiento?->municipio?->entidad?->idEntidad == $e->idEntidad ? 'selected' : ''  }}
-                        >
-                        {{ $e->nombreEntidad }}</option>
+                        <option value="{{ $e->idEntidad }}">{{ $e->nombreEntidad }}</option>
                     @endforeach
                 </select>
                 <x-error-field field="entidadNacimiento" />
@@ -572,8 +567,7 @@
                         placeholder="Seleccione entidad"
                         data-target="municipioNacimientoSelect"
                         autocomplete="off"
-                        value="{{ $estudiante->usuario->localidadNacimiento?->municipio?->nombreMunicipio ?? '' }}"
-                        
+                        readonly
                     >
 
                     <ul class="select-buscable-list"></ul>
@@ -591,7 +585,6 @@
                 <x-error-field field="municipioNacimiento" />
             </div>
 
-
             {{-- LOCALIDAD (BUSCABLE) --}}
             <div class="form-group">
                 <label>Localidad de nacimiento:</label>
@@ -603,7 +596,6 @@
                         placeholder="Seleccione municipio"
                         data-target="localidadNacimientoSelect"
                         autocomplete="off"
-                        value="{{ $estudiante->usuario->localidadNacimiento?->nombreLocalidad ?? '' }}"
                         readonly
                     >
 
@@ -674,7 +666,7 @@
             BOTONES
         ======================================================= --}}
         <div class="form-group">
-            <button type="submit" class="btn-boton-formulario">
+            <button type="submit" name="accion"  value="guardar" class="btn-boton-formulario">
                 Guardar cambios
             </button>
 
@@ -685,7 +677,7 @@
                 {{ $usuario->idestatus == 1 ? 'Suspender' : 'Habilitar' }}
             </button>
 
-            <a href="{{ route('estudiantes.index') }}"
+            <a href="{{ route('consultaEstudiantes') }}"
             class="btn-boton-formulario btn-cancelar">
                 Cancelar
             </a>

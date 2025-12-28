@@ -349,39 +349,158 @@ class EstudianteController extends Controller
     }
 
 
-    public function update(Request $request, $id)
+   public function update(Request $request, $id)
     {
         $estudiante = Estudiante::findOrFail($id);
         $usuario    = Usuario::findOrFail($estudiante->idUsuario);
 
-        DB::transaction(function () use ($request, $usuario, $estudiante) {
 
-            /* ===== USUARIO ===== */
+        if ($request->accion === 'guardar') {
+
+            /* ================= VALIDACIONES ================= */
+            $validator = Validator::make(
+                $request->all(),
+                [
+                    'primer_nombre'       => 'required|string|max:45',
+                    'segundo_nombre'      => 'nullable|string|max:45',
+                    'primer_apellido'     => 'required|string|max:45',
+                    'segundo_apellido'    => 'nullable|string|max:45',
+
+                    'telefono'            => 'required|string|max:10|unique:usuario,telefono,' . $usuario->idUsuario . ',idUsuario',
+                    'telefonoFijo'        => 'nullable|string|max:10|unique:usuario,telefonoFijo,' . $usuario->idUsuario . ',idUsuario',
+
+                    'correoInstitucional' => 'required|email|max:100|unique:usuario,correoInstitucional,' . $usuario->idUsuario . ',idUsuario',
+                    'correoElectronico'   => 'nullable|email|max:100|unique:usuario,correoElectronico,' . $usuario->idUsuario . ',idUsuario',
+
+                    'nombreUsuario'       => 'required|string|max:100|unique:usuario,nombreUsuario,' . $usuario->idUsuario . ',idUsuario',
+                    'contraseña'          => 'nullable|string|min:8',
+
+                    'fechaNacimiento'     => 'required|date',
+                    'CURP'                => 'nullable|string|max:18|unique:usuario,CURP,' . $usuario->idUsuario . ',idUsuario',
+                    'RFC'                 => 'nullable|string|max:13|unique:usuario,RFC,' . $usuario->idUsuario . ',idUsuario',
+
+                    'idSexo'              => 'required|exists:sexo,idSexo',
+                    'idEstadoCivil'       => 'required|exists:estado_civil,idEstadoCivil',
+
+                    'grado'               => 'required|integer|min:1|max:9',
+                    'idTipoDeInscripcion' => 'required|exists:tipo_de_inscripcion,idTipoDeInscripcion',
+                ]
+            );
+
+            if ($validator->fails()) {
+                return back()
+                    ->withErrors($validator)
+                    ->withInput();
+            }
+
+            /* ================= TRANSACCIÓN ================= */
+            DB::transaction(function () use ($request, $usuario, $estudiante) {
+
+                /* ===== DOMICILIO ===== */
+                $domicilioId = $usuario->idDomicilio;
+
+                if ($request->filled('localidad') || $request->filled('calle')) {
+
+                    if ($domicilioId) {
+                        $domicilio = Domicilio::find($domicilioId);
+                        $domicilio->update([
+                            'codigoPostal'   => $request->codigoPostal,
+                            'calle'          => $request->calle,
+                            'numeroExterior' => $request->numeroExterior,
+                            'numeroInterior' => $request->numeroInterior,
+                            'colonia'        => $request->colonia,
+                            'idLocalidad'    => $request->localidad,
+                        ]);
+                    } else {
+                        $domicilio = Domicilio::create([
+                            'codigoPostal'   => $request->codigoPostal,
+                            'calle'          => $request->calle,
+                            'numeroExterior' => $request->numeroExterior,
+                            'numeroInterior' => $request->numeroInterior,
+                            'colonia'        => $request->colonia,
+                            'idLocalidad'    => $request->localidad,
+                        ]);
+
+                        $domicilioId = $domicilio->idDomicilio;
+                    }
+                }
+
+                /* ===== LOCALIDAD NACIMIENTO ===== */
+                $idLocalidadNacimiento = $request->localidadNacimiento;
+
+                if (!$idLocalidadNacimiento && $request->filled('localidadNacimientoManual')) {
+                    $localidadNacimiento = Localidad::firstOrCreate(
+                        ['nombreLocalidad' => $request->localidadNacimientoManual],
+                        ['idTipoDeEstatus' => 3]
+                    );
+
+                    $idLocalidadNacimiento = $localidadNacimiento->idLocalidad;
+                }
+
+                /* ===== USUARIO ===== */
+                $dataUsuario = [
+                    'primerNombre'          => $request->primer_nombre,
+                    'segundoNombre'         => $request->segundo_nombre,
+                    'primerApellido'        => $request->primer_apellido,
+                    'segundoApellido'       => $request->segundo_apellido,
+                    'telefono'              => $request->telefono,
+                    'telefonoFijo'          => $request->telefonoFijo,
+                    'correoInstitucional'   => $request->correoInstitucional,
+                    'correoElectronico'     => $request->correoElectronico,
+                    'nombreUsuario'         => $request->nombreUsuario,
+                    'fechaDeNacimiento'     => $request->fechaNacimiento,
+                    'RFC'                   => $request->RFC,
+                    'CURP'                  => $request->CURP,
+                    'idSexo'                => $request->idSexo,
+                    'idEstadoCivil'         => $request->idEstadoCivil,
+                    'idLocalidadNacimiento' => $idLocalidadNacimiento,
+                    'idDomicilio'           => $domicilioId,
+                ];
+
+                if ($request->filled('contraseña')) {
+                    $dataUsuario['contraseña'] = Hash::make($request->contraseña);
+                }
+
+                $usuario->update($dataUsuario);
+
+                /* ===== ESTUDIANTE ===== */
+                $estudiante->update([
+                    'grado'               => $request->grado,
+                    'idTipoDeInscripcion' => $request->idTipoDeInscripcion,
+                ]);
+            });
+
+            return redirect()
+                ->route('consultaEstudiantes')
+                ->with('success', 'Estudiante actualizado correctamente.');
+        }
+
+        elseif ($request->accion === 'Suspender/Habilitar') {
+
+            $estatusAnterior = $usuario->idestatus;
+
             $usuario->update([
-                'primerNombre'        => $request->primer_nombre,
-                'segundoNombre'       => $request->segundo_nombre,
-                'primerApellido'      => $request->primer_apellido,
-                'segundoApellido'     => $request->segundo_apellido,
-                'telefono'            => $request->telefono,
-                'correoInstitucional' => $request->correoInstitucional,
-                'idSexo'              => $request->idSexo,
-                'idEstadoCivil'       => $request->idEstadoCivil,
-                'fechaDeNacimiento'   => $request->fechaNacimiento,
-                'RFC'                 => $request->RFC,
-                'CURP'                => $request->CURP,
+                'idestatus' => ($usuario->idestatus == 1) ? 2 : 1
             ]);
 
-            /* ===== ESTUDIANTE ===== */
-            $estudiante->update([
-                'grado'            => $request->grado,
-                'idPlanDeEstudios' => $request->idPlanDeEstudios,
-            ]);
-        });
+            $nombreCompleto = trim(
+                $usuario->primerNombre . ' ' .
+                $usuario->segundoNombre . ' ' .
+                $usuario->primerApellido . ' ' .
+                $usuario->segundoApellido
+            );
 
-        return redirect()
-            ->route('estudiantes.index')
-            ->with('success', 'Estudiante actualizado correctamente');
+            $mensaje = ($estatusAnterior == 1)
+                ? "El estudiante {$nombreCompleto} ha sido suspendido correctamente."
+                : "El estudiante {$nombreCompleto} ha sido habilitado correctamente.";
+
+            return redirect()
+                ->route('consultaEstudiantes')
+                ->with('success', $mensaje);
+        }
     }
+
+
 
 
 
