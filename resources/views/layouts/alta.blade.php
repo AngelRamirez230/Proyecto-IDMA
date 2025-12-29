@@ -1,274 +1,253 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
 
-    /* =========================================================
-       FUNCIONES GENERALES
-    ========================================================= */
-    const resetSelect = (select, placeholder, disabled = true) => {
-        if (!select) return;
-        select.innerHTML = `<option value="">${placeholder}</option>`;
-        select.disabled = disabled;
+/* =========================================================
+   UTILIDADES GENERALES
+========================================================= */
+const resetSelect = (select, placeholder = 'Seleccionar', disabled = true) => {
+    if (!select) return;
+    select.innerHTML = `<option value="">${placeholder}</option>`;
+    select.disabled = disabled;
+};
+
+const fillSelect = (select, placeholder, data, valueKey, textKey) => {
+    if (!select) return;
+    select.innerHTML = `<option value="">${placeholder}</option>`;
+    data.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item[valueKey];
+        opt.textContent = item[textKey];
+        select.appendChild(opt);
+    });
+    select.disabled = false;
+};
+
+const getWrapperInput = (select) =>
+    select?.closest('.select-buscable-wrapper')
+          ?.querySelector('.select-buscable-input') || null;
+
+const syncInputFromSelect = (select) => {
+    const input = getWrapperInput(select);
+    if (!select || !input) return;
+
+    const opt = select.querySelector(`option[value="${select.value}"]`);
+    if (opt) input.value = opt.textContent;
+};
+
+/* =========================================================
+   SELECT BUSCABLE (NO BORRA NADA)
+========================================================= */
+function initSelectBuscable(wrapper) {
+    const input  = wrapper.querySelector('.select-buscable-input');
+    const list   = wrapper.querySelector('.select-buscable-list');
+    const select = wrapper.querySelector('select');
+    if (!input || !list || !select) return;
+
+    const syncDisabled = () => {
+        if (select.disabled) {
+            input.setAttribute('readonly', 'readonly');
+            list.style.display = 'none';
+        } else {
+            input.removeAttribute('readonly');
+        }
     };
+    syncDisabled();
 
-    const fillSelect = (select, placeholder, data, valueKey, textKey) => {
-        if (!select) return;
-        select.innerHTML = `<option value="">${placeholder}</option>`;
-        data.forEach(item => {
-            const opt = document.createElement('option');
-            opt.value = item[valueKey];
-            opt.textContent = item[textKey];
-            select.appendChild(opt);
-        });
-        select.disabled = false;
-    };
+    input.addEventListener('input', () => {
+        if (input.hasAttribute('readonly')) return;
 
-    const getWrapperInput = (selectEl) => {
-        return selectEl
-            ?.closest('.select-buscable-wrapper')
-            ?.querySelector('.select-buscable-input') || null;
-    };
+        const term = input.value.toLowerCase().trim();
+        list.innerHTML = '';
 
-    const setFirstOptionText = (select, text) => {
-        if (!select || !select.options || select.options.length === 0) return;
-        select.options[0].textContent = text;
-    };
+        if (!term) {
+            list.style.display = 'none';
+            return;
+        }
 
-    /* =========================================================
-       FUNCIONALIDAD SELECT BUSCABLE
-    ========================================================= */
-    function initSelectBuscable(wrapper) {
-        const input  = wrapper.querySelector('.select-buscable-input');
-        const list   = wrapper.querySelector('.select-buscable-list');
-        const select = wrapper.querySelector('select');
-        if (!input || !list || !select) return;
+        [...select.options].forEach(opt => {
+            if (!opt.value) return;
 
-        const syncDisabled = () => {
-            if (select.disabled) {
-                input.setAttribute('readonly', 'readonly');
-                list.style.display = 'none';
-            } else {
-                input.removeAttribute('readonly');
+            if (opt.textContent.toLowerCase().includes(term)) {
+                const li = document.createElement('li');
+                li.textContent = opt.textContent;
+
+                li.addEventListener('click', () => {
+                    select.value = opt.value;
+                    input.value  = opt.textContent;
+                    list.style.display = 'none';
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+
+                list.appendChild(li);
             }
-        };
-        syncDisabled();
-
-        input.addEventListener('input', function () {
-            if (input.hasAttribute('readonly')) return;
-            const term = this.value.toLowerCase().trim();
-            list.innerHTML = '';
-            if (!term) { list.style.display = 'none'; return; }
-            [...select.options].forEach(opt => {
-                if (!opt.value) return;
-                const text = opt.textContent.trim();
-                if (text.toLowerCase().includes(term)) {
-                    const li = document.createElement('li');
-                    li.textContent = text;
-                    li.addEventListener('click', () => {
-                        select.value = opt.value;
-                        input.value = text;
-                        list.style.display = 'none';
-                        select.dispatchEvent(new Event('change', { bubbles: true }));
-                    });
-                    list.appendChild(li);
-                }
-            });
-            list.style.display = list.children.length ? 'block' : 'none';
         });
 
-        document.addEventListener('click', e => {
-            if (!wrapper.contains(e.target)) list.style.display = 'none';
-        });
+        list.style.display = list.children.length ? 'block' : 'none';
+    });
 
-        const observer = new MutationObserver(syncDisabled);
-        observer.observe(select, { attributes: true, attributeFilter: ['disabled'] });
+    document.addEventListener('click', e => {
+        if (!wrapper.contains(e.target)) list.style.display = 'none';
+    });
+
+    new MutationObserver(syncDisabled)
+        .observe(select, { attributes: true, attributeFilter: ['disabled'] });
+}
+
+document.querySelectorAll('.select-buscable-wrapper')
+        .forEach(initSelectBuscable);
+
+/* =========================================================
+   SINCRONIZAR VALORES QUE VIENEN DE BLADE
+========================================================= */
+document.querySelectorAll('select').forEach(syncInputFromSelect);
+
+/* =========================================================
+   DOMICILIO
+========================================================= */
+const domEntidad   = document.getElementById('entidad');
+const domMunicipio = document.getElementById('municipio');
+const domLocalidad = document.getElementById('localidad');
+
+const domMunInput = getWrapperInput(domMunicipio);
+const domLocInput = getWrapperInput(domLocalidad);
+
+const initDomicilio = async () => {
+    if (!domEntidad?.value) return;
+
+    const munVal = domMunicipio.value;
+    const locVal = domLocalidad.value;
+
+    // Cargar municipios
+    const resMun = await fetch(`/api/municipios/${domEntidad.value}`);
+    const dataMun = await resMun.json();
+    fillSelect(domMunicipio, 'Seleccionar', dataMun, 'idMunicipio', 'nombreMunicipio');
+
+    if (munVal) {
+        // Si ya había un municipio guardado, lo seleccionamos
+        const existsMun = Array.from(domMunicipio.options).some(opt => opt.value === munVal);
+        if (!existsMun) {
+            const tempOpt = document.createElement('option');
+            tempOpt.value = munVal;
+            tempOpt.textContent = domMunInput?.value || 'Seleccionar';
+            domMunicipio.appendChild(tempOpt);
+        }
+        domMunicipio.value = munVal;
+        syncInputFromSelect(domMunicipio);
+
+        // Cargar localidades
+        const resLoc = await fetch(`/api/localidades/${munVal}`);
+        const dataLoc = await resLoc.json();
+        fillSelect(domLocalidad, 'Seleccionar', dataLoc, 'idLocalidad', 'nombreLocalidad');
+
+        if (locVal) {
+            // Si ya había una localidad guardada, la agregamos si no existe
+            const existsLoc = Array.from(domLocalidad.options).some(opt => opt.value === locVal);
+            if (!existsLoc) {
+                const tempOpt = document.createElement('option');
+                tempOpt.value = locVal;
+                tempOpt.textContent = domLocInput?.value || 'Seleccionar';
+                domLocalidad.appendChild(tempOpt);
+            }
+            domLocalidad.value = locVal;
+            syncInputFromSelect(domLocalidad);
+        }
     }
+};
 
-    document.querySelectorAll('.select-buscable-wrapper').forEach(initSelectBuscable);
+domEntidad?.addEventListener('change', async () => {
+    resetSelect(domMunicipio);
+    resetSelect(domLocalidad);
+    if (!domEntidad.value) return;
 
-    document.querySelectorAll('.select-buscable-wrapper').forEach(wrapper => {
-        const input = wrapper.querySelector('.select-buscable-input');
-        const select = wrapper.querySelector('select');
-        if (input && select) {
-            const selectedOption = select.querySelector('option[selected]');
-            if (selectedOption) input.value = selectedOption.textContent;
+    const res = await fetch(`/api/municipios/${domEntidad.value}`);
+    const data = await res.json();
+    fillSelect(domMunicipio, 'Seleccionar', data, 'idMunicipio', 'nombreMunicipio');
+});
+
+domMunicipio?.addEventListener('change', async () => {
+    resetSelect(domLocalidad);
+    if (!domMunicipio.value) return;
+
+    const res = await fetch(`/api/localidades/${domMunicipio.value}`);
+    const data = await res.json();
+    fillSelect(domLocalidad, 'Seleccionar', data, 'idLocalidad', 'nombreLocalidad');
+});
+
+initDomicilio();
+
+/* =========================================================
+   NACIMIENTO
+========================================================= */
+const paisSelect   = document.getElementById('paisNacimiento');
+const nacEntidad   = document.getElementById('entidadNacimientoSelect');
+const nacMunicipio = document.getElementById('municipioNacimientoSelect');
+const nacLocalidad = document.getElementById('localidadNacimientoSelect');
+
+const nacMunInput = getWrapperInput(nacMunicipio);
+const nacLocInput = getWrapperInput(nacLocalidad);
+
+const paisNormalizado = () =>
+    paisSelect?.options[paisSelect.selectedIndex]?.dataset?.normalizado || '';
+
+const initNacimiento = async () => {
+    if (paisNormalizado() !== 'MEXICO' || !nacEntidad?.value) return;
+
+    const munVal = nacMunicipio.value;
+    const locVal = nacLocalidad.value;
+
+    const resMun = await fetch(`/api/municipios/${nacEntidad.value}`);
+    const dataMun = await resMun.json();
+    fillSelect(nacMunicipio, 'Seleccionar', dataMun, 'idMunicipio', 'nombreMunicipio');
+
+    if (munVal) {
+        const existsMun = Array.from(nacMunicipio.options).some(opt => opt.value === munVal);
+        if (!existsMun) {
+            const tempOpt = document.createElement('option');
+            tempOpt.value = munVal;
+            tempOpt.textContent = nacMunInput?.value || 'Seleccionar';
+            nacMunicipio.appendChild(tempOpt);
         }
-    });
+        nacMunicipio.value = munVal;
+        syncInputFromSelect(nacMunicipio);
 
-    /* =========================================================
-       DOMICILIO: ENTIDAD → MUNICIPIO → LOCALIDAD
-    ========================================================= */
-    const domEntidad   = document.getElementById('entidad');
-    const domMunicipio = document.getElementById('municipio');
-    const domLocalidad = document.getElementById('localidad');
+        const resLoc = await fetch(`/api/localidades/${munVal}`);
+        const dataLoc = await resLoc.json();
+        fillSelect(nacLocalidad, 'Seleccionar', dataLoc, 'idLocalidad', 'nombreLocalidad');
 
-    const municipioInput = getWrapperInput(domMunicipio);
-    const localidadInput = getWrapperInput(domLocalidad);
-
-    const inicializarDomicilio = async () => {
-        const entidadVal = domEntidad?.value;
-        const municipioVal = domMunicipio?.value;
-        const localidadVal = domLocalidad?.value;
-
-        if (!entidadVal) return;
-
-        const resMunicipios = await fetch(`/api/municipios/${entidadVal}`);
-        const dataMunicipios = await resMunicipios.json();
-        fillSelect(domMunicipio, 'Seleccionar', dataMunicipios, 'idMunicipio', 'nombreMunicipio');
-        if (municipioInput) municipioInput.removeAttribute('readonly');
-
-        if (municipioVal) {
-            domMunicipio.value = municipioVal;
-
-            const resLocalidades = await fetch(`/api/localidades/${municipioVal}`);
-            const dataLocalidades = await resLocalidades.json();
-            fillSelect(domLocalidad, 'Seleccionar', dataLocalidades, 'idLocalidad', 'nombreLocalidad');
-            if (localidadInput) localidadInput.removeAttribute('readonly');
-
-            if (localidadVal) domLocalidad.value = localidadVal;
+        if (locVal) {
+            const existsLoc = Array.from(nacLocalidad.options).some(opt => opt.value === locVal);
+            if (!existsLoc) {
+                const tempOpt = document.createElement('option');
+                tempOpt.value = locVal;
+                tempOpt.textContent = nacLocInput?.value || 'Seleccionar';
+                nacLocalidad.appendChild(tempOpt);
+            }
+            nacLocalidad.value = locVal;
+            syncInputFromSelect(nacLocalidad);
         }
-    };
+    }
+};
 
-    domEntidad?.addEventListener('change', async () => {
-        const idEntidad = domEntidad.value;
-        resetSelect(domMunicipio, 'Seleccionar', true);
-        resetSelect(domLocalidad, 'Seleccionar', true);
-        if (municipioInput) { municipioInput.value = ''; municipioInput.placeholder = idEntidad ? 'Buscar municipio...' : 'Seleccione entidad'; if(!idEntidad) municipioInput.setAttribute('readonly','readonly'); }
-        if (localidadInput) { localidadInput.value = ''; localidadInput.placeholder = 'Seleccione municipio'; localidadInput.setAttribute('readonly','readonly'); }
+nacEntidad?.addEventListener('change', async () => {
+    resetSelect(nacMunicipio);
+    resetSelect(nacLocalidad);
+    if (!nacEntidad.value) return;
 
-        if (!idEntidad) return;
+    const res = await fetch(`/api/municipios/${nacEntidad.value}`);
+    const data = await res.json();
+    fillSelect(nacMunicipio, 'Seleccionar', data, 'idMunicipio', 'nombreMunicipio');
+});
 
-        const resMunicipios = await fetch(`/api/municipios/${idEntidad}`);
-        const dataMunicipios = await resMunicipios.json();
-        fillSelect(domMunicipio, 'Seleccionar', dataMunicipios, 'idMunicipio', 'nombreMunicipio');
-        if (municipioInput) municipioInput.removeAttribute('readonly');
-    });
+nacMunicipio?.addEventListener('change', async () => {
+    resetSelect(nacLocalidad);
+    if (!nacMunicipio.value) return;
 
-    domMunicipio?.addEventListener('change', async () => {
-        const idMunicipio = domMunicipio.value;
-        resetSelect(domLocalidad, 'Seleccionar', true);
-        if (localidadInput) { localidadInput.value=''; localidadInput.placeholder=idMunicipio?'Buscar localidad...':'Seleccione municipio'; if(!idMunicipio) localidadInput.setAttribute('readonly','readonly'); }
+    const res = await fetch(`/api/localidades/${nacMunicipio.value}`);
+    const data = await res.json();
+    fillSelect(nacLocalidad, 'Seleccionar', data, 'idLocalidad', 'nombreLocalidad');
+});
 
-        if (!idMunicipio) return;
-
-        const resLocalidades = await fetch(`/api/localidades/${idMunicipio}`);
-        const dataLocalidades = await resLocalidades.json();
-        fillSelect(domLocalidad, 'Seleccionar', dataLocalidades, 'idLocalidad', 'nombreLocalidad');
-        if (localidadInput) localidadInput.removeAttribute('readonly');
-    });
-
-    inicializarDomicilio();
-
-    /* =========================================================
-       LUGAR DE NACIMIENTO: PAIS → ENTIDAD → MUNICIPIO → LOCALIDAD
-    ========================================================= */
-    const paisSelect   = document.getElementById('paisNacimiento');
-    const nacEntidad   = document.getElementById('entidadNacimientoSelect');
-    const nacMunicipio = document.getElementById('municipioNacimientoSelect');
-    const nacLocalidad = document.getElementById('localidadNacimientoSelect');
-
-    const bloqueSelect = document.getElementById('bloque-select-nacimiento');
-    const bloqueInput  = document.getElementById('bloque-input-nacimiento');
-    const inputsManual = bloqueInput ? bloqueInput.querySelectorAll('input') : [];
-
-    const nacMunicipioInput = getWrapperInput(nacMunicipio);
-    const nacLocalidadInput = getWrapperInput(nacLocalidad);
-
-    const paisNormalizado = () => {
-        const opt = paisSelect?.options[paisSelect.selectedIndex];
-        return opt?.dataset?.normalizado?.toUpperCase() || '';
-    };
-
-    const setModoNacimiento = (modo) => {
-        if (modo==='NONE') {
-            if(bloqueSelect) bloqueSelect.style.display='block';
-            if(bloqueInput) bloqueInput.style.display='none';
-            setFirstOptionText(nacEntidad,'Seleccionar país');
-            if(nacEntidad){ nacEntidad.value=''; nacEntidad.disabled=true; }
-            resetSelect(nacMunicipio,'Seleccionar',true);
-            resetSelect(nacLocalidad,'Seleccionar',true);
-            if(nacMunicipioInput){ nacMunicipioInput.value=''; nacMunicipioInput.placeholder='Seleccione entidad'; nacMunicipioInput.setAttribute('readonly','readonly'); }
-            if(nacLocalidadInput){ nacLocalidadInput.value=''; nacLocalidadInput.placeholder='Seleccione municipio'; nacLocalidadInput.setAttribute('readonly','readonly'); }
-            inputsManual.forEach(i=>{ i.disabled=true; i.value=''; });
-            return;
-        }
-        if(modo==='MEXICO'){
-            if(bloqueSelect) bloqueSelect.style.display='block';
-            if(bloqueInput) bloqueInput.style.display='none';
-            setFirstOptionText(nacEntidad,'Seleccionar');
-            if(nacEntidad) nacEntidad.disabled=false;
-            resetSelect(nacMunicipio,'Seleccionar',true);
-            resetSelect(nacLocalidad,'Seleccionar',true);
-            if(nacMunicipioInput){ nacMunicipioInput.value=''; nacMunicipioInput.placeholder='Seleccione entidad'; nacMunicipioInput.setAttribute('readonly','readonly'); }
-            if(nacLocalidadInput){ nacLocalidadInput.value=''; nacLocalidadInput.placeholder='Seleccione municipio'; nacLocalidadInput.setAttribute('readonly','readonly'); }
-            inputsManual.forEach(i=>{ i.disabled=true; i.value=''; });
-            return;
-        }
-        // EXTRANJERO
-        if(bloqueSelect) bloqueSelect.style.display='none';
-        if(bloqueInput) bloqueInput.style.display='block';
-        setFirstOptionText(nacEntidad,'Seleccionar');
-        if(nacEntidad){ nacEntidad.value=''; nacEntidad.disabled=true; }
-        resetSelect(nacMunicipio,'Seleccionar',true);
-        resetSelect(nacLocalidad,'Seleccionar',true);
-        if(nacMunicipioInput){ nacMunicipioInput.value=''; nacMunicipioInput.placeholder='Seleccione entidad'; nacMunicipioInput.setAttribute('readonly','readonly'); }
-        if(nacLocalidadInput){ nacLocalidadInput.value=''; nacLocalidadInput.placeholder='Seleccione municipio'; nacLocalidadInput.setAttribute('readonly','readonly'); }
-        inputsManual.forEach(i=>{ i.disabled=false; });
-    };
-
-    const inicializarNacimiento = async () => {
-        if (!paisSelect || !paisSelect.value) { setModoNacimiento('NONE'); return; }
-        setModoNacimiento(paisNormalizado()==='MEXICO'?'MEXICO':'EXTRANJERO');
-
-        if(paisNormalizado()!=='MEXICO') return;
-
-        const entidadVal = nacEntidad?.value;
-        const municipioVal = nacMunicipio?.value;
-        const localidadVal = nacLocalidad?.value;
-
-        if(!entidadVal) return;
-
-        const resMunicipios = await fetch(`/api/municipios/${entidadVal}`);
-        const dataMunicipios = await resMunicipios.json();
-        fillSelect(nacMunicipio,'Seleccionar',dataMunicipios,'idMunicipio','nombreMunicipio');
-        if(nacMunicipioInput) nacMunicipioInput.removeAttribute('readonly');
-
-        if(municipioVal){
-            nacMunicipio.value=municipioVal;
-            const resLocalidades = await fetch(`/api/localidades/${municipioVal}`);
-            const dataLocalidades = await resLocalidades.json();
-            fillSelect(nacLocalidad,'Seleccionar',dataLocalidades,'idLocalidad','nombreLocalidad');
-            if(nacLocalidadInput) nacLocalidadInput.removeAttribute('readonly');
-            if(localidadVal) nacLocalidad.value=localidadVal;
-        }
-    };
-
-    paisSelect?.addEventListener('change', ()=>{ setModoNacimiento(paisNormalizado()==='MEXICO'?'MEXICO':'EXTRANJERO'); });
-    nacEntidad?.addEventListener('change', async ()=>{
-        if(paisNormalizado()!=='MEXICO') return;
-        const idEntidad=nacEntidad.value;
-        resetSelect(nacMunicipio,'Cargando...',true);
-        resetSelect(nacLocalidad,'Seleccionar',true);
-        if(nacMunicipioInput){ nacMunicipioInput.value=''; nacMunicipioInput.placeholder=idEntidad?'Buscar municipio...':'Seleccione entidad'; if(!idEntidad) nacMunicipioInput.setAttribute('readonly','readonly'); }
-        if(nacLocalidadInput){ nacLocalidadInput.value=''; nacLocalidadInput.placeholder='Seleccione municipio'; nacLocalidadInput.setAttribute('readonly','readonly'); }
-        if(!idEntidad) return;
-        const resMunicipios = await fetch(`/api/municipios/${idEntidad}`);
-        const dataMunicipios = await resMunicipios.json();
-        fillSelect(nacMunicipio,'Seleccionar',dataMunicipios,'idMunicipio','nombreMunicipio');
-        if(nacMunicipioInput) nacMunicipioInput.removeAttribute('readonly');
-    });
-    nacMunicipio?.addEventListener('change', async ()=>{
-        if(paisNormalizado()!=='MEXICO') return;
-        const idMunicipio = nacMunicipio.value;
-        resetSelect(nacLocalidad,'Cargando...',true);
-        if(nacLocalidadInput){ nacLocalidadInput.value=''; nacLocalidadInput.placeholder=idMunicipio?'Buscar localidad...':'Seleccione municipio'; if(!idMunicipio) nacLocalidadInput.setAttribute('readonly','readonly'); }
-        if(!idMunicipio) return;
-        const resLocalidades = await fetch(`/api/localidades/${idMunicipio}`);
-        const dataLocalidades = await resLocalidades.json();
-        fillSelect(nacLocalidad,'Seleccionar',dataLocalidades,'idLocalidad','nombreLocalidad');
-        if(nacLocalidadInput) nacLocalidadInput.removeAttribute('readonly');
-    });
-
-    inicializarNacimiento();
+initNacimiento();
 
 });
 </script>

@@ -404,6 +404,14 @@
                     disabled
                 >
                     <option value="">Seleccionar</option>
+                    @if($estudiante->usuario->domicilio?->localidad?->municipio)
+                        <option
+                            value="{{ $estudiante->usuario->domicilio->localidad->municipio->idMunicipio }}"
+                            selected
+                        >
+                            {{ $estudiante->usuario->domicilio->localidad->municipio->nombreMunicipio }}
+                        </option>
+                    @endif
                 </select>
             </div>
 
@@ -434,6 +442,14 @@
                     disabled
                 >
                     <option value="">Seleccionar</option>
+                    @if($estudiante->usuario->domicilio?->localidad)
+                        <option
+                            value="{{ $estudiante->usuario->domicilio->localidad->idLocalidad }}"
+                            selected
+                        >
+                            {{ $estudiante->usuario->domicilio->localidad->nombreLocalidad }}
+                        </option>
+                    @endif
                 </select>
             </div>
 
@@ -527,13 +543,18 @@
 
         <div class="form-group">
             <label for="paisNacimiento">País:</label>
-            <select id="paisNacimiento" name="paisNacimiento" class="select select-buscable" required>
+            <select id="paisNacimiento" name="paisNacimiento" class="select select-buscable">
                 <option value="">Seleccionar</option>
                 @foreach($paises as $pais)
                     <option
                         value="{{ $pais->idPais }}"
                         data-normalizado="{{ $pais->nombrePaisNormalizado }}"
-                        {{ $estudiante->usuario->localidadNacimiento?->municipio?->entidad?->pais?->idPais == $pais->idPais ? 'selected' : '' }}
+                        {{ 
+                            $estudiante->usuario->localidadNacimiento?->municipio?->entidad?->pais?->idPais 
+                            == $pais->idPais 
+                            ? 'selected' 
+                            : '' 
+                        }}
                     >
                         {{ $pais->nombrePais }}
                     </option>
@@ -541,6 +562,9 @@
             </select>
             <x-error-field field="paisNacimiento" />
         </div>
+
+        
+
 
         <div id="bloque-select-nacimiento">
 
@@ -550,7 +574,10 @@
                 <select id="entidadNacimientoSelect" name="entidadNacimiento" class="select select-buscable">
                     <option value="">Seleccionar país</option>
                     @foreach($entidades as $e)
-                        <option value="{{ $e->idEntidad }}">{{ $e->nombreEntidad }}</option>
+                        <option value="{{ $e->idEntidad }}"
+                            {{ $estudiante->usuario->localidadNacimiento?->municipio?->entidad?->idEntidad == $e->idEntidad ? 'selected' : ''  }}
+                            >
+                            {{ $e->nombreEntidad }}</option>
                     @endforeach
                 </select>
                 <x-error-field field="entidadNacimiento" />
@@ -564,9 +591,10 @@
                     <input
                         type="text"
                         class="input-mediano select-buscable-input"
-                        placeholder="Seleccione entidad"
+                        placeholder="Seleccione municipio"
                         data-target="municipioNacimientoSelect"
                         autocomplete="off"
+                        value="{{ $estudiante->usuario->localidadNacimiento?->municipio?->nombreMunicipio ?? '' }}"
                         readonly
                     >
 
@@ -579,6 +607,15 @@
                         disabled
                     >
                         <option value="">Seleccionar</option>
+
+                        @if($estudiante->usuario->localidadNacimiento?->municipio)
+                            <option
+                                value="{{ $estudiante->usuario->localidadNacimiento->municipio->idMunicipio }}"
+                                selected
+                            >
+                                {{ $estudiante->usuario->localidadNacimiento->municipio->nombreMunicipio }}
+                            </option>
+                        @endif
                     </select>
                 </div>
 
@@ -596,6 +633,7 @@
                         placeholder="Seleccione municipio"
                         data-target="localidadNacimientoSelect"
                         autocomplete="off"
+                        value="{{ $estudiante->usuario->localidadNacimiento?->nombreLocalidad ?? '' }}"
                         readonly
                     >
 
@@ -608,6 +646,15 @@
                         disabled
                     >
                         <option value="">Seleccionar</option>
+                        @if($estudiante->usuario->localidadNacimiento)
+                            <option
+                                value="{{ $estudiante->usuario->localidadNacimiento->idLocalidad }}"
+                                selected
+                            >
+                                {{ $estudiante->usuario->localidadNacimiento->nombreLocalidad }}
+                            </option>
+                        @endif
+
                     </select>
                 </div>
 
