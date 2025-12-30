@@ -8,6 +8,7 @@ use App\Http\Controllers\PlanDePagoController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\EstudianteController;
 
+
 /*--------------------------RUTAS PARA INVITADOS (LOGIN)--------------------------*/
 Route::middleware(['guest.manual', 'nocache'])->group(function () {
 
@@ -50,9 +51,8 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
         return redirect()->route('usuarios.create');
     })->name('altaUsuarios');
 
-    Route::get('/consultaUsuarios', function () {
-        return view('shared.moduloUsuarios.consultaDeUsuarios');
-    })->name('consultaUsuarios');
+    Route::get('/consultaUsuarios', [UsuarioController::class, 'consultaUsuarios'])
+    ->name('consultaUsuarios');
 
     /*----------- ESTUDIANTES -----------*/
     Route::get('/apartadoEstudiantes', function () {

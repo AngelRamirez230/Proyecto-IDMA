@@ -1,120 +1,117 @@
-/* Contenedor del formulario */
-.formulario {
-    width: auto;
+/* =======================
+   CONTENEDOR GENERAL
+======================= */
+.form-container{
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    box-sizing: border-box;
+}
+
+/* =======================
+   FORMULARIO EN GRID (4 columnas)
+======================= */
+.formulario{
+    width: 100%;
     margin-top: 150px;
     padding: 10px;
     border-radius: 10px;
     font-family: 'Poppins', sans-serif;
     position: relative;
+    box-sizing: border-box;
+
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px 40px;
+    padding-left: 30px;
 }
 
-/* Cada grupo de label + input en la misma línea */
-.form-group {
+/* ===== Nacimiento: el wrapper se “rompe” para que participe en el grid ===== */
+#bloque-select-nacimiento,
+#bloque-input-nacimiento {
+    display: contents !important;
+}
+
+/* Por defecto ocultamos TODOS los campos internos de ambos bloques */
+#bloque-select-nacimiento .form-group,
+#bloque-input-nacimiento .form-group {
+    display: none;
+}
+
+/* Cuando el bloque está activo, mostramos SOLO sus campos */
+#bloque-select-nacimiento.activo .form-group {
+    display: flex; /* respeta tu .form-group (vertical) */
+}
+
+#bloque-input-nacimiento.activo .form-group {
     display: flex;
-    align-items: center;
-    margin-bottom: 15px;
-    padding-left: 60px;
-    gap: 25px;
+}
+
+/* =======================
+   CADA CAMPO (LABEL + INPUT)
+======================= */
+.form-group{
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    margin: 0;
+    padding: 0;
+    gap: 6px;
 }
 
 /* Labels */
-.form-group label {
+.form-group label{
     color: #79272C;
     font-weight: 600;
     font-size: 14px;
-    width: 200px;
+    width: auto;
+    margin: 0;
 }
 
 /* Inputs */
-.form-group input {
-    
-    padding: 10px 12px;
+.form-group input{
+    padding: 10px 14px;
     border: 1px solid #000;
     border-radius: 6px;
     background-color: #ffffff;
     color: #000000;
     font-size: 14px;
     transition: border 0.3s;
+    width: 100%;
+    box-sizing: border-box;
 }
 
+/* =======================
+   TAMAÑOS (no fuerzan cascada)
+======================= */
+.input-grande{ max-width: 100%; }
+.input-mediano{ max-width: 100%; }
+.input-chico{ max-width: 100%; }
 
-.input-grande {
-    width: 600px;
-}
-
-
-.input-mediano {
-    width: 400px;
-}
-
-
-.input-chico {
-    width: 250px;
-}
-
-.input-bloqueado {
+.input-bloqueado{
     background-color: #CED4DA !important;
-    color: #000; /* gris del texto */
-    cursor: not-allowed; /* icono de prohibido */
+    color: #000;
+    cursor: not-allowed;
 }
 
-/* Estilo general de los botones */
-.btn-boton-formulario {
-    display: inline-block;
-    width: 191px;
-    height: 49px;
-    padding: 6.5px 44.5px;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    text-decoration: none;
-
-    padding: 12px 20px;
-
-    background-color: #79272C;
-    color: #ffffff;
-
-    border: none;
-    border-radius: 0px;
-
-    font-size: 16px;
-    cursor: pointer;
-    transition: background 0.3s;
-    margin-left: 20px;          
-}
-
-.btn-boton-formulario:first-child {
-    margin-left: 0 !important;
-}
-
-.btn-boton-formulario:hover {
-    background-color: #5a1b20;
-}
-
-/* Botón Cancelar */
-.btn-cancelar {
-    background-color: #B0B0B0;
-}
-
-.btn-cancelar:hover {
-    background-color: #7a7a7a;
-}
-
-
-.select {
-    width: 250px;
-    padding: 10px 40px 10px 10px; /* espacio extra para que no tape el icono */
+/* =======================
+   SELECTS
+======================= */
+.select{
+    width: 100%;
+    padding: 10px 40px 10px 10px;
     border: 2px solid #000000;
     border-radius: 8px;
     background-color: #fff;
     color: #333;
     font-size: 16px;
     text-align: center;
+    box-sizing: border-box;
 }
 
-
-.input-date {
-    width: 250px;
+.input-date{
+    width: 100%;
     padding: 10px 40px 10px 12px;
     border: 2px solid #79272C;
     border-radius: 8px;
@@ -122,113 +119,161 @@
     color: #333;
     font-size: 16px;
     cursor: pointer;
-
+    box-sizing: border-box;
 }
 
+/* =======================
+   TITULOS / SECCIONES
+======================= */
+.titulo-form{
+    grid-column: 1 / -1;
+    margin: 0 0 10px 0;
+}
 
-/* Contenedor que permite poner imagen dentro */
-.contenedor-input-icono {
-    position: relative;
-    width: fit-content;
+.subtitulo-form{
+    grid-column: 1 / -1;
+    margin: 18px 0 0 0;
+    padding: 0;
+}
+
+/* =======================
+   BLOQUE DE BOTONES (full width)
+   (Evita last-of-type; mejor targetear el contenedor real de botones)
+======================= */
+.form-group.form-botones{
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+}
+
+/* Si no quieres modificar HTML, deja un fallback:
+   toma el último .form-group dentro del form únicamente */
+.formulario > .form-group:last-child{
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+}
+
+.btn-boton-formulario{
     display: inline-block;
+    width: 191px;
+    height: 49px;
+    padding: 12px 20px;
+    text-align: center;
+    text-decoration: none;
+    background-color: #79272C;
+    color: #ffffff;
+    border: none;
+    border-radius: 0px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s;
 }
 
-/* Espacio a la derecha dentro del input */
-.contenedor-input-icono input {
-    padding-right: 40px; 
+.btn-boton-formulario:hover{
+    background-color: #5a1b20;
 }
 
-/* Imagen alineada a la derecha */
-.icono-input-img {
+.btn-cancelar{
+    background-color: #B0B0B0;
+}
+
+.btn-cancelar:hover{
+    background-color: #7a7a7a;
+}
+
+/* =======================
+   INPUT CON ICONO
+======================= */
+.contenedor-input-icono{
+    position: relative;
+    width: 100%;
+    display: block;
+    box-sizing: border-box;
+}
+
+.contenedor-input-icono input{
+    width: 100%;
+    padding-right: 40px;
+    box-sizing: border-box;
+}
+
+.icono-input-img{
     position: absolute;
-    right: 10px; /* distancia del borde derecho */
+    right: 10px;
     top: 50%;
     transform: translateY(-50%);
-    width: 30px;   /* ajusta tamaño */
+    width: 30px;
     height: 30px;
-    pointer-events: none; /* no bloquea el input */
+    pointer-events: none;
 }
 
+/* =======================
+   SELECTS BUSCABLES
+======================= */
+.select-buscable-wrapper{
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+}
 
-/* Responsive */
-@media screen and (max-width: 950px) {
+.select-buscable-wrapper .select-buscable-input{
+    width: 100%;
+    box-sizing: border-box;
+}
 
-    .form-group {
-        flex-direction: column;
-        align-items: flex-start;
+.select-buscable-wrapper select{
+    width: 100%;
+}
+
+.select-buscable-list{
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #000;
+    border-top: none;
+    z-index: 1000;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: none;
+    box-sizing: border-box;
+}
+
+.select-buscable-list li{
+    padding: 8px 10px;
+    cursor: pointer;
+}
+
+.select-buscable-list li:hover{
+    background-color: #f0f0f0;
+}
+
+/* =======================
+   RESPONSIVE: 1 columna
+======================= */
+@media screen and (max-width: 950px){
+    .formulario{
+        grid-template-columns: 1fr;
         padding-left: 20px;
-        gap: 5px;
     }
 
-    .form-group label,
-    .form-group input[type="date"],
-    .form-group input {
-        width: calc(100% - 40px);
-        margin-left: 0;
+    .formulario > .form-group:last-child{
+        flex-direction: column;
+        align-items: stretch;
     }
 
-    /* --- 📌 Ajustes para inputs con icono --- */
-    .contenedor-input-icono {
-        width: 100%; /* el contenedor ocupa todo el ancho */
-    }
-
-    .contenedor-input-icono input {
-        width: calc(100% - 40px);      /* input responsivo */
-        padding-right: 40px; /* espacio para icono */
-    }
-
-    .icono-input-img {
-        right: 50px;     
-        width: 30px;
-        height: 30px;
-    }
-    /* --------------------------------------- */
-
-    .btn-boton-formulario {
-        display: block;     
-        margin-top: 12px;
-        margin-left: 0 !important;
-
+    .btn-boton-formulario{
         width: 191px;
         height: 49px;
-
-        justify-content: center;
-        align-items: center;    
     }
 }
-
-/* ---------------Selects------------------------ */
-        .select-buscable-wrapper {
-        position: relative;
-    }
-
-    .select-buscable-list {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        max-height: 200px;
-        overflow-y: auto;
-        background: #fff;
-        border: 1px solid #000;
-        border-top: none;
-        z-index: 1000;
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        display: none;
-    }
-
-    .select-buscable-list li {
-        padding: 8px 10px;
-        cursor: pointer;
-    }
-
-    .select-buscable-list li:hover {
-        background-color: #f0f0f0;
-    }
-
-
-
-
-
