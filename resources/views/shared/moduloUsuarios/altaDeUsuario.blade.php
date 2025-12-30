@@ -545,7 +545,7 @@
     </div>
 
     {{-- BOTONES --}}
-    <div class="form-group">
+    <div class="form-group form-botones">
         <button type="submit" class="btn-boton-formulario">Guardar</button>
         <a href="{{ route('apartadoUsuarios') }}" class="btn-boton-formulario btn-cancelar">
             Cancelar
@@ -706,35 +706,25 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const setModoNacimiento = (modo) => {
-        // NONE | MEXICO | EXTRANJERO
+        // modo: NONE | MEXICO | EXTRANJERO
 
+        // 1) Apagar ambos visualmente
+        bloqueSelect.classList.remove('activo');
+        bloqueInput.classList.remove('activo');
+
+        // 2) Reset/habilitación de selects/manuales según modo
         if (modo === 'NONE') {
-            if (bloqueSelect) bloqueSelect.style.display = 'block';
-            if (bloqueInput)  bloqueInput.style.display  = 'none';
+            // Mostrar ninguno
+            // Bloquear selects
+            nacEntidad.disabled   = true;
+            nacMunicipio.disabled = true;
+            nacLocalidad.disabled = true;
 
-            // Entidad nacimiento: placeholder “Seleccionar país”
-            setFirstOptionText(nacEntidad, 'Seleccionar país');
+            // Reset selects
+            resetSelect(nacMunicipio, 'Seleccionar municipio', true);
+            resetSelect(nacLocalidad, 'Seleccionar localidad', true);
 
-            if (nacEntidad) {
-                nacEntidad.value = '';
-                nacEntidad.disabled = true;
-            }
-
-            resetSelect(nacMunicipio, 'Seleccionar', true);
-            resetSelect(nacLocalidad, 'Seleccionar', true);
-
-            if (nacMunicipioInput) {
-                nacMunicipioInput.value = '';
-                nacMunicipioInput.placeholder = 'Seleccione entidad';
-                nacMunicipioInput.setAttribute('readonly', 'readonly');
-            }
-
-            if (nacLocalidadInput) {
-                nacLocalidadInput.value = '';
-                nacLocalidadInput.placeholder = 'Seleccione municipio';
-                nacLocalidadInput.setAttribute('readonly', 'readonly');
-            }
-
+            // Bloquear manuales + limpiar
             inputsManual.forEach(i => {
                 i.disabled = true;
                 i.value = '';
@@ -744,31 +734,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (modo === 'MEXICO') {
-            if (bloqueSelect) bloqueSelect.style.display = 'block';
-            if (bloqueInput)  bloqueInput.style.display  = 'none';
+            // Mostrar SOLO selects
+            bloqueSelect.classList.add('activo');
 
-            // Entidad nacimiento: placeholder “Seleccionar”
-            setFirstOptionText(nacEntidad, 'Seleccionar');
+            nacEntidad.disabled   = false;
+            nacMunicipio.disabled = true;
+            nacLocalidad.disabled = true;
 
-            if (nacEntidad) {
-                nacEntidad.disabled = false;
-            }
+            resetSelect(nacMunicipio, 'Seleccionar municipio', true);
+            resetSelect(nacLocalidad, 'Seleccionar localidad', true);
 
-            resetSelect(nacMunicipio, 'Seleccionar', true);
-            resetSelect(nacLocalidad, 'Seleccionar', true);
-
-            if (nacMunicipioInput) {
-                nacMunicipioInput.value = '';
-                nacMunicipioInput.placeholder = 'Seleccione entidad';
-                nacMunicipioInput.setAttribute('readonly', 'readonly');
-            }
-
-            if (nacLocalidadInput) {
-                nacLocalidadInput.value = '';
-                nacLocalidadInput.placeholder = 'Seleccione municipio';
-                nacLocalidadInput.setAttribute('readonly', 'readonly');
-            }
-
+            // Manuales apagados
             inputsManual.forEach(i => {
                 i.disabled = true;
                 i.value = '';
@@ -777,36 +753,26 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // EXTRANJERO
-        if (bloqueSelect) bloqueSelect.style.display = 'none';
-        if (bloqueInput)  bloqueInput.style.display  = 'block';
+        if (modo === 'EXTRANJERO') {
+            // Mostrar SOLO manuales
+            bloqueInput.classList.add('activo');
 
-        // En extranjero no usamos selects, pero dejamos consistente el texto
-        setFirstOptionText(nacEntidad, 'Seleccionar');
-
-        if (nacEntidad) {
+            // Apagar selects + limpiar valores
             nacEntidad.value = '';
-            nacEntidad.disabled = true;
+            nacEntidad.disabled   = true;
+            nacMunicipio.disabled = true;
+            nacLocalidad.disabled = true;
+
+            resetSelect(nacMunicipio, 'Seleccionar municipio', true);
+            resetSelect(nacLocalidad, 'Seleccionar localidad', true);
+
+            // Manuales activos
+            inputsManual.forEach(i => {
+                i.disabled = false;
+            });
+
+            return;
         }
-
-        resetSelect(nacMunicipio, 'Seleccionar', true);
-        resetSelect(nacLocalidad, 'Seleccionar', true);
-
-        if (nacMunicipioInput) {
-            nacMunicipioInput.value = '';
-            nacMunicipioInput.placeholder = 'Seleccione entidad';
-            nacMunicipioInput.setAttribute('readonly', 'readonly');
-        }
-
-        if (nacLocalidadInput) {
-            nacLocalidadInput.value = '';
-            nacLocalidadInput.placeholder = 'Seleccione municipio';
-            nacLocalidadInput.setAttribute('readonly', 'readonly');
-        }
-
-        inputsManual.forEach(i => {
-            i.disabled = false;
-        });
     };
 
     // Estado inicial
