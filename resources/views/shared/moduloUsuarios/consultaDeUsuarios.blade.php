@@ -102,9 +102,11 @@
                                     <div class="tabla-acciones">
 
                                         {{-- VER (placeholder) --}}
-                                        <button type="button" class="accion-boton" title="Ver detalles">
+                                        <a href="{{ route('usuarios.show', $usuario->idUsuario) }}"
+                                            class="accion-boton"
+                                            title="Ver detalles">
                                             <img src="{{ asset('imagenes/IconoInicioUsuarios.png') }}" alt="Ver">
-                                        </button>
+                                        </a>
 
                                         {{-- EDITAR (placeholder) --}}
                                         <button type="button" class="accion-boton" title="Editar">

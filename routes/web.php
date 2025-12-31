@@ -54,6 +54,9 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
     Route::get('/consultaUsuarios', [UsuarioController::class, 'consultaUsuarios'])
     ->name('consultaUsuarios');
 
+    Route::get('/usuarios/{usuario}', [UsuarioController::class, 'show'])
+    ->name('usuarios.show');
+
     /*----------- ESTUDIANTES -----------*/
     Route::get('/apartadoEstudiantes', function () {
         return view('shared.moduloEstudiantes.apartadoEstudiantes');
