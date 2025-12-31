@@ -11,13 +11,14 @@
     @include('layouts.barraNavegacion')
     
 
-    <form action="{{ route('planes.store') }}" method="POST" class="formulario">
+    <form action="{{ route('planes.store') }}" method="POST" class="formulario2">
         @csrf
+        <h1 class="titulo-form2">Alta de plan de pago</h1>
 
         <!-- Nombre del plan -->
-        <div class="form-group">
+        <div class="form-group2">
             <label for="nombrePlan">Nombre del plan de pago:</label>
-            <input type="text" id="nombrePlan" name="nombrePlan" class="input-grande" required>
+            <input type="text" id="nombrePlan" name="nombrePlan" class="input-grande2" placeholder="Ingresa el nombre del plan de pago" required>
         </div>
 
         <h1 class="selecciona-conceptos">Seleciona los conceptos:</h1>
@@ -65,9 +66,9 @@
         </div>
 
         <!-- Botones Guardar / Cancelar -->
-        <div class="form-group">
-            <button type="submit" class="btn-boton-formulario">Guardar</button>
-            <a href="{{ route('apartadoPlanDePago') }}" class="btn-boton-formulario btn-cancelar">Cancelar</a>
+        <div class="form-group2">
+            <button type="submit" class="btn-boton-formulario2">Guardar</button>
+            <a href="{{ route('apartadoPlanDePago') }}" class="btn-boton-formulario2 btn-cancelar2">Cancelar</a>
         </div>
     </form>
 

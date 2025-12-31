@@ -9,29 +9,31 @@
 <body>
     @include('layouts.barraNavegacion')
 
-    <form id="formBeca" action="{{ route('becas.store') }}" method="POST" class="formulario">
+    <form id="formBeca" action="{{ route('becas.store') }}" method="POST" class="formulario2">
     @csrf
 
-        <div class="form-group">
+        <h1 class="titulo-form2">Alta de beca</h1>
+
+        <div class="form-group2">
             <label for="nombreBeca">Nombre de Beca:</label>
-            <input type="text" id="nombreBeca" name="nombreBeca" class="input-grande" placeholder="Ingresa el nombre de la beca" required>
+            <input type="text" id="nombreBeca" name="nombreBeca" class="input-grande2" placeholder="Ingresa el nombre de la beca" required>
         </div>
 
-        <div class="form-group input-con-icono">
+        <div class="form-group2 input-con-icono">
             <label for="porcentajeBeca">Porcentaje de descuento:</label>
-            <div class="contenedor-input-icono">
-                <input type="text" id="porcentajeBeca" name="porcentajeBeca" class="input-chico" placeholder="Porcentaje de descuento" required>
+            <div class="contenedor-input-icono2">
+                <input type="text" id="porcentajeBeca" name="porcentajeBeca" class="input-chico2" placeholder="Porcentaje de descuento" required>
 
-                <img src="{{ asset('imagenes/IconoPorcentaje.png') }}" class="icono-input-img" alt="icono">
+                <img src="{{ asset('imagenes/IconoPorcentaje.png') }}" class="icono-input-img2" alt="icono">
             </div>
 
              <span id="porcentajeError" class="mensajeError"></span>
         </div>
 
 
-        <div class="form-group">
-            <button type="submit" class="btn-boton-formulario">Guardar</button>
-            <a href="{{ route('apartadoBecas') }}" class="btn-boton-formulario btn-cancelar">Cancelar</a>
+        <div class="form-group2">
+            <button type="submit" class="btn-boton-formulario2">Guardar</button>
+            <a href="{{ route('apartadoBecas') }}" class="btn-boton-formulario2 btn-cancelar2">Cancelar</a>
         </div>
     </form>
 

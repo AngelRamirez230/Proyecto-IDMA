@@ -9,23 +9,25 @@
 <body>
     @include('layouts.barraNavegacion')
 
-    <form action="{{ route('concepto.store') }}" method="POST" class="formulario">
+    <form action="{{ route('concepto.store') }}" method="POST" class="formulario2">
     @csrf
 
-        <div class="form-group">
+        <h1 class="titulo-form2">Alta de concepto de pago</h1>
+
+        <div class="form-group2">
             <label for="nombreConcepto">Nombre del concepto de pago:</label>
-            <input type="text" id="nombreConcepto" name="nombreConcepto" class="input-grande" placeholder="Ingresa el nombre del concepto de pago" required>
+            <input type="text" id="nombreConcepto" name="nombreConcepto" class="input-grande2" placeholder="Ingresa el nombre del concepto de pago" required>
         </div>
 
-        <div class="form-group">
+        <div class="form-group2">
             <label for="costo">Costo:</label>
-            <input type="text" id="costo" name="costo" class="input-chico" placeholder="Ingresa el costo" required>
+            <input type="text" id="costo" name="costo" class="input-chico2" placeholder="Ingresa el costo" required>
             <span id="costoError" class="mensajeError"></span>
         </div>
 
-        <div class="form-group">
+        <div class="form-group2">
             <label for="unidad">Unidad:</label>
-            <select id="unidad" name="unidad" class="select" required>
+            <select id="unidad" name="unidad" class="select2" required>
                 <option value="" disabled selected>Seleccionar</option>
 
                 @foreach ($unidades as $u)
@@ -37,9 +39,9 @@
         </div>
 
 
-        <div class="form-group">
-            <button type="submit" class="btn-boton-formulario">Guardar</button>
-            <a href="{{ route('apartadoConceptos') }}" class="btn-boton-formulario btn-cancelar">Cancelar</a>
+        <div class="form-group2">
+            <button type="submit" class="btn-boton-formulario2">Guardar</button>
+            <a href="{{ route('apartadoConceptos') }}" class="btn-boton-formulario2 btn-cancelar2">Cancelar</a>
         </div>
 
         <Script>
