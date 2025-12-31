@@ -1,0 +1,197 @@
+/* Contenedor del formulario */
+.formulario2 {
+    width: auto;
+    margin-top: 150px;
+    padding: 10px;
+    border-radius: 10px;
+    font-family: 'Poppins', sans-serif;
+    position: relative;
+}
+
+.titulo-form2{
+    color: #79272C;
+    margin-bottom: 25px;
+    padding-left: 60px;
+}
+
+/* Cada grupo de label + input en la misma línea */
+.form-group2 {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-left: 60px;
+    gap: 25px;
+}
+
+/* Labels */
+.form-group2 label {
+    color: #79272C;
+    font-weight: 600;
+    font-size: 14px;
+    width: 200px;
+}
+
+/* Inputs */
+.form-group2 input {
+    
+    padding: 10px 12px;
+    border: 1px solid #000;
+    border-radius: 6px;
+    background-color: #ffffff;
+    color: #000000;
+    font-size: 14px;
+    transition: border 0.3s;
+}
+
+
+.input-grande2 {
+    width: 600px;
+}
+
+
+.input-mediano2 {
+    width: 400px;
+}
+
+
+.input-chico2 {
+    width: 250px;
+}
+
+.input-bloqueado2 {
+    background-color: #CED4DA !important;
+    color: #000; /* gris del texto */
+    cursor: not-allowed; /* icono de prohibido */
+}
+
+/* Estilo general de los botones */
+.btn-boton-formulario2 {
+    display: inline-block;
+    width: 191px;
+    height: 49px;
+    padding: 6.5px 44.5px;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    text-decoration: none;
+
+    padding: 12px 20px;
+
+    background-color: #79272C;
+    color: #ffffff;
+
+    border: none;
+    border-radius: 0px;
+
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s;
+    margin-left: 20px;          
+}
+
+.btn-boton-formulario2:first-child {
+    margin-left: 0 !important;
+}
+
+.btn-boton-formulario2:hover {
+    background-color: #5a1b20;
+}
+
+/* Botón Cancelar */
+.btn-cancelar2 {
+    background-color: #B0B0B0;
+}
+
+.btn-cancelar2:hover {
+    background-color: #7a7a7a;
+}
+
+
+.select2 {
+    width: 250px;
+    padding: 10px 40px 10px 10px; /* espacio extra para que no tape el icono */
+    border: 2px solid #000000;
+    border-radius: 8px;
+    background-color: #fff;
+    color: #333;
+    font-size: 16px;
+    text-align: center;
+}
+
+
+/* Contenedor que permite poner imagen dentro */
+.contenedor-input-icono2 {
+    position: relative;
+    width: fit-content;
+    display: inline-block;
+}
+
+/* Espacio a la derecha dentro del input */
+.contenedor-input-icono2 input {
+    padding-right: 40px; 
+}
+
+/* Imagen alineada a la derecha */
+.icono-input-img2 {
+    position: absolute;
+    right: 10px; /* distancia del borde derecho */
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;   /* ajusta tamaño */
+    height: 30px;
+    pointer-events: none; /* no bloquea el input */
+}
+
+
+/* Responsive */
+@media screen and (max-width: 950px) {
+
+    .form-group2 {
+        flex-direction: column;
+        align-items: flex-start;
+        padding-left: 20px;
+        gap: 5px;
+    }
+
+    .titulo-form2{
+        text-align: center;
+        padding-left: 0px;
+
+    }
+    
+
+    .form-group2 label,
+    .form-group2 input {
+        width: calc(100% - 40px);
+        margin-left: 0;
+    }
+
+    /* --- 📌 Ajustes para inputs con icono --- */
+    .contenedor-input-icono2 {
+        width: 100%; /* el contenedor ocupa todo el ancho */
+    }
+
+    .contenedor-input-icono2 input {
+        width: calc(100% - 40px);      /* input responsivo */
+        padding-right: 40px; /* espacio para icono */
+    }
+
+    .icono-input-img2 {
+        right: 50px;     
+        width: 30px;
+        height: 30px;
+    }
+    /* --------------------------------------- */
+
+    .btn-boton-formulario2 {
+        display: block;     
+        margin-top: 12px;
+        margin-left: 0 !important;
+
+        width: 191px;
+        height: 49px;
+
+        justify-content: center;
+        align-items: center;    
+    }
+}

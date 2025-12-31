@@ -105,6 +105,16 @@
                         <td>
                             <div class="tabla-acciones">
 
+                                <a href="{{ route('usuarios.show', $estudiante->idUsuario) }}"
+                                            class="accion-boton"
+                                            title="Ver detalles">
+                                            <img 
+                                                src="{{ $estudiante->usuario->idestatus == 2
+                                                ? asset('imagenes/IconoVerUsuarioGris.png')
+                                                : asset('imagenes/IconoVerUsuario.png') }}" 
+                                            alt="Ver">
+                                        </a>
+
                                 {{-- EDITAR --}}
                                 <a href="{{ route('estudiantes.edit', $estudiante->idEstudiante) }}"
                                    class="accion-boton"
@@ -134,25 +144,6 @@
                                     </button>
                                 </form>
 
-                                {{-- ELIMINAR --}}
-                                <form action="#"
-                                      method="POST"
-                                      style="display:inline">
-
-                                    @csrf
-                                    @method('DELETE')
-
-                                    <button type="button"
-                                            class="accion-boton"
-                                            title="Eliminar"
-                                            onclick="mostrarPopupConfirmacion('{{ $estudiante->matriculaAlfanumerica }}', this)">
-                                        <img
-                                            src="{{ $estudiante->usuario->idestatus == 2
-                                                ? asset('imagenes/IconoEliminarGris.png')
-                                                : asset('imagenes/IconoEliminar.png') }}"
-                                            alt="Eliminar">
-                                    </button>
-                                </form>
 
                             </div>
                         </td>
@@ -176,16 +167,6 @@
     </div>
 
 </main>
-
-{{-- POPUP --}}
-<script>
-    function mostrarPopupConfirmacion(matricula, boton) {
-        formularioAEliminar = boton.closest('form');
-        document.getElementById('mensajeConfirmacion').innerText =
-            `¿Estás seguro de eliminar al estudiante con matrícula "${matricula}"?`;
-        document.getElementById('popupConfirmacion').style.display = 'flex';
-    }
-</script>
 
 </body>
 </html>

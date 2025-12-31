@@ -91,6 +91,30 @@ class EstudianteController extends Controller
                 'unique'   => 'El valor ingresado en :attribute ya está registrado.',
                 'exists'   => 'La opción seleccionada en :attribute no es válida.',
                 'date'     => 'El campo :attribute debe ser una fecha válida.',
+            ],
+            [
+                // ======================
+                // NOMBRES AMIGABLES
+                // ======================
+                'primer_nombre'       => 'primer nombre',
+                'segundo_nombre'      => 'segundo nombre',
+                'primer_apellido'     => 'primer apellido',
+                'segundo_apellido'    => 'segundo apellido',
+                'telefono'            => 'teléfono',
+                'telefonoFijo'        => 'teléfono fijo',
+                'correoInstitucional' => 'correo institucional',
+                'correoElectronico'   => 'correo electrónico',
+                'nombreUsuario'       => 'nombre de usuario',
+                'contraseña'          => 'contraseña',
+                'fechaNacimiento'     => 'fecha de nacimiento',
+                'CURP'                => 'CURP',
+                'RFC'                 => 'RFC',
+                'idSexo'              => 'sexo',
+                'idEstadoCivil'       => 'estado civil',
+                'grado'               => 'grado',
+                'idGeneracion'        => 'generación',
+                'idPlanDeEstudios'    => 'plan de estudios',
+                'idTipoDeInscripcion' => 'tipo de inscripción',
             ]
         );
 
@@ -104,24 +128,53 @@ class EstudianteController extends Controller
         /* ================= TRANSACCIÓN ================= */
         DB::transaction(function () use ($request) {
 
-            /* ===== LOCALIDAD DOMICILIO ===== */
-            $idLocalidadDomicilio = $request->localidad;
+                /*
+            |----------------------------------------------------------
+            | 1. LOCALIDAD DE NACIMIENTO (OBLIGATORIA)
+            |----------------------------------------------------------
+            */
+            $idLocalidadNacimiento = $request->localidadNacimiento;
 
-            if (!$idLocalidadDomicilio && $request->filled('localidadManual') && $request->filled('municipio')) {
-                $localidad = Localidad::firstOrCreate(
-                    [
+            /*
+            |----------------------------------------------------------
+            | 2. LOCALIDAD DE DOMICILIO (CATÁLOGO O MANUAL)
+            |----------------------------------------------------------
+            */
+            $idLocalidadDomicilio = null;
+
+            if ($request->filled('localidad')) {
+                $idLocalidadDomicilio = $request->localidad;
+            } elseif ($request->filled('localidadManual') && $request->filled('municipio')) {
+
+                $localidadExistente = Localidad::where('nombreLocalidad', $request->localidadManual)
+                    ->where('idMunicipio', $request->municipio)
+                    ->first();
+
+                if ($localidadExistente) {
+                    $idLocalidadDomicilio = $localidadExistente->idLocalidad;
+                } else {
+                    $localidad = Localidad::create([
                         'nombreLocalidad' => $request->localidadManual,
                         'idMunicipio'     => $request->municipio,
-                    ],
-                    ['idTipoDeEstatus' => 3]
-                );
+                        'idTipoDeEstatus' => 3, // Pendiente
+                    ]);
 
-                $idLocalidadDomicilio = $localidad->idLocalidad;
+                    $idLocalidadDomicilio = $localidad->idLocalidad;
+                }
             }
 
-            /* ===== DOMICILIO ===== */
+            /*
+            |----------------------------------------------------------
+            | 3. CREAR DOMICILIO (SI APLICA)
+            |----------------------------------------------------------
+            */
             $domicilioId = null;
-            if ($idLocalidadDomicilio || $request->filled('calle')) {
+
+            if (
+                $idLocalidadDomicilio ||
+                $request->filled('calle') ||
+                $request->filled('codigoPostal')
+            ) {
                 $domicilio = Domicilio::create([
                     'codigoPostal'   => $request->codigoPostal,
                     'calle'          => $request->calle,
@@ -132,18 +185,6 @@ class EstudianteController extends Controller
                 ]);
 
                 $domicilioId = $domicilio->idDomicilio;
-            }
-
-            /* ===== LOCALIDAD NACIMIENTO ===== */
-            $idLocalidadNacimiento = $request->localidadNacimiento;
-
-            if (!$idLocalidadNacimiento && $request->filled('localidadNacimientoManual')) {
-                $localidadNacimiento = Localidad::firstOrCreate(
-                    ['nombreLocalidad' => $request->localidadNacimientoManual],
-                    ['idTipoDeEstatus' => 3]
-                );
-
-                $idLocalidadNacimiento = $localidadNacimiento->idLocalidad;
             }
 
             /* ===== USUARIO ===== */

@@ -665,6 +665,18 @@
 
     @include('layouts.alta')
 
+    {{-- BLOQUE DE ERRORES DE VALIDACIÓN --}}
+    @if ($errors->any())
+        <div style="background:#ffdddd; padding:12px; border:1px solid #cc0000; margin:10px 0;">
+            <strong>Corrige los siguientes errores:</strong>
+            <ul style="margin: 8px 0 0 18px;">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
 
