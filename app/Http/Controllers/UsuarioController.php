@@ -197,4 +197,28 @@ class UsuarioController extends Controller
             'usuarios','buscar','filtro','orden'
         ));
     }
+
+    public function show(Usuario $usuario)
+    {
+        $usuario->load([
+            'tipoDeUsuario',
+            'estatus',
+            'sexo',
+            'estadoCivil',
+            'domicilio.localidad.municipio.entidad.pais',
+            'localidadNacimiento.municipio.entidad.pais',
+        ]);
+
+        // ViewModel simple para no ensuciar Blade
+        $vm = [
+            'nombreCompleto' => trim(collect([
+                $usuario->primerNombre,
+                $usuario->segundoNombre,
+                $usuario->primerApellido,
+                $usuario->segundoApellido,
+            ])->filter()->implode(' ')),
+        ];
+
+        return view('shared.moduloUsuarios.detalleDeUsuario', compact('usuario', 'vm'));
+    }
 }

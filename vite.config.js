@@ -7,9 +7,9 @@ export default defineConfig({
         laravel({
             input: [
                 
-                'resources/css/login.css',
-                'resources/css/inicio.css',
-                'resources/css/barraNavegacion.css',
+                'resources/css/pages/login.css',
+                'resources/css/pages/inicio.css',
+                'resources/css/components/PlantillaYBarraNavegacion.css',
                 'resources/js/app.js'
             ],
             refresh: true,
