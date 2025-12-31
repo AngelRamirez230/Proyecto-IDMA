@@ -15,4 +15,10 @@ class PlanDeEstudios extends Model
         'documentoPlanDeEstudios',
         'idLicenciatura'
     ];
+
+    public function licenciatura()
+    {
+        return $this->belongsTo(Licenciatura::class, 'idLicenciatura', 'idLicenciatura');
+    }
+
 }

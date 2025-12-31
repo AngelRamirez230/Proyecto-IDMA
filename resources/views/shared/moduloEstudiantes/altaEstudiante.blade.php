@@ -4,251 +4,688 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alta de estudiante</title>
-    @vite(['resources/css/app.css'])
+    @vite(['resources/css/app.css']) 
 </head>
 
 <body>
-@include('layouts.barraNavegacion')
+    @include('layouts.barraNavegacion')
 
-<main class="form-container">
+        <main class="form-container">
+            {{-- FORMULARIO --}}
+            <form action="{{ route('estudiantes.store') }}" method="POST" class="formulario">
+                @csrf
 
-    {{-- ERRORES --}}
-    @if ($errors->any())
-        <div style="background:#ffdddd; padding:12px; border:1px solid #cc0000; margin:10px 0;">
-            <strong>Corrige los siguientes errores:</strong>
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
+                    {{-- TÍTULO DEL FORMULARIO --}}
+                <h1 class="titulo-form">Alta de estudiante</h1>
 
-    {{-- FORMULARIO --}}
-    <form action="#" method="POST" class="formulario">
-        @csrf
+                <h3 class="subtitulo-form">Datos personales</h3>
 
-        <h1 class="titulo-form">
-            Alta de estudiante
-        </h1>
+                        {{-- PRIMER NOMBRE --}}
+                <div class="form-group">
+                    <label for="primer_nombre">Primer nombre:</label>
+                    <input
+                        type="text"
+                        id="primer_nombre"
+                        name="primer_nombre"
+                        class="input-mediano"
+                        placeholder="Ingresa el primer nombre"
+                        value="{{ old('primer_nombre') }}"
+                        required
+                    >
+                    <x-error-field field="primer_nombre" />
+                </div>
 
-        {{-- ================= DATOS PERSONALES ================= --}}
-        <h3 class="subtitulo-form">Datos personales</h3>
+                {{-- SEGUNDO NOMBRE --}}
+                <div class="form-group">
+                    <label for="segundo_nombre">Segundo nombre:</label>
+                    <input
+                        type="text"
+                        id="segundo_nombre"
+                        name="segundo_nombre"
+                        class="input-mediano"
+                        placeholder="Ingresa el segundo nombre"
+                        value="{{ old('segundo_nombre') }}"
+                    >
+                    <x-error-field field="segundo_nombre" />
+                </div>
 
-        <div class="form-group">
-            <label>Primer nombre:</label>
-            <input type="text" name="primer_nombre" class="input-mediano"
-                   value="{{ old('primer_nombre') }}" required>
-        </div>
+                {{-- PRIMER APELLIDO --}}
+                <div class="form-group">
+                    <label for="primer_apellido">Primer apellido:</label>
+                    <input
+                        type="text"
+                        id="primer_apellido"
+                        name="primer_apellido"
+                        class="input-mediano"
+                        placeholder="Ingresa el primer apellido"
+                        value="{{ old('primer_apellido') }}"
+                        required
+                    >
+                    <x-error-field field="primer_apellido" />
+                </div>
 
-        <div class="form-group">
-            <label>Segundo nombre:</label>
-            <input type="text" name="segundo_nombre" class="input-mediano"
-                   value="{{ old('segundo_nombre') }}">
-        </div>
+                {{-- SEGUNDO APELLIDO --}}
+                <div class="form-group">
+                    <label for="segundo_apellido">Segundo apellido:</label>
+                    <input
+                        type="text"
+                        id="segundo_apellido"
+                        name="segundo_apellido"
+                        class="input-mediano"
+                        placeholder="Ingresa el segundo apellido"
+                        value="{{ old('segundo_apellido') }}"
+                    >
+                    <x-error-field field="segundo_apellido" />
+                </div>
 
-        <div class="form-group">
-            <label>Apellido paterno:</label>
-            <input type="text" name="apellido_paterno" class="input-mediano"
-                   value="{{ old('apellido_paterno') }}" required>
-        </div>
+                {{-- SEXO --}}
+                <div class="form-group">
+                    <label for="idSexo">Sexo:</label>
+                    <select id="idSexo" name="idSexo" class="select" required>
+                        <option value="" disabled {{ old('idSexo') ? '' : 'selected' }}>Seleccionar</option>
+                        @foreach($sexos as $sx)
+                            <option value="{{ $sx->idSexo }}" {{ old('idSexo') == $sx->idSexo ? 'selected' : '' }}>
+                                {{ $sx->nombreSexo }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <x-error-field field="idSexo" />
+                </div>
 
-        <div class="form-group">
-            <label>Apellido materno:</label>
-            <input type="text" name="apellido_materno" class="input-mediano"
-                   value="{{ old('apellido_materno') }}" required>
-        </div>
+                {{-- ESTADO CIVIL --}}
+                <div class="form-group">
+                    <label for="idEstadoCivil">Estado civil:</label>
+                    <select id="idEstadoCivil" name="idEstadoCivil" class="select" required>
+                        <option value="" disabled {{ old('idEstadoCivil') ? '' : 'selected' }}>Seleccionar</option>
+                        @foreach($estadosCiviles as $ec)
+                            <option value="{{ $ec->idEstadoCivil }}" {{ old('idEstadoCivil') == $ec->idEstadoCivil ? 'selected' : '' }}>
+                                {{ $ec->nombreEstadoCivil }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <x-error-field field="idEstadoCivil" />
+                </div>
 
-        <div class="form-group">
-            <label>Sexo:</label>
-            <select name="genero" class="select" required>
-                <option value="">Seleccionar</option>
-                @foreach($sexos as $sx)
-                    <option value="{{ $sx->idSexo }}"
-                        {{ old('genero') == $sx->idSexo ? 'selected' : '' }}>
-                        {{ $sx->nombreSexo }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
+                {{-- TELÉFONO --}}
+                <div class="form-group">
+                    <label for="telefono">Teléfono:</label>
+                    <input
+                        type="text"
+                        id="telefono"
+                        name="telefono"
+                        class="input-chico"
+                        placeholder="Ingresa número de teléfono"
+                        value="{{ old('telefono') }}"
+                    >
+                    <x-error-field field="telefono" />
+                </div>
 
-        <div class="form-group">
-            <label>Estado civil:</label>
-            <select name="estadoCivil" class="select" required>
-                <option value="">Seleccionar</option>
-                @foreach($estadosCiviles as $ec)
-                    <option value="{{ $ec->idEstadoCivil }}"
-                        {{ old('estadoCivil') == $ec->idEstadoCivil ? 'selected' : '' }}>
-                        {{ $ec->nombreEstadoCivil }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
+                {{-- TELÉFONO FIJO --}}
+                <div class="form-group">
+                    <label for="telefonoFijo">Teléfono fijo:</label>
+                    <input
+                        type="text"
+                        id="telefonoFijo"
+                        name="telefonoFijo"
+                        class="input-chico"
+                        placeholder="Ingresa número de teléfono fijo"
+                        value="{{ old('telefonoFijo') }}"
+                    >
+                    <x-error-field field="telefonoFijo" />
+                </div>
 
-        <div class="form-group">
-            <label>Fecha de nacimiento:</label>
-            <input type="date" name="fechaNacimiento" class="input-date"
-                   max="{{ date('Y-m-d') }}" value="{{ old('fechaNacimiento') }}">
-        </div>
+                {{-- CORREO INSTITUCIONAL --}}
+                <div class="form-group">
+                    <label for="correoInstitucional">Correo institucional:</label>
+                    <input
+                        type="email"
+                        id="correoInstitucional"
+                        name="correoInstitucional"
+                        class="input-mediano"
+                        placeholder="ejemplo@idma.edu.mx"
+                        value="{{ old('correoInstitucional') }}"
+                    >
+                    <x-error-field field="correoInstitucional" />
+                </div>
 
-        <div class="form-group">
-            <label>CURP:</label>
-            <input type="text" name="curp" class="input-chico"
-                   value="{{ old('curp') }}">
-        </div>
+                {{-- CONTRASEÑA --}}
+                <div class="form-group">
+                    <label for="contraseña">Contraseña:</label>
+                    <input
+                        type="password"
+                        id="contraseña"
+                        name="contraseña"
+                        class="input-chico"
+                        placeholder="Escribe una contraseña"
+                        required
+                    >
+                    <x-error-field field="contraseña" />
+                </div>
 
-        <div class="form-group">
-            <label>RFC:</label>
-            <input type="text" name="rfc" class="input-chico"
-                   value="{{ old('rfc') }}">
-        </div>
+                {{-- NOMBRE DE USUARIO --}}
+                <div class="form-group">
+                    <label for="nombreUsuario">Nombre de usuario:</label>
+                    <input
+                        type="text"
+                        id="nombreUsuario"
+                        name="nombreUsuario"
+                        class="input-mediano"
+                        placeholder="Ingresa el nombre de usuario"
+                        value="{{ old('nombreUsuario') }}"
+                        required
+                    >
+                    <x-error-field field="nombreUsuario" />
+                </div>
 
-        {{-- ================= CONTACTO ================= --}}
-        <h3 class="subtitulo-form">Contacto</h3>
+                {{-- FECHA NACIMIENTO --}}
+                <div class="form-group">
+                    <label for="fechaNacimiento">Fecha de nacimiento:</label>
+                    <input
+                        type="date"
+                        id="fechaNacimiento"
+                        name="fechaNacimiento"
+                        max="{{ date('Y-m-d') }}"
+                        class="input-date"
+                        value="{{ old('fechaNacimiento') }}"
+                    >
+                    <x-error-field field="fechaNacimiento" />
+                </div>
 
-        <div class="form-group">
-            <label>Teléfono:</label>
-            <input type="text" name="telefono" class="input-chico"
-                   value="{{ old('telefono') }}">
-        </div>
+                {{-- CURP --}}
+                <div class="form-group">
+                    <label for="CURP">CURP:</label>
+                    <input
+                        type="text"
+                        id="CURP"
+                        name="CURP"
+                        class="input-chico"
+                        placeholder="CURP"
+                        value="{{ old('CURP') }}"
+                    >
+                    <x-error-field field="CURP" />
+                </div>
 
-        <div class="form-group">
-            <label>Correo personal:</label>
-            <input type="email" name="email" class="input-mediano"
-                   value="{{ old('email') }}">
-        </div>
+                {{-- RFC --}}
+                <div class="form-group">
+                    <label for="RFC">RFC:</label>
+                    <input
+                        type="text"
+                        id="RFC"
+                        name="RFC"
+                        class="input-chico"
+                        placeholder="RFC"
+                        value="{{ old('RFC') }}"
+                    >
+                    <x-error-field field="RFC" />
+                </div>
 
-        <div class="form-group">
-            <label>Correo institucional:</label>
-            <input type="email" name="emailInstitucional" class="input-mediano"
-                   value="{{ old('emailInstitucional') }}">
-        </div>
+                {{-- CORREO PERSONAL --}}
+                <div class="form-group">
+                    <label for="correoElectronico">Correo electrónico:</label>
+                    <input
+                        type="email"
+                        id="correoElectronico"
+                        name="correoElectronico"
+                        class="input-mediano"
+                        placeholder="ejemplo@correo.com"
+                        value="{{ old('correoElectronico') }}"
+                    >
+                    <x-error-field field="correoElectronico" />
+                </div>
 
-        {{-- ================= DOMICILIO ================= --}}
-        <h3 class="subtitulo-form">Domicilio</h3>
+                <h3 class="subtitulo-form">Datos académicos</h3>
 
-        {{-- ENTIDAD --}}
-        <div class="form-group">
-            <label>Entidad:</label>
-            <select id="entidad" name="entidad" class="select select-buscable">
-                <option value="">Seleccionar</option>
-                @foreach($entidades as $e)
-                    <option value="{{ $e->idEntidad }}">{{ $e->nombreEntidad }}</option>
-                @endforeach
-            </select>
-        </div>
+                {{-- Matricula Alfanumerica --}}
+                <div class="form-group">
+                    <label for="matriculaAlfanumerica">Matrícula alfanumérica:</label>
+                    <input
+                        type="text"
+                        id="matriculaAlfanumerica"
+                        class="input-mediano"
+                        readonly
+                        placeholder="Se genera automáticamente"
+                    >
+                </div>
 
-        {{-- MUNICIPIO --}}
-        <div class="form-group">
-            <label>Municipio:</label>
-            <div class="select-buscable-wrapper">
-                <input class="input-mediano select-buscable-input"
-                       placeholder="Seleccione entidad" readonly>
-                <ul class="select-buscable-list"></ul>
-                <select id="municipio" name="municipio" hidden disabled></select>
-            </div>
-        </div>
+                {{-- Matricula númerica --}}
+                <div class="form-group">
+                    <label for="matriculaNumerica">Matrícula numérica:</label>
+                    <input
+                        type="text"
+                        id="matriculaNumerica"
+                        class="input-mediano"
+                        placeholder="Se genera automáticamente"
+                        readonly
+                    >
+                </div>
 
-        {{-- LOCALIDAD --}}
-        <div class="form-group">
-            <label>Localidad:</label>
-            <div class="select-buscable-wrapper">
-                <input class="input-mediano select-buscable-input"
-                       placeholder="Seleccione municipio" readonly>
-                <ul class="select-buscable-list"></ul>
-                <select id="localidad" name="localidad" hidden disabled></select>
-            </div>
-        </div>
 
-        <div class="form-group">
-            <label>Colonia:</label>
-            <input type="text" name="colonia" class="input-mediano"
-                   value="{{ old('colonia') }}">
-        </div>
+                {{-- Plan de estudios --}}
+                <div class="form-group">
+                    <label for="idPlanDeEstudios">Plan de estudios:</label>
+                    <select id="idPlanDeEstudios" name="idPlanDeEstudios" class="select" required>
+                        <option value="" disabled {{ old('idPlanDeEstudios') ? '' : 'selected' }}>
+                            Seleccionar
+                        </option>
 
-        <div class="form-group">
-            <label>Código postal:</label>
-            <input type="text" name="codigoPostal" class="input-chico"
-                   value="{{ old('codigoPostal') }}">
-        </div>
+                        @foreach($planes as $plan)
+                            <option
+                                value="{{ $plan->idPlanDeEstudios }}"
+                                data-licenciatura="{{ $plan->licenciatura->nombreLicenciatura ?? '' }}"
+                                {{ old('idPlanDeEstudios') == $plan->idPlanDeEstudios ? 'selected' : '' }}
+                            >
+                                {{ $plan->nombrePlanDeEstudios }}
+                            </option>
+                        @endforeach
+                    </select>
 
-        <div class="form-group">
-            <label>Calle:</label>
-            <input type="text" name="calle" class="input-grande"
-                   value="{{ old('calle') }}">
-        </div>
+                    <x-error-field field="idPlanDeEstudios" />
+                </div>
 
-        <div class="form-group">
-            <label>Número exterior:</label>
-            <input type="text" name="numeroExterior" class="input-chico"
-                   value="{{ old('numeroExterior') }}">
-        </div>
 
-        <div class="form-group">
-            <label>Número interior:</label>
-            <input type="text" name="numeroInterior" class="input-chico"
-                   value="{{ old('numeroInterior') }}">
-        </div>
+                {{-- Licenciatura --}}
+                <div class="form-group">
+                    <label for="licenciatura">Licenciatura:</label>
+                    <input
+                        type="text"
+                        id="licenciatura"
+                        name="licenciatura"
+                        class="input-mediano"
+                        readonly
+                    >
+                </div>
 
-        {{-- ================= DATOS ACADÉMICOS ================= --}}
-        <h3 class="subtitulo-form">Datos académicos</h3>
+                {{-- Grado --}}
+                <div class="form-group">
+                    <label for="grado">Grado:</label>
+                    <input
+                        type="number"
+                        id="grado"
+                        name="grado"
+                        class="input-chico"
+                        placeholder="Grado"
+                        value="{{ old('grado') }}"
+                        min="1"
+                        max="9"
+                        step="1"
+                    >
+                    <x-error-field field="grado" />
+                </div>
 
-        <div class="form-group">
-            <label>Matrícula numérica:</label>
-            <input type="text" name="matriculaNumerica" class="input-chico"
-                   value="{{ old('matriculaNumerica') }}">
-        </div>
+                <div class="form-group">
+                    <label for="idGeneracion">Generación:</label>
 
-        <div class="form-group">
-            <label>Matrícula alfanumérica:</label>
-            <input type="text" name="matriculaAlfanumerica" class="input-mediano"
-                   value="{{ old('matriculaAlfanumerica') }}">
-        </div>
+                    @if($generacionActual)
+                        <input
+                            type="text"
+                            class="input-mediano"
+                            value="{{ $generacionActual->nombreGeneracion }}"
+                            readonly
+                        >
+                        <input
+                            type="hidden"
+                            name="idGeneracion"
+                            value="{{ $generacionActual->idGeneracion }}"
+                        >
+                    @else
+                        <input
+                            type="text"
+                            class="input-mediano"
+                            value="No existe generación activa"
+                            readonly
+                        >
+                        <p class="mensajeError">
+                            Debe crearse una nueva generación (Marzo o Septiembre)
+                        </p>
+                    @endif
+                </div>
 
-        <div class="form-group">
-            <label>Plan de estudios:</label>
-            <select name="carrera" class="select" required>
-                <option value="">Seleccionar</option>
-                @foreach($planes as $p)
-                    <option value="{{ $p->idPlanDeEstudios }}"
-                        {{ old('carrera') == $p->idPlanDeEstudios ? 'selected' : '' }}>
-                        {{ $p->nombrePlan }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
+                    {{-- Tipo de Inscripcion --}}
+                <div class="form-group">
+                    <label>Tipo de inscripcion:</label>
 
-        {{-- ================= ACCESO ================= --}}
-        <h3 class="subtitulo-form">Acceso al sistema</h3>
+                    <select id="idTipoDeInscripcion"
+                            name="idTipoDeInscripcion"
+                            class="select select-buscable">
 
-        <div class="form-group">
-            <label>Nombre de usuario:</label>
-            <input type="text" name="nombreUsuario" class="input-mediano"
-                   value="{{ old('nombreUsuario') }}" required>
-        </div>
+                        <option value="">Seleccionar</option>
 
-        <div class="form-group">
-            <label>Contraseña:</label>
-            <input type="password" name="password" class="input-chico" required>
-        </div>
+                        @foreach($tipoInscripcion as $tipo)
+                            <option value="{{ $tipo->idTipoDeInscripcion }}">
+                                {{ $tipo->nombreTipoDeInscripcion }}
+                            </option>
+                        @endforeach
+                    </select>
 
-        <div class="form-group">
-            <label>Confirmar contraseña:</label>
-            <input type="password" name="password_confirmation"
-                   class="input-chico" required>
-        </div>
+                    <x-error-field field="idTipoDeInscripcion" />
+                </div>
 
-        {{-- BOTONES --}}
-        <div class="form-group">
-            <button type="submit" class="btn-boton-formulario">Guardar</button>
-            <a href="{{ route('apartadoEstudiantes') }}"
-               class="btn-boton-formulario btn-cancelar">
-                Cancelar
-            </a>
-        </div>
 
-    </form>
-</main>
+                <h3 class="subtitulo-form">Datos del domicilio</h3>
+
+                    {{-- ENTIDAD --}}
+                <div class="form-group">
+                    <label>Entidad:</label>
+                    <select id="entidad" name="entidad" class="select select-buscable">
+                        <option value="">Seleccionar</option>
+                        @foreach($entidades as $e)
+                            <option value="{{ $e->idEntidad }}">{{ $e->nombreEntidad }}</option>
+                        @endforeach
+                    </select>
+                    <x-error-field field="entidad" />
+                </div>
+
+                {{-- MUNICIPIO --}}
+                <div class="form-group">
+                    <label>Municipio:</label>
+
+                    <div class="select-buscable-wrapper">
+                        <input
+                            type="text"
+                            class="input-mediano select-buscable-input"
+                            placeholder="Seleccione entidad"
+                            data-target="municipio"
+                            autocomplete="off"
+                            readonly
+                        >
+
+                        <ul class="select-buscable-list"></ul>
+
+                        <select
+                            id="municipio"
+                            name="municipio"
+                            required
+                            hidden
+                            disabled
+                        >
+                            <option value="">Seleccionar</option>
+                        </select>
+                    </div>
+
+                    <x-error-field field="municipio" />
+                </div>
+
+                {{-- LOCALIDAD --}}
+                <div class="form-group">
+                    <label>Localidad:</label>
+
+                    <div class="select-buscable-wrapper">
+                        <input
+                            type="text"
+                            class="input-mediano select-buscable-input"
+                            placeholder="Buscar localidad..."
+                            data-target="localidad"
+                            autocomplete="off"
+                            readonly
+                        >
+
+                        <ul class="select-buscable-list"></ul>
+
+                        <select
+                            id="localidad"
+                            name="localidad"
+                            required
+                            hidden
+                            disabled
+                        >
+                            <option value="">Seleccionar</option>
+                        </select>
+                    </div>
+
+                    <x-error-field field="localidad" />
+                </div>
+
+                <div class="form-group" id="localidadManualDomicilio" style="display:none;">
+                    <label for="localidadManual">Localidad (manual):</label>
+                    <input
+                        type="text"
+                        id="localidadManual"
+                        name="localidadManual"
+                        class="input-mediano"
+                        placeholder="Escribe la localidad"
+                        value="{{ old('localidadManual') }}"
+                    >
+                    <x-error-field field="localidadManual" />
+                </div>
+
+                {{-- COLONIA --}}
+                <div class="form-group">
+                    <label for="colonia">Colonia:</label>
+                    <input
+                        type="text"
+                        id="colonia"
+                        name="colonia"
+                        class="input-mediano"
+                        placeholder="Colonia"
+                        value="{{ old('colonia') }}"
+                    >
+                    <x-error-field field="colonia" />
+                </div>
+
+                {{-- CÓDIGO POSTAL --}}
+                <div class="form-group">
+                    <label for="codigoPostal">Código postal:</label>
+                    <input
+                        type="text"
+                        id="codigoPostal"
+                        name="codigoPostal"
+                        class="input-chico"
+                        placeholder="Código postal"
+                        value="{{ old('codigoPostal') }}"
+                    >
+                    <x-error-field field="codigoPostal" />
+                </div>
+
+                {{-- CALLE --}}
+                <div class="form-group">
+                    <label for="calle">Calle:</label>
+                    <input
+                        type="text"
+                        id="calle"
+                        name="calle"
+                        class="input-grande"
+                        placeholder="Ingresa la calle"
+                        value="{{ old('calle') }}"
+                    >
+                    <x-error-field field="calle" />
+                </div>
+
+                {{-- NÚMERO EXTERIOR --}}
+                <div class="form-group">
+                    <label for="numeroExterior">Número exterior:</label>
+                    <input
+                        type="text"
+                        id="numeroExterior"
+                        name="numeroExterior"
+                        class="input-chico"
+                        placeholder="Número exterior"
+                        value="{{ old('numeroExterior') }}"
+                    >
+                    <x-error-field field="numeroExterior" />
+                </div>
+
+                {{-- NÚMERO INTERIOR --}}
+                <div class="form-group">
+                    <label for="numeroInterior">Número interior:</label>
+                    <input
+                        type="text"
+                        id="numeroInterior"
+                        name="numeroInterior"
+                        class="input-chico"
+                        placeholder="Número interior"
+                        value="{{ old('numeroInterior') }}"
+                    >
+                    <x-error-field field="numeroInterior" />
+                </div>
+
+                <h3 class="subtitulo-form">Lugar de nacimiento</h3>
+
+                <div class="form-group">
+                    <label for="paisNacimiento">País:</label>
+                    <select id="paisNacimiento" name="paisNacimiento" class="select select-buscable" required>
+                        <option value="">Seleccionar</option>
+                        @foreach($paises as $pais)
+                            <option
+                                value="{{ $pais->idPais }}"
+                                data-normalizado="{{ $pais->nombrePaisNormalizado }}"
+                                {{ old('paisNacimiento') == $pais->idPais ? 'selected' : '' }}
+                            >
+                                {{ $pais->nombrePais }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <x-error-field field="paisNacimiento" />
+                </div>
+
+                <div id="bloque-select-nacimiento">
+
+                    {{-- ENTIDAD --}}
+                    <div class="form-group">
+                        <label>Entidad de nacimiento:</label>
+                        <select id="entidadNacimientoSelect" name="entidadNacimiento" class="select select-buscable">
+                            <option value="">Seleccionar país</option>
+                            @foreach($entidades as $e)
+                                <option value="{{ $e->idEntidad }}">{{ $e->nombreEntidad }}</option>
+                            @endforeach
+                        </select>
+                        <x-error-field field="entidadNacimiento" />
+                    </div>
+
+                    {{-- MUNICIPIO (BUSCABLE) --}}
+                    <div class="form-group">
+                        <label>Municipio de nacimiento:</label>
+
+                        <div class="select-buscable-wrapper">
+                            <input
+                                type="text"
+                                class="input-mediano select-buscable-input"
+                                placeholder="Seleccione entidad"
+                                data-target="municipioNacimientoSelect"
+                                autocomplete="off"
+                                readonly
+                            >
+
+                            <ul class="select-buscable-list"></ul>
+
+                            <select
+                                id="municipioNacimientoSelect"
+                                name="municipioNacimiento"
+                                hidden
+                                disabled
+                            >
+                                <option value="">Seleccionar</option>
+                            </select>
+                        </div>
+
+                        <x-error-field field="municipioNacimiento" />
+                    </div>
+
+                    {{-- LOCALIDAD (BUSCABLE) --}}
+                    <div class="form-group">
+                        <label>Localidad de nacimiento:</label>
+
+                        <div class="select-buscable-wrapper">
+                            <input
+                                type="text"
+                                class="input-mediano select-buscable-input"
+                                placeholder="Seleccione municipio"
+                                data-target="localidadNacimientoSelect"
+                                autocomplete="off"
+                                readonly
+                            >
+
+                            <ul class="select-buscable-list"></ul>
+
+                            <select
+                                id="localidadNacimientoSelect"
+                                name="localidadNacimiento"
+                                hidden
+                                disabled
+                            >
+                                <option value="">Seleccionar</option>
+                            </select>
+                        </div>
+
+                        <x-error-field field="localidadNacimiento" />
+                    </div>
+                </div>
+
+                <div id="bloque-input-nacimiento" style="display:none;">
+
+                    <div class="form-group">
+                        <label>Entidad de nacimiento:</label>
+                        <input
+                            type="text"
+                            name="entidadNacimientoManual"
+                            class="input-mediano"
+                            placeholder="Escribe la entidad"
+                            value="{{ old('entidadNacimientoManual') }}"
+                            disabled
+                        >
+                        <x-error-field field="entidadNacimientoManual" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Municipio de nacimiento:</label>
+                        <input
+                            type="text"
+                            name="municipioNacimientoManual"
+                            class="input-mediano"
+                            placeholder="Escribe el municipio"
+                            value="{{ old('municipioNacimientoManual') }}"
+                            disabled
+                        >
+                        <x-error-field field="municipioNacimientoManual" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Localidad de nacimiento:</label>
+                        <input
+                            type="text"
+                            name="localidadNacimientoManual"
+                            class="input-mediano"
+                            placeholder="Escribe la localidad"
+                            value="{{ old('localidadNacimientoManual') }}"
+                            disabled
+                        >
+                        <x-error-field field="localidadNacimientoManual" />
+                    </div>
+                </div>
+
+                {{-- BOTONES --}}
+                <div class="form-group">
+                    <button type="submit" class="btn-boton-formulario">Guardar</button>
+                    <a href="{{ route('apartadoUsuarios') }}" class="btn-boton-formulario btn-cancelar">
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+
+        </main>
+
+    @include('layouts.alta')
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const planSelect   = document.getElementById('idPlanDeEstudios');
+            const licInput     = document.getElementById('licenciatura');
+
+            if (!planSelect || !licInput) return;
+
+            const setLicenciatura = () => {
+                const option = planSelect.options[planSelect.selectedIndex];
+                licInput.value = option?.dataset?.licenciatura || '';
+            };
+
+            // 🔹 Cambio manual
+            planSelect.addEventListener('change', setLicenciatura);
+
+            // 🔹 Carga inicial (old() / edición)
+            setLicenciatura();
+        });
+    </script>
+
 
 </body>
 </html>

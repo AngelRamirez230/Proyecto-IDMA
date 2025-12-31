@@ -18,9 +18,9 @@ class Estudiante extends Model
         'creditosAcumulados',
         'promedioGeneral',
         'fechaDeIngreso',
-        'idGeneración',
+        'idGeneracion',
         'idPlanDeEstudios',
-        'idTipoDeInscripción',
+        'idTipoDeInscripcion',
         'idEstatus',
     ];
 
@@ -47,7 +47,7 @@ class Estudiante extends Model
 
     public function tipoDeInscripcion()
     {
-        return $this->belongsTo(TipoDeInscripcion::class, 'idTipoDeInscripcion', 'idTipoDeInscripcion');
+        return $this->belongsTo(TipoDeInscripcion::class, 'idTipoDeInscripcion', 'idTipoDeInscripcin');
     }
 
     public function estatus()
