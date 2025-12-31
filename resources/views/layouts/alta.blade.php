@@ -10,21 +10,30 @@ document.addEventListener('DOMContentLoaded', () => {
         select.disabled = disabled;
     };
 
-    const fillSelect = (select, placeholder, data, valueKey, textKey) => {
+    const fillSelect = (select, placeholder, data, valueKey, textKey, selectedValue = null) => {
         if (!select) return;
+
         select.innerHTML = `<option value="">${placeholder}</option>`;
+
         data.forEach(item => {
             const opt = document.createElement('option');
             opt.value = item[valueKey];
             opt.textContent = item[textKey];
+
+            if (selectedValue && String(selectedValue) === String(item[valueKey])) {
+                opt.selected = true;
+            }
+
             select.appendChild(opt);
         });
+
         select.disabled = false;
     };
 
     const setFirstOptionText = (select, text) => {
-        if (!select || !select.options || select.options.length === 0) return;
-        select.options[0].textContent = text;
+        if (select?.options?.length) {
+            select.options[0].textContent = text;
+        }
     };
 
     const getWrapperInput = (selectEl) => {
@@ -35,86 +44,96 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /* =========================================================
        DOMICILIO
-       entidad → municipio → localidad
     ========================================================= */
     const domEntidad   = document.getElementById('entidad');
     const domMunicipio = document.getElementById('municipio');
     const domLocalidad = document.getElementById('localidad');
 
-    if (domEntidad && domMunicipio && domLocalidad) {
+    const oldEntidad   = domEntidad?.dataset.old || null;
+    const oldMunicipio = domMunicipio?.dataset.old || null;
+    const oldLocalidad = domLocalidad?.dataset.old || null;
 
-        const municipioInput = getWrapperInput(domMunicipio);
-        const localidadInput = getWrapperInput(domLocalidad);
+    const municipioInput = getWrapperInput(domMunicipio);
+    const localidadInput = getWrapperInput(domLocalidad);
 
-        /* ===== ESTADO INICIAL ===== */
-        if (municipioInput) {
-            municipioInput.placeholder = 'Seleccione entidad';
-            municipioInput.setAttribute('readonly', 'readonly');
-        }
+    /* ===== ESTADO INICIAL ===== */
+    if (municipioInput) {
+        municipioInput.placeholder = 'Seleccione entidad';
+        municipioInput.setAttribute('readonly', 'readonly');
+    }
 
-        if (localidadInput) {
-            localidadInput.placeholder = 'Seleccione municipio';
-            localidadInput.setAttribute('readonly', 'readonly');
-        }
+    if (localidadInput) {
+        localidadInput.placeholder = 'Seleccione municipio';
+        localidadInput.setAttribute('readonly', 'readonly');
+    }
 
-        /* ===== ENTIDAD → MUNICIPIOS ===== */
-        domEntidad.addEventListener('change', () => {
-            const idEntidad = domEntidad.value;
+    /* ===== ENTIDAD → MUNICIPIOS ===== */
+    domEntidad?.addEventListener('change', () => {
 
-            resetSelect(domMunicipio, 'Seleccionar', true);
-            resetSelect(domLocalidad, 'Selecciona un municipio', true);
+        const idEntidad = domEntidad.value;
 
-            if (municipioInput) {
-                municipioInput.value = '';
-                municipioInput.placeholder = idEntidad ? 'Buscar municipio...' : 'Seleccione entidad';
-                if (!idEntidad) municipioInput.setAttribute('readonly', 'readonly');
-            }
+        resetSelect(domMunicipio, 'Seleccionar', true);
+        resetSelect(domLocalidad, 'Seleccionar', true);
 
-            if (localidadInput) {
-                localidadInput.value = '';
-                localidadInput.placeholder = 'Seleccione municipio';
-                localidadInput.setAttribute('readonly', 'readonly');
-            }
+        if (!idEntidad) return;
 
-            if (!idEntidad) return;
+        fetch(`/api/municipios/${idEntidad}`)
+            .then(r => r.json())
+            .then(data => {
 
-            fetch(`/api/municipios/${idEntidad}`)
-                .then(r => r.json())
-                .then(data => {
-                    fillSelect(domMunicipio, 'Seleccionar', data, 'idMunicipio', 'nombreMunicipio');
+                fillSelect(
+                    domMunicipio,
+                    'Seleccionar',
+                    data,
+                    'idMunicipio',
+                    'nombreMunicipio',
+                    oldMunicipio
+                );
 
-                    if (municipioInput) {
-                        municipioInput.placeholder = 'Buscar municipio...';
-                        municipioInput.removeAttribute('readonly');
-                    }
-                });
-        });
+                if (municipioInput) {
+                    municipioInput.placeholder = 'Buscar municipio...';
+                    municipioInput.removeAttribute('readonly');
+                }
 
-        /* ===== MUNICIPIO → LOCALIDADES ===== */
-        domMunicipio.addEventListener('change', () => {
-            const idMunicipio = domMunicipio.value;
+                if (oldMunicipio) {
+                    domMunicipio.dispatchEvent(new Event('change'));
+                }
+            });
+    });
 
-            resetSelect(domLocalidad, 'Seleccionar', true);
+    /* ===== MUNICIPIO → LOCALIDADES ===== */
+    domMunicipio?.addEventListener('change', () => {
 
-            if (localidadInput) {
-                localidadInput.value = '';
-                localidadInput.placeholder = idMunicipio ? 'Buscar localidad...' : 'Seleccione municipio';
-                if (!idMunicipio) localidadInput.setAttribute('readonly', 'readonly');
-            }
+        const idMunicipio = domMunicipio.value;
 
-            if (!idMunicipio) return;
+        resetSelect(domLocalidad, 'Seleccionar', true);
 
-            fetch(`/api/localidades/${idMunicipio}`)
-                .then(r => r.json())
-                .then(data => {
-                    fillSelect(domLocalidad, 'Seleccionar', data, 'idLocalidad', 'nombreLocalidad');
+        if (!idMunicipio) return;
 
-                    if (localidadInput) {
-                        localidadInput.placeholder = 'Buscar localidad...';
-                        localidadInput.removeAttribute('readonly');
-                    }
-                });
-        });
+        fetch(`/api/localidades/${idMunicipio}`)
+            .then(r => r.json())
+            .then(data => {
+
+                fillSelect(
+                    domLocalidad,
+                    'Seleccionar',
+                    data,
+                    'idLocalidad',
+                    'nombreLocalidad',
+                    oldLocalidad
+                );
+
+                if (localidadInput) {
+                    localidadInput.placeholder = 'Buscar localidad...';
+                    localidadInput.removeAttribute('readonly');
+                }
+            });
+    });
+
+    /* ===== RESTAURAR DOMICILIO ===== */
+    if (oldEntidad) {
+        domEntidad.value = oldEntidad;
+        domEntidad.dispatchEvent(new Event('change'));
     }
 
     /* =========================================================
@@ -124,6 +143,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const nacEntidad   = document.getElementById('entidadNacimientoSelect');
     const nacMunicipio = document.getElementById('municipioNacimientoSelect');
     const nacLocalidad = document.getElementById('localidadNacimientoSelect');
+
+    const oldNacEntidad   = nacEntidad?.dataset.old || null;
+    const oldNacMunicipio = nacMunicipio?.dataset.old || null;
+    const oldNacLocalidad = nacLocalidad?.dataset.old || null;
 
     const bloqueSelect = document.getElementById('bloque-select-nacimiento');
     const bloqueInput  = document.getElementById('bloque-input-nacimiento');
@@ -138,83 +161,45 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const setModoNacimiento = (modo) => {
-        // modo: NONE | MEXICO | EXTRANJERO
 
-        // 1) Apagar ambos visualmente
         bloqueSelect.classList.remove('activo');
         bloqueInput.classList.remove('activo');
 
-        // 2) Reset/habilitación de selects/manuales según modo
         if (modo === 'NONE') {
-            // Mostrar ninguno
-            // Bloquear selects
-            nacEntidad.disabled   = true;
-            nacMunicipio.disabled = true;
-            nacLocalidad.disabled = true;
-
-            // Reset selects
+            nacEntidad.disabled = nacMunicipio.disabled = nacLocalidad.disabled = true;
             resetSelect(nacMunicipio, 'Seleccionar municipio', true);
             resetSelect(nacLocalidad, 'Seleccionar localidad', true);
-
-            // Bloquear manuales + limpiar
-            inputsManual.forEach(i => {
-                i.disabled = true;
-                i.value = '';
-            });
-
+            inputsManual.forEach(i => { i.disabled = true; });
             return;
         }
 
         if (modo === 'MEXICO') {
-            // Mostrar SOLO selects
             bloqueSelect.classList.add('activo');
-
-            nacEntidad.disabled   = false;
-            nacMunicipio.disabled = true;
-            nacLocalidad.disabled = true;
-
+            nacEntidad.disabled = false;
+            nacMunicipio.disabled = nacLocalidad.disabled = true;
             resetSelect(nacMunicipio, 'Seleccionar municipio', true);
             resetSelect(nacLocalidad, 'Seleccionar localidad', true);
-
-            // Manuales apagados
-            inputsManual.forEach(i => {
-                i.disabled = true;
-                i.value = '';
-            });
-
+            inputsManual.forEach(i => { i.disabled = true; });
             return;
         }
 
         if (modo === 'EXTRANJERO') {
-            // Mostrar SOLO manuales
             bloqueInput.classList.add('activo');
-
-            // Apagar selects + limpiar valores
             nacEntidad.value = '';
-            nacEntidad.disabled   = true;
-            nacMunicipio.disabled = true;
-            nacLocalidad.disabled = true;
-
+            nacEntidad.disabled = nacMunicipio.disabled = nacLocalidad.disabled = true;
             resetSelect(nacMunicipio, 'Seleccionar municipio', true);
             resetSelect(nacLocalidad, 'Seleccionar localidad', true);
-
-            // Manuales activos
-            inputsManual.forEach(i => {
-                i.disabled = false;
-            });
-
-            return;
+            inputsManual.forEach(i => { i.disabled = false; });
         }
     };
 
-    // Estado inicial
-    if (!paisSelect || !paisSelect.value) {
-        setModoNacimiento('NONE');
-    } else {
+    /* ===== ESTADO INICIAL NACIMIENTO ===== */
+    if (paisSelect?.value) {
         setModoNacimiento(paisNormalizado() === 'MEXICO' ? 'MEXICO' : 'EXTRANJERO');
+    } else {
+        setModoNacimiento('NONE');
     }
 
-    // Cambio de país
     paisSelect?.addEventListener('change', () => {
         if (!paisSelect.value) {
             setModoNacimiento('NONE');
@@ -223,72 +208,67 @@ document.addEventListener('DOMContentLoaded', () => {
         setModoNacimiento(paisNormalizado() === 'MEXICO' ? 'MEXICO' : 'EXTRANJERO');
     });
 
-    // Entidad (nacimiento) → municipios
+    /* ===== NACIMIENTO ENTIDAD → MUNICIPIO ===== */
     nacEntidad?.addEventListener('change', () => {
+
         if (paisNormalizado() !== 'MEXICO') return;
 
         const idEntidad = nacEntidad.value;
-
-        // Cambiar texto de option inicial, según país ya seleccionado
-        // (aquí el país ya está seleccionado, así que debe ser “Seleccionar”)
         setFirstOptionText(nacEntidad, 'Seleccionar');
 
         resetSelect(nacMunicipio, 'Cargando...', true);
         resetSelect(nacLocalidad, 'Seleccionar', true);
-
-        if (nacMunicipioInput) {
-            nacMunicipioInput.value = '';
-            nacMunicipioInput.placeholder = idEntidad ? 'Buscar municipio...' : 'Seleccione entidad';
-            if (!idEntidad) nacMunicipioInput.setAttribute('readonly', 'readonly');
-        }
-
-        if (nacLocalidadInput) {
-            nacLocalidadInput.value = '';
-            nacLocalidadInput.placeholder = 'Seleccione municipio';
-            nacLocalidadInput.setAttribute('readonly', 'readonly');
-        }
 
         if (!idEntidad) return;
 
         fetch(`/api/municipios/${idEntidad}`)
             .then(r => r.json())
             .then(data => {
-                fillSelect(nacMunicipio, 'Seleccionar', data, 'idMunicipio', 'nombreMunicipio');
 
-                if (nacMunicipioInput) {
-                    nacMunicipioInput.placeholder = 'Buscar municipio...';
-                    nacMunicipioInput.removeAttribute('readonly');
+                fillSelect(
+                    nacMunicipio,
+                    'Seleccionar',
+                    data,
+                    'idMunicipio',
+                    'nombreMunicipio',
+                    oldNacMunicipio
+                );
+
+                if (oldNacMunicipio) {
+                    nacMunicipio.dispatchEvent(new Event('change'));
                 }
             });
     });
 
-    // Municipio (nacimiento) → localidades
+    /* ===== NACIMIENTO MUNICIPIO → LOCALIDAD ===== */
     nacMunicipio?.addEventListener('change', () => {
+
         if (paisNormalizado() !== 'MEXICO') return;
 
         const idMunicipio = nacMunicipio.value;
-
         resetSelect(nacLocalidad, 'Cargando...', true);
-
-        if (nacLocalidadInput) {
-            nacLocalidadInput.value = '';
-            nacLocalidadInput.placeholder = idMunicipio ? 'Buscar localidad...' : 'Seleccione municipio';
-            if (!idMunicipio) nacLocalidadInput.setAttribute('readonly', 'readonly');
-        }
 
         if (!idMunicipio) return;
 
         fetch(`/api/localidades/${idMunicipio}`)
             .then(r => r.json())
             .then(data => {
-                fillSelect(nacLocalidad, 'Seleccionar', data, 'idLocalidad', 'nombreLocalidad');
 
-                if (nacLocalidadInput) {
-                    nacLocalidadInput.placeholder = 'Buscar localidad...';
-                    nacLocalidadInput.removeAttribute('readonly');
-                }
+                fillSelect(
+                    nacLocalidad,
+                    'Seleccionar',
+                    data,
+                    'idLocalidad',
+                    'nombreLocalidad',
+                    oldNacLocalidad
+                );
             });
     });
+
+    if (oldNacEntidad) {
+        nacEntidad.value = oldNacEntidad;
+        nacEntidad.dispatchEvent(new Event('change'));
+    }
 
 });
 </script>
@@ -303,10 +283,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!input || !list || !select) return;
 
-        /* =====================================================
-           SINCRONIZAR ESTADO
-           - select.disabled  → input.readonly
-        ===================================================== */
         function syncDisabled() {
             if (select.disabled) {
                 input.setAttribute('readonly', 'readonly');
@@ -317,14 +293,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        // Estado inicial
         syncDisabled();
 
-        /* =====================================================
-           INPUT → FILTRADO
-        ===================================================== */
         input.addEventListener('input', function () {
-
             if (input.hasAttribute('readonly')) return;
 
             const term = this.value.toLowerCase().trim();
@@ -337,21 +308,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
             [...select.options].forEach(opt => {
                 if (!opt.value) return;
-
-                const text = opt.textContent.trim();
-
-                if (text.toLowerCase().includes(term)) {
+                if (opt.textContent.toLowerCase().includes(term)) {
                     const li = document.createElement('li');
-                    li.textContent = text;
-
-                    li.addEventListener('click', () => {
+                    li.textContent = opt.textContent;
+                    li.onclick = () => {
                         select.value = opt.value;
-                        input.value  = text;
+                        input.value = opt.textContent;
                         list.style.display = 'none';
-
                         select.dispatchEvent(new Event('change', { bubbles: true }));
-                    });
-
+                    };
                     list.appendChild(li);
                 }
             });
@@ -359,20 +324,11 @@ document.addEventListener('DOMContentLoaded', function () {
             list.style.display = list.children.length ? 'block' : 'none';
         });
 
-        /* =====================================================
-           CLICK FUERA → CERRAR LISTA
-        ===================================================== */
-        document.addEventListener('click', function (e) {
-            if (!wrapper.contains(e.target)) {
-                list.style.display = 'none';
-            }
+        document.addEventListener('click', e => {
+            if (!wrapper.contains(e.target)) list.style.display = 'none';
         });
 
-        /* =====================================================
-           OBSERVAR CAMBIOS EN disabled DEL SELECT
-        ===================================================== */
-        const observer = new MutationObserver(syncDisabled);
-        observer.observe(select, {
+        new MutationObserver(syncDisabled).observe(select, {
             attributes: true,
             attributeFilter: ['disabled']
         });
