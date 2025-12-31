@@ -117,3 +117,28 @@
         white-space: normal;
     }
 }
+
+/* =========================
+   Tipografías reutilizables
+========================= */
+
+.texto-titulo-md {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.texto-meta {
+    font-size: 14px;
+    opacity: .85;
+}
+
+.texto-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #79272C;
+}
+
+.texto-valor {
+    font-size: 14px;
+    color: #000;
+}

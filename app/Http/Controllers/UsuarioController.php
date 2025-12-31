@@ -12,6 +12,7 @@ use App\Models\Localidad;
 use App\Models\Domicilio; 
 use App\Models\Pais;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\Request;
 
 class UsuarioController extends Controller
 {
@@ -144,5 +145,80 @@ class UsuarioController extends Controller
         return redirect()
             ->route('consultaUsuarios')
             ->with('success', 'Usuario creado correctamente');
+    }
+
+    public function consultaUsuarios(Request $request)
+    {
+        $buscar = $request->input('buscarUsuario');
+        $filtro = $request->input('filtro');
+        $orden  = $request->input('orden');
+
+        $usuarios = Usuario::with(['tipoDeUsuario', 'estatus']);
+
+        /* =========================
+        BÚSQUEDA
+        ========================= */
+        if ($buscar) {
+            $usuarios->where(function ($q) use ($buscar) {
+                $q->whereRaw("CONCAT(primerNombre,' ',segundoNombre,' ',primerApellido,' ',segundoApellido) LIKE ?", ["%{$buscar}%"])
+                ->orWhere('correoInstitucional', 'LIKE', "%{$buscar}%")
+                ->orWhereHas('tipoDeUsuario', function ($q2) use ($buscar) {
+                    $q2->where('nombreTipoDeUsuario', 'LIKE', "%{$buscar}%");
+                });
+            });
+        }
+
+        /* =========================
+        FILTROS
+        ========================= */
+        if ($filtro === 'activos') {
+            $usuarios->where('idestatus', 1);
+        }
+
+        if ($filtro === 'suspendidos') {
+            $usuarios->where('idestatus', 2);
+        }
+
+        /* =========================
+        ORDEN
+        ========================= */
+        if ($orden === 'alfabetico') {
+            $usuarios->orderBy('primerApellido')
+                    ->orderBy('primerNombre');
+        }
+
+        if ($orden === 'recientes') {
+            $usuarios->orderByDesc('idUsuario');
+        }
+
+        $usuarios = $usuarios->paginate(10)->withQueryString();
+
+        return view('shared.moduloUsuarios.consultaDeUsuarios', compact(
+            'usuarios','buscar','filtro','orden'
+        ));
+    }
+
+    public function show(Usuario $usuario)
+    {
+        $usuario->load([
+            'tipoDeUsuario',
+            'estatus',
+            'sexo',
+            'estadoCivil',
+            'domicilio.localidad.municipio.entidad.pais',
+            'localidadNacimiento.municipio.entidad.pais',
+        ]);
+
+        // ViewModel simple para no ensuciar Blade
+        $vm = [
+            'nombreCompleto' => trim(collect([
+                $usuario->primerNombre,
+                $usuario->segundoNombre,
+                $usuario->primerApellido,
+                $usuario->segundoApellido,
+            ])->filter()->implode(' ')),
+        ];
+
+        return view('shared.moduloUsuarios.detalleDeUsuario', compact('usuario', 'vm'));
     }
 }
