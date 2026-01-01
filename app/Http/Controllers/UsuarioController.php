@@ -221,4 +221,160 @@ class UsuarioController extends Controller
 
         return view('shared.moduloUsuarios.detalleDeUsuario', compact('usuario', 'vm'));
     }
+
+    public function edit(Usuario $usuario)
+    {
+        $usuario->load([
+            'sexo',
+            'estadoCivil',
+            'tipoDeUsuario',
+            'estatus',
+            'domicilio.localidad.municipio.entidad.pais',
+            'localidadNacimiento.municipio.entidad.pais',
+        ]);
+
+        // Domicilio: derivar entidad/municipio desde localidad
+        $domEntidadId = optional(optional(optional($usuario->domicilio)->localidad)->municipio)->idEntidad;
+        $domMunicipioId = optional(optional($usuario->domicilio)->localidad)->idMunicipio;
+        $domLocalidadId = optional($usuario->domicilio)->idLocalidad;
+
+        // Nacimiento: derivar entidad/municipio desde localidadNacimiento
+        $nacEntidadId = optional(optional($usuario->localidadNacimiento)->municipio)->idEntidad;
+        $nacMunicipioId = optional($usuario->localidadNacimiento)->idMunicipio;
+        $nacLocalidadId = $usuario->idLocalidadNacimiento;
+
+        // País nacimiento (si es por catálogo México, típicamente viene de la entidad->pais)
+        $paisNacimientoId = optional(optional(optional($usuario->localidadNacimiento)->municipio)->entidad)->idPais;
+
+        return view('shared.moduloUsuarios.editarDeUsuario', [
+            'usuario'            => $usuario,
+            'sexos'              => Sexo::orderBy('nombreSexo')->get(),
+            'estadosCiviles'     => EstadoCivil::orderBy('nombreEstadoCivil')->get(),
+            'entidades'          => Entidad::orderBy('nombreEntidad')->get(),
+            'paises'             => Pais::orderBy('nombrePais')->get(),
+
+            // precarga (para JS)
+            'domEntidadId'       => $domEntidadId,
+            'domMunicipioId'     => $domMunicipioId,
+            'domLocalidadId'     => $domLocalidadId,
+
+            'paisNacimientoId'   => $paisNacimientoId,
+            'nacEntidadId'       => $nacEntidadId,
+            'nacMunicipioId'     => $nacMunicipioId,
+            'nacLocalidadId'     => $nacLocalidadId,
+        ]);
+    }
+
+    public function update(UsuarioRequest $request, Usuario $usuario)
+    {
+        /*
+        |----------------------------------------------------------
+        | 1) LOCALIDAD DE NACIMIENTO
+        |----------------------------------------------------------
+        */
+        $idLocalidadNacimiento = $request->input('localidadNacimiento'); // puede ser null si extranjero
+
+        /*
+        |----------------------------------------------------------
+        | 2) LOCALIDAD DE DOMICILIO (CATÁLOGO O MANUAL)
+        |----------------------------------------------------------
+        */
+        $idLocalidadDomicilio = null;
+
+        if ($request->filled('localidad')) {
+            $idLocalidadDomicilio = $request->localidad;
+
+        } elseif ($request->filled('localidadManual') && $request->filled('municipio')) {
+
+            $localidadExistente = Localidad::where('nombreLocalidad', $request->localidadManual)
+                ->where('idMunicipio', $request->municipio)
+                ->first();
+
+            if ($localidadExistente) {
+                $idLocalidadDomicilio = $localidadExistente->idLocalidad;
+            } else {
+                $localidad = Localidad::create([
+                    'nombreLocalidad' => $request->localidadManual,
+                    'idMunicipio'     => $request->municipio,
+                    'idTipoDeEstatus' => 3, // Pendiente
+                ]);
+
+                $idLocalidadDomicilio = $localidad->idLocalidad;
+            }
+        }
+
+        /*
+        |----------------------------------------------------------
+        | 3) UPSERT DOMICILIO (si hay datos)
+        |----------------------------------------------------------
+        */
+        $tieneDatosDomicilio = $idLocalidadDomicilio
+            || $request->filled('calle')
+            || $request->filled('codigoPostal')
+            || $request->filled('colonia')
+            || $request->filled('numeroExterior')
+            || $request->filled('numeroInterior');
+
+        $domicilioId = $usuario->idDomicilio;
+
+        if ($tieneDatosDomicilio) {
+
+            if ($usuario->domicilio) {
+                $usuario->domicilio->update([
+                    'codigoPostal'   => $request->codigoPostal,
+                    'calle'          => $request->calle,
+                    'numeroExterior' => $request->numeroExterior,
+                    'numeroInterior' => $request->numeroInterior,
+                    'colonia'        => $request->colonia,
+                    'idLocalidad'    => $idLocalidadDomicilio,
+                ]);
+            } else {
+                $dom = Domicilio::create([
+                    'codigoPostal'   => $request->codigoPostal,
+                    'calle'          => $request->calle,
+                    'numeroExterior' => $request->numeroExterior,
+                    'numeroInterior' => $request->numeroInterior,
+                    'colonia'        => $request->colonia,
+                    'idLocalidad'    => $idLocalidadDomicilio,
+                ]);
+
+                $domicilioId = $dom->idDomicilio;
+            }
+        }
+
+        /*
+        |----------------------------------------------------------
+        | 4) ACTUALIZAR USUARIO (password solo si viene)
+        |----------------------------------------------------------
+        */
+        $data = [
+            'primerNombre'          => $request->primer_nombre,
+            'segundoNombre'         => $request->segundo_nombre,
+            'primerApellido'        => $request->primer_apellido,
+            'segundoApellido'       => $request->segundo_apellido,
+            'idSexo'                => $request->sexo,
+            'idEstadoCivil'         => $request->estadoCivil,
+            'telefono'              => $request->telefono,
+            'telefonoFijo'          => $request->telefonoFijo,
+            'correoInstitucional'   => $request->emailInstitucional,
+            'nombreUsuario'         => $request->nombreUsuario,
+            'fechaDeNacimiento'     => $request->fechaNacimiento,
+            'RFC'                   => $request->rfc,
+            'CURP'                  => $request->curp,
+            'correoElectronico'     => $request->email,
+            'idLocalidadNacimiento' => $idLocalidadNacimiento,
+            'idDomicilio'           => $domicilioId,
+        ];
+
+        // Solo si el usuario escribió nueva contraseña
+        if ($request->filled('password')) {
+            $data['contraseña'] = Hash::make($request->password);
+        }
+
+        $usuario->update($data);
+
+        return redirect()
+            ->route('consultaUsuarios')
+            ->with('success', 'Usuario actualizado correctamente');
+    }
 }

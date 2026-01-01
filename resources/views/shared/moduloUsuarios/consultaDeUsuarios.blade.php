@@ -108,15 +108,18 @@
                                             <img src="{{ asset('imagenes/IconoInicioUsuarios.png') }}" alt="Ver">
                                         </a>
 
-                                        {{-- EDITAR (placeholder) --}}
-                                        <button type="button" class="accion-boton" title="Editar">
-                                            <img
-                                                src="{{ ((int)($usuario->idestatus ?? 0) === 2)
-                                                    ? asset('imagenes/IconoEditarGris.png')
-                                                    : asset('imagenes/IconoEditar.png') }}"
-                                                alt="Editar"
-                                            >
-                                        </button>
+                                        {{-- EDITAR --}}
+                                        @if(((int)($usuario->idestatus ?? 0) === 2))
+                                            <span class="accion-boton" title="No disponible (suspendido)" style="pointer-events:none; opacity:.6;">
+                                                <img src="{{ asset('imagenes/IconoEditarGris.png') }}" alt="Editar">
+                                            </span>
+                                        @else
+                                            <a href="{{ route('usuarios.edit', $usuario->idUsuario) }}"
+                                            class="accion-boton"
+                                            title="Editar">
+                                                <img src="{{ asset('imagenes/IconoEditar.png') }}" alt="Editar">
+                                            </a>
+                                        @endif
 
                                         {{-- SUSPENDER/HABILITAR (placeholder) --}}
                                         <button type="button" class="accion-boton" title="Suspender/Habilitar">
