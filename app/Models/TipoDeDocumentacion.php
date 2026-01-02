@@ -24,13 +24,4 @@ class TipoDeDocumentacion extends Model
         );
     }
 
-    public function usuarios()
-    {
-        return $this->belongsToMany(
-            Usuario::class,
-            'Documentacion_de_usuario',
-            'idTipoDeDocumento',
-            'idUsuario'
-        )->withPivot('ruta');
-    }
 }

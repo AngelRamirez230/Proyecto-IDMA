@@ -45,7 +45,7 @@ class SolicitudDeBecaController extends Controller
                 'promedio' => 'required|numeric|min:0|max:10',
                 'examenExtraordinario' => 'nullable|string|max:255',
                 'documento_solicitud' => 'required|file|mimes:pdf|max:5120',
-                'documento_adicional' => 'nullable|file|mimes:pdf|max:5120'
+                'documento_adicional' => 'required|file|mimes:pdf|max:5120'
             ]);
 
             $usuario = auth()->user();
@@ -58,12 +58,12 @@ class SolicitudDeBecaController extends Controller
             // 2️⃣ Validar solicitud duplicada
             $existeSolicitud = SolicitudDeBeca::where('idEstudiante', $estudiante->idEstudiante)
                 ->where('idBeca', $request->idBeca)
-                ->whereIn('idEstatus', [1, 2]) // pendiente o aprobada
+                ->whereIn('idEstatus', [5, 6]) // pendiente o aprobada
                 ->exists();
 
             if ($existeSolicitud) {
                 return back()
-                    ->withErrors(['error' => 'Ya tienes una solicitud registrada para esta beca'])
+                    ->with('popupError', 'Ya tienes una solicitud registrada para esta beca')
                     ->withInput();
             }
 
@@ -101,7 +101,7 @@ class SolicitudDeBecaController extends Controller
                 'promedioAnterior' => $request->promedio,
                 'examenExtraordinario' => $request->examenExtraordinario,
                 'observacion' => null,
-                'idEstatus' => 1 // PENDIENTE
+                'idEstatus' => 5 // PENDIENTE
             ]);
 
             DB::commit();
