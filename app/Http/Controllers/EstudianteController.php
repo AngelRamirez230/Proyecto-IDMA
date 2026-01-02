@@ -73,6 +73,19 @@ class EstudianteController extends Controller
                 'RFC'                 => 'nullable|string|max:13|unique:usuario,RFC',
                 'idSexo'              => 'required|exists:sexo,idSexo',
                 'idEstadoCivil'       => 'required|exists:estado_civil,idEstadoCivil',
+                
+                // NACIMIENTO
+                'paisNacimiento'      => 'required',
+                'entidadNacimiento'   => 'required|exists:entidad,idEntidad',
+                'municipioNacimiento' => 'required|exists:municipio,idMunicipio',
+                'localidadNacimiento' => 'required|exists:localidad,idLocalidad',
+
+                // DOMICILIO
+                'entidad'   => 'required|exists:entidad,idEntidad',
+                'municipio' => 'required|exists:municipio,idMunicipio',
+                'localidad' => 'required|exists:localidad,idLocalidad',
+
+                
 
                 // ESTUDIANTE
                 'grado'                 => 'required|integer|min:1|max:9',
@@ -115,6 +128,15 @@ class EstudianteController extends Controller
                 'idGeneracion'        => 'generación',
                 'idPlanDeEstudios'    => 'plan de estudios',
                 'idTipoDeInscripcion' => 'tipo de inscripción',
+                'paisNacimiento'      => 'país de nacimiento',
+                'entidadNacimiento'   => 'entidad de nacimiento',
+                'municipioNacimiento' => 'municipio de nacimiento',
+                'localidadNacimiento' => 'localidad de nacimiento',
+                'entidad'   => 'entidad del domicilio',
+                'municipio' => 'municipio del domicilio',
+                'localidad' => 'localidad del domicilio',
+
+            
             ]
         );
 

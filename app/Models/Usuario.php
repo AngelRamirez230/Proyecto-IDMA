@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
-class Usuario extends Model
+class Usuario extends Authenticatable
 {
+    use Notifiable;
+
     /**
      * Nombre real de la tabla
      */
@@ -73,25 +76,16 @@ class Usuario extends Model
     |--------------------------------------------------------------------------
     */
 
-    /**
-     * Usuario pertenece a un Sexo
-     */
     public function sexo()
     {
         return $this->belongsTo(Sexo::class, 'idSexo', 'idSexo');
     }
 
-    /**
-     * Usuario pertenece a un Estado Civil
-     */
     public function estadoCivil()
     {
         return $this->belongsTo(EstadoCivil::class, 'idEstadoCivil', 'idEstadoCivil');
     }
 
-    /**
-     * Usuario pertenece a un Tipo de Usuario
-     */
     public function tipoDeUsuario()
     {
         return $this->belongsTo(
@@ -101,9 +95,6 @@ class Usuario extends Model
         );
     }
 
-    /**
-     * Usuario pertenece a un Estatus
-     */
     public function estatus()
     {
         return $this->belongsTo(
@@ -113,9 +104,6 @@ class Usuario extends Model
         );
     }
 
-    /**
-     * Usuario pertenece a un Domicilio
-     */
     public function domicilio()
     {
         return $this->belongsTo(
@@ -125,9 +113,6 @@ class Usuario extends Model
         );
     }
 
-    /**
-     * Lugar de nacimiento del usuario
-     */
     public function localidadNacimiento()
     {
         return $this->belongsTo(
@@ -137,9 +122,18 @@ class Usuario extends Model
         );
     }
 
-
     public function estudiante()
     {
         return $this->hasOne(Estudiante::class, 'idUsuario', 'idUsuario');
+    }
+
+    public function documentos()
+    {
+        return $this->belongsToMany(
+            TipoDeDocumentacion::class,
+            'Documentacion_de_usuario',
+            'idUsuario',
+            'idTipoDeDocumento'
+        )->withPivot('ruta');
     }
 }

@@ -22,4 +22,13 @@ class Beca extends Model
     {
         return $this->belongsTo(TipoDeEstatus::class, 'idEstatus', 'idTipoDeEstatus');
     }
+
+    public function solicitudes()
+    {
+        return $this->hasMany(
+            SolicitudDeBeca::class,
+            'idBeca',
+            'idBeca'
+        );
+    }
 }

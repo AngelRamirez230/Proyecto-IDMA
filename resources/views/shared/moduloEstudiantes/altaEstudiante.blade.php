@@ -157,6 +157,7 @@
                         name="contraseña"
                         class="input-chico"
                         placeholder="Escribe una contraseña"
+                        value="{{ old('contraseña') }}"
                         required
                     >
                     <x-error-field field="contraseña" />
@@ -340,18 +341,22 @@
                     @endif
                 </div>
 
-                    {{-- Tipo de Inscripcion --}}
+                {{-- Tipo de Inscripción --}}
                 <div class="form-group">
-                    <label>Tipo de inscripcion:</label>
+                    <label for="idTipoDeInscripcion">Tipo de inscripción:</label>
 
                     <select id="idTipoDeInscripcion"
                             name="idTipoDeInscripcion"
-                            class="select select-buscable">
+                            class="select select-buscable"
+                            required>
 
-                        <option value="">Seleccionar</option>
+                        <option value="" disabled {{ old('idTipoDeInscripcion') ? '' : 'selected' }}>
+                            Seleccionar
+                        </option>
 
                         @foreach($tipoInscripcion as $tipo)
-                            <option value="{{ $tipo->idTipoDeInscripcion }}">
+                            <option value="{{ $tipo->idTipoDeInscripcion }}"
+                                {{ old('idTipoDeInscripcion') == $tipo->idTipoDeInscripcion ? 'selected' : '' }}>
                                 {{ $tipo->nombreTipoDeInscripcion }}
                             </option>
                         @endforeach
@@ -361,12 +366,13 @@
                 </div>
 
 
+
                 <h3 class="subtitulo-form">Datos del domicilio</h3>
 
                     {{-- ENTIDAD --}}
                 <div class="form-group">
                     <label>Entidad:</label>
-                    <select id="entidad" name="entidad" class="select select-buscable">
+                    <select id="entidad" name="entidad" data-old="{{ old('entidad') }}" class="select select-buscable">
                         <option value="">Seleccionar</option>
                         @foreach($entidades as $e)
                             <option value="{{ $e->idEntidad }}">{{ $e->nombreEntidad }}</option>
@@ -394,6 +400,7 @@
                         <select
                             id="municipio"
                             name="municipio"
+                            data-old="{{ old('municipio') }}"
                             required
                             hidden
                             disabled
@@ -424,6 +431,7 @@
                         <select
                             id="localidad"
                             name="localidad"
+                            data-old="{{ old('localidad') }}"
                             required
                             hidden
                             disabled
@@ -522,7 +530,7 @@
 
                 <div class="form-group">
                     <label for="paisNacimiento">País:</label>
-                    <select id="paisNacimiento" name="paisNacimiento" class="select select-buscable" required>
+                    <select id="paisNacimiento" name="paisNacimiento" data-old="{{ old('paisNacimiento')}}"  class="select select-buscable" required>
                         <option value="">Seleccionar</option>
                         @foreach($paises as $pais)
                             <option
@@ -542,7 +550,7 @@
                     {{-- ENTIDAD --}}
                     <div class="form-group">
                         <label>Entidad de nacimiento:</label>
-                        <select id="entidadNacimientoSelect" name="entidadNacimiento" class="select select-buscable">
+                        <select id="entidadNacimientoSelect" name="entidadNacimiento" data-old="{{ old('entidadNacimiento') }}" class="select select-buscable">
                             <option value="">Seleccionar país</option>
                             @foreach($entidades as $e)
                                 <option value="{{ $e->idEntidad }}">{{ $e->nombreEntidad }}</option>
@@ -570,6 +578,7 @@
                             <select
                                 id="municipioNacimientoSelect"
                                 name="municipioNacimiento"
+                                data-old="{{ old('municipioNacimiento') }}"
                                 hidden
                                 disabled
                             >
@@ -599,6 +608,7 @@
                             <select
                                 id="localidadNacimientoSelect"
                                 name="localidadNacimiento"
+                                data-old="{{ old('localidadNacimiento') }}"
                                 hidden
                                 disabled
                             >
