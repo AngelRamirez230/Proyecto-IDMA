@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UsuarioRequest extends FormRequest
 {
@@ -11,8 +12,34 @@ class UsuarioRequest extends FormRequest
         return true;
     }
 
+    private function isUpdate(): bool
+    {
+        return $this->isMethod('PUT') || $this->isMethod('PATCH');
+    }
+
+    /**
+     * Obtiene el idUsuario del modelo enlazado a la ruta o del parámetro directo.
+     */
+    private function routeUserId(): ?int
+    {
+        $routeParam = $this->route('usuario'); // puede ser Modelo Usuario o un id
+
+        if (is_object($routeParam) && isset($routeParam->idUsuario)) {
+            return (int) $routeParam->idUsuario;
+        }
+
+        if (is_numeric($routeParam)) {
+            return (int) $routeParam;
+        }
+
+        return null;
+    }
+
     public function rules(): array
     {
+        $isUpdate  = $this->isUpdate();
+        $idUsuario = $this->routeUserId(); // clave para ignore()
+
         return [
 
             /* =======================
@@ -24,38 +51,34 @@ class UsuarioRequest extends FormRequest
             'primer_apellido'  => ['required', 'string', 'max:45'],
             'segundo_apellido' => ['nullable', 'string', 'max:45'],
 
-            'sexo' => [
-                'required',
-                'integer',
-                'exists:Sexo,idSexo'
-            ],
+            'sexo' => ['required', 'integer', 'exists:Sexo,idSexo'],
+            'estadoCivil' => ['required', 'integer', 'exists:Estado_civil,idEstadoCivil'],
 
-            // NUEVO: ESTADO CIVIL (CATÁLOGO)
-            'estadoCivil' => [
-                'required',
-                'integer',
-                'exists:Estado_civil,idEstadoCivil'
-            ],
-
-            'telefono' => ['nullable', 'digits:10'],
+            'telefono'     => ['nullable', 'digits:10'],
+            'telefonoFijo' => ['nullable', 'digits:10'],
 
             'emailInstitucional' => [
                 'nullable',
                 'email',
                 'max:100',
-                'unique:Usuario,correoInstitucional'
+                Rule::unique('Usuario', 'correoInstitucional')
+                    ->ignore($isUpdate ? $idUsuario : null, 'idUsuario'),
             ],
 
-            'password' => ['required', 'string', 'min:8'],
+            // En update NO es obligatoria; si viene, debe cumplir min:8
+            'password' => $isUpdate
+                ? ['nullable', 'string', 'min:8']
+                : ['required', 'string', 'min:8'],
 
-            'nombreUsuario' => ['required', 'string', 'max:100'],
-
-            'fechaNacimiento' => [
-                'nullable',
-                'date',
-                'before_or_equal:today'
+            'nombreUsuario' => [
+                'required',
+                'string',
+                'max:100',
+                Rule::unique('Usuario', 'nombreUsuario')
+                    ->ignore($isUpdate ? $idUsuario : null, 'idUsuario'),
             ],
 
+            'fechaNacimiento' => ['nullable', 'date', 'before_or_equal:today'],
             'curp' => ['nullable', 'string', 'max:18'],
             'rfc'  => ['nullable', 'string', 'max:13'],
 
@@ -63,7 +86,8 @@ class UsuarioRequest extends FormRequest
                 'nullable',
                 'email',
                 'max:100',
-                'unique:Usuario,correoElectronico'
+                Rule::unique('Usuario', 'correoElectronico')
+                    ->ignore($isUpdate ? $idUsuario : null, 'idUsuario'),
             ],
 
             /* =======================
@@ -71,15 +95,15 @@ class UsuarioRequest extends FormRequest
             ======================= */
             'paisNacimiento' => ['required', 'integer', 'exists:Pais,idPais'],
 
-            // México → selects
+            // México → catálogo
             'localidadNacimiento' => [
                 'nullable',
                 'integer',
                 'exists:Localidad,idLocalidad',
-                'required_if:paisNacimiento,1', // ASUME que 1 = México
+                'required_if:paisNacimiento,1', // 1 = México
             ],
 
-            // Extranjero → inputs manuales
+            // Extranjero → manual
             'localidadNacimientoManual' => [
                 'nullable',
                 'string',
@@ -90,19 +114,9 @@ class UsuarioRequest extends FormRequest
             /* =======================
                DOMICILIO
             ======================= */
-            'entidad' => [
-                'nullable',
-                'integer',
-                'exists:Entidad,idEntidad'
-            ],
+            'entidad'   => ['nullable', 'integer', 'exists:Entidad,idEntidad'],
+            'municipio' => ['nullable', 'integer', 'exists:Municipio,idMunicipio'],
 
-            'municipio' => [
-                'nullable',
-                'integer',
-                'exists:Municipio,idMunicipio'
-            ],
-
-            // Localidad seleccionada (catálogo)
             'localidad' => [
                 'nullable',
                 'integer',
@@ -110,7 +124,6 @@ class UsuarioRequest extends FormRequest
                 'required_without:localidadManual'
             ],
 
-            // Localidad escrita manualmente
             'localidadManual' => [
                 'nullable',
                 'string',
@@ -133,14 +146,11 @@ class UsuarioRequest extends FormRequest
             'primer_apellido'      => 'primer apellido',
             'sexo'                 => 'sexo',
             'estadoCivil'          => 'estado civil',
+            'telefonoFijo'         => 'teléfono fijo',
             'emailInstitucional'   => 'correo institucional',
             'nombreUsuario'        => 'nombre de usuario',
             'fechaNacimiento'      => 'fecha de nacimiento',
-
-            // Nacimiento
             'localidadNacimiento'  => 'localidad de nacimiento',
-
-            // Domicilio
             'entidad'              => 'entidad',
             'municipio'            => 'municipio',
             'localidad'            => 'localidad',
@@ -151,36 +161,15 @@ class UsuarioRequest extends FormRequest
     public function messages(): array
     {
         return [
-
-            /* =======================
-            PASSWORD
-            ======================= */
             'password.required' => 'La contraseña es obligatoria.',
             'password.min'      => 'La contraseña debe tener al menos 8 caracteres.',
-
-            /* =======================
-            RFC
-            ======================= */
-            'rfc.max' => 'El RFC no debe tener más de 13 caracteres.',
-
-            /* =======================
-            EMAIL PERSONAL
-            ======================= */
-            'email.email'  => 'El correo electrónico no tiene un formato válido.',
-            'email.unique' => 'El correo electrónico ya está registrado.',
-
-            /* =======================
-            EMAIL INSTITUCIONAL
-            ======================= */
+            'rfc.max'           => 'El RFC no debe tener más de 13 caracteres.',
+            'email.email'       => 'El correo electrónico no tiene un formato válido.',
+            'email.unique'      => 'El correo electrónico ya está registrado.',
             'emailInstitucional.email'  => 'El correo institucional no tiene un formato válido.',
             'emailInstitucional.unique' => 'El correo institucional ya está registrado.',
-
-            /* =======================
-            LOCALIDAD
-            ======================= */
             'localidad.required_without' =>
                 'Debes seleccionar una localidad o escribir una manualmente.',
-
             'localidadManual.required_without' =>
                 'Debes escribir la localidad si no seleccionas una del catálogo.',
         ];
