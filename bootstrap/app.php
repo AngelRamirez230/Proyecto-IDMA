@@ -34,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'guest.manual' => RedirectManual::class,
             'nocache'      => NoCache::class,
             'activity.timeout'  => SessionTimeout::class,
+            'tipoUsuario' => \App\Http\Middleware\TipoUsuarioMiddleware::class,
 
         ]);
     })

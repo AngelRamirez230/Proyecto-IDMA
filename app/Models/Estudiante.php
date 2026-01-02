@@ -54,4 +54,13 @@ class Estudiante extends Model
     {
         return $this->belongsTo(TipoDeEstatus::class, 'idEstatus', 'idTipoDeEstatus');
     }
+
+     public function solicitudesDeBeca()
+    {
+        return $this->hasMany(
+            SolicitudDeBeca::class,
+            'idEstudiante',
+            'idEstudiante'
+        );
+    }
 }

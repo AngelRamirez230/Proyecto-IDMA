@@ -21,23 +21,36 @@
                 </div>
             </form>
 
+            
             <div class="consulta-selects">
                 <form action="{{ route('consultaBeca') }}" method="GET" id="formFiltro">
-                    <select name="filtro" class="select select-boton" onchange="this.form.submit()">
-                        <option value="" disabled selected>Filtrar por</option>
-                        <option value="todas" {{ ($filtro ?? '') == 'todas' ? 'selected' : '' }}>Ver todas</option>
-                        <option value="activas" {{ ($filtro ?? '') == 'activas' ? 'selected' : '' }}>Activo(a)</option>
-                        <option value="suspendidas" {{ ($filtro ?? '') == 'suspendidas' ? 'selected' : '' }}>Suspendido(a)</option>
-                    </select>
+
+                    
+                    @admin
+                        <select name="filtro" class="select select-boton" onchange="this.form.submit()">
+                            <option value="" disabled selected>Filtrar por</option>
+                            <option value="todas" {{ ($filtro ?? '') == 'todas' ? 'selected' : '' }}>Ver todas</option>
+                            <option value="activas" {{ ($filtro ?? '') == 'activas' ? 'selected' : '' }}>Activo(a)</option>
+                            <option value="suspendidas" {{ ($filtro ?? '') == 'suspendidas' ? 'selected' : '' }}>Suspendido(a)</option>
+                        </select>
+                    @endadmin
 
                     <select name="orden" class="select select-boton" onchange="this.form.submit()">
                         <option value="" disabled selected>Ordenar por</option>
-                        <option value="alfabetico" {{ ($orden ?? '') == 'alfabetico' ? 'selected' : '' }}>Alfabéticamente (A-Z)</option>
-                        <option value="porcentaje_mayor" {{ ($orden ?? '') == 'porcentaje_mayor' ? 'selected' : '' }}>Mayor porcentaje</option>
-                        <option value="porcentaje_menor" {{ ($orden ?? '') == 'porcentaje_menor' ? 'selected' : '' }}>Menor porcentaje</option>
+                        <option value="alfabetico" {{ ($orden ?? '') == 'alfabetico' ? 'selected' : '' }}>
+                            Alfabéticamente (A-Z)
+                        </option>
+                        <option value="porcentaje_mayor" {{ ($orden ?? '') == 'porcentaje_mayor' ? 'selected' : '' }}>
+                            Mayor porcentaje
+                        </option>
+                        <option value="porcentaje_menor" {{ ($orden ?? '') == 'porcentaje_menor' ? 'selected' : '' }}>
+                            Menor porcentaje
+                        </option>
                     </select>
+
                 </form>
             </div>
+
 
         </section>
 
@@ -66,13 +79,15 @@
                                 <td>
                                     <div class="tabla-acciones">
 
+                                    @admin
                                         <!-- BOTÓN EDITAR -->
                                         <a href="{{ route('becas.edit', $beca->idBeca) }}" class="accion-boton" title="Editar">
                                             <img 
                                                 src="{{ $beca->idEstatus == 2 
                                                     ? asset('imagenes/IconoEditarGris.png') 
                                                     : asset('imagenes/IconoEditar.png') }}" 
-                                                alt="Editar">
+                                                alt="Editar"
+                                            >
                                         </a>
 
                                         <!-- BOTÓN SUSPENDER/HABILITAR -->
@@ -105,6 +120,16 @@
                                                 >
                                             </button>
                                         </form>
+
+                                    @endadmin
+
+                                    @estudiante
+                                        <!-- BOTÓN SOLICITAR BECA -->
+                                        <a href="{{ route('formularioSolicitudBeca') }}" class="btn-boton-formulario2 btn-accion" title="Solicitar beca">
+                                            Solicitar beca
+                                        </a>
+
+                                    @endestudiante
 
                                     </div>
                                 </td>
