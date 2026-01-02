@@ -16,11 +16,12 @@
         @admin
             <a href="{{ route('altaBeca')}}" class="btn-boton btn-alta-beca">Alta de beca</a>
             <a href="{{ route('consultaBeca')}}" class="btn-boton btn-consulta-beca">Consulta de beca</a>
-            <a href="#" class="btn-boton btn-consulta-solicitud">Consultar solicitudes</a>
+            <a href="{{ route('consultaSolicitudBeca')}}" class="btn-boton btn-consulta-solicitud">Consultar solicitudes</a>
         @endadmin
 
         @estudiante
             <a href="{{ route('consultaBeca')}}" class="btn-boton btn-consulta-beca">Consulta de beca</a>
+            <a href="{{ route('consultaSolicitudBeca')}}" class="btn-boton btn-consulta-solicitud">Consultar solicitudes</a>
         @endestudiante
         
     </main>

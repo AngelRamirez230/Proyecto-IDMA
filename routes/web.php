@@ -123,9 +123,8 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
     Route::delete('/planes/{id}', [PlanDePagoController::class, 'destroy'])->name('planes.destroy');
 
     /*----------- SOLICITUD DE BECA -----------*/
-    Route::get('/apartadoSolicitudDeBeca', function () {
-        return view('SGFIDMA.moduloSolicitudBeca.apartadoSolicitudBeca');
-    })->name('apartadoSolicitudBeca');
+
+    Route::get('/consulta-solicitudes-beca',[SolicitudDeBecaController::class, 'index'])->name('consultaSolicitudBeca');
 
     // formulario
     Route::get('/solicitud-beca/crear/{idBeca}',[SolicitudDeBecaController::class, 'create'])->name('solicitud-beca.create');

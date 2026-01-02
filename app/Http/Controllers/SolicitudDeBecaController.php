@@ -126,4 +126,69 @@ class SolicitudDeBecaController extends Controller
         }
     }
 
+
+    public function index(Request $request)
+    {
+        $orden  = $request->orden;
+        $filtro = $request->filtro;
+        $buscar = $request->buscarSolicitudDeBeca;
+
+        $query = SolicitudDeBeca::with([
+            'estudiante.usuario',
+            'beca',
+            'estatus'
+        ]);
+
+        /* ==========================
+        🔍 BÚSQUEDA
+        ========================== */
+        if ($request->filled('buscarSolicitudDeBeca')) {
+            $query->where(function ($q) use ($buscar) {
+
+                // Buscar por nombre de beca
+                $q->whereHas('beca', function ($b) use ($buscar) {
+                    $b->where('nombreDeBeca', 'LIKE', "%{$buscar}%");
+                })
+
+                // Buscar por nombre del estudiante
+                ->orWhereHas('estudiante.usuario', function ($u) use ($buscar) {
+                    $u->where('primerNombre', 'LIKE', "%{$buscar}%")
+                    ->orWhere('segundoNombre', 'LIKE', "%{$buscar}%")
+                    ->orWhere('primerApellido', 'LIKE', "%{$buscar}%")
+                    ->orWhere('segundoApellido', 'LIKE', "%{$buscar}%");
+                });
+            });
+        }
+
+        /* ==========================
+        🧮 FILTRO POR ESTATUS
+        ========================== */
+        if ($filtro) {
+            if ($filtro === 'pendientes') {
+                $query->where('idEstatus', 5);
+            } elseif ($filtro === 'aprobadas') {
+                $query->where('idEstatus', 6);
+            } elseif ($filtro === 'rechazadas') {
+                $query->where('idEstatus', 7);
+            }
+        }
+
+        /* ==========================
+        ↕️ ORDENAMIENTO
+        ========================== */
+        if ($orden === 'mas_reciente') {
+            $query->orderBy('created_at', 'desc');
+        } elseif ($orden === 'menos_reciente') {
+            $query->orderBy('created_at', 'asc');
+        }
+
+        $solicitudes = $query->paginate(10)->withQueryString();
+
+        return view(
+            'SGFIDMA.moduloSolicitudBeca.consultaSolicitudDeBeca',
+            compact('solicitudes', 'buscar', 'filtro', 'orden')
+        );
+    }
+
+
 }
