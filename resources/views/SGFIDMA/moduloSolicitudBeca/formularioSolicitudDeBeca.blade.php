@@ -53,7 +53,7 @@
                 type="text"
                 id="nombreBeca"
                 class="input-grande2 input-bloqueado2"
-                value="{{ $beca->nombreBeca ?? '' }}"
+                value="{{ $beca->nombreDeBeca ?? '' }}"
                 readonly
             >
         </div>
@@ -65,7 +65,7 @@
                     type="text"
                     id="porcentajeBeca"
                     class="input-chico2 input-bloqueado2"
-                    value="{{ $beca->porcentaje ?? '' }}"
+                    value="{{ $beca->porcentajeDeDescuento ?? '' }}"
                     readonly
                 >
                 <img src="{{ asset('imagenes/IconoPorcentaje.png') }}" class="icono-input-img" alt="icono">
@@ -84,6 +84,7 @@
                 max="10"
                 id="promedio"
                 name="promedio"
+                placeholder="Ejemplo: 9.5"
                 class="input-chico2"
                 required
             >
@@ -117,6 +118,37 @@
             Descárguelo aquí
         </a>
 
+        <div class="subir-documento">
+            <label for="documento_solicitud" class="label-documento">
+                Adjuntar solicitud de renovación de BECA
+            </label>
+
+            <div class="contenedor-archivo">
+                <input
+                    type="file"
+                    id="documento_solicitud"
+                    name="documento_solicitud"
+                    accept=".pdf"
+                    hidden
+                    required
+                    onchange="validarPDF(this, 'nombreArchivoSolicitud')"
+                >
+
+                <button
+                    type="button"
+                    class="boton-subir"
+                    onclick="document.getElementById('documento_solicitud').click()"
+                >
+                    Seleccionar archivo
+                </button>
+
+                <span id="nombreArchivoSolicitud" class="nombre-archivo">
+                    Ningún archivo seleccionado
+                </span>
+            </div>
+        </div>
+
+
         {{-- ================= CASO ESPECIAL ================= --}}
         <div>
             <div class="textoNormal">
@@ -141,34 +173,35 @@
 
         {{-- ================= SUBIDA DE DOCUMENTO ================= --}}
         <div class="subir-documento">
-            <label for="documento" class="label-documento">
+            <label for="documento_adicional" class="label-documento">
                 Adjuntar documento
             </label>
 
             <div class="contenedor-archivo">
                 <input
                     type="file"
-                    id="documento"
-                    name="documento"
+                    id="documento_adicional"
+                    name="documento_adicional"
                     accept=".pdf"
                     hidden
                     required
-                    onchange="validarPDF(this)"
+                    onchange="validarPDF(this, 'nombreArchivoAdicional')"
                 >
 
                 <button
                     type="button"
                     class="boton-subir"
-                    onclick="document.getElementById('documento').click()"
+                    onclick="document.getElementById('documento_adicional').click()"
                 >
                     Seleccionar archivo
                 </button>
 
-                <span id="nombreArchivo" class="nombre-archivo">
+                <span id="nombreArchivoAdicional" class="nombre-archivo">
                     Ningún archivo seleccionado
                 </span>
             </div>
         </div>
+
 
         {{-- ================= BOTONES ================= --}}
         <div class="form-group2">
@@ -186,9 +219,9 @@
 
     {{-- ================= VALIDACIÓN PDF ================= --}}
     <script>
-    function validarPDF(input) {
+    function validarPDF(input, idSpan) {
         const archivo = input.files[0];
-        const nombreArchivo = document.getElementById("nombreArchivo");
+        const nombreArchivo = document.getElementById(idSpan);
 
         if (!archivo) {
             nombreArchivo.textContent = "Ningún archivo seleccionado";
@@ -205,6 +238,7 @@
         nombreArchivo.textContent = archivo.name;
     }
     </script>
+
 
 </body>
 </html>

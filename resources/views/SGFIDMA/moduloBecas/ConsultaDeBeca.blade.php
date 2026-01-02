@@ -125,7 +125,7 @@
 
                                     @estudiante
                                         <!-- BOTÓN SOLICITAR BECA -->
-                                        <a href="{{ route('formularioSolicitudBeca') }}" class="btn-boton-formulario2 btn-accion" title="Solicitar beca">
+                                        <a href="{{ route('solicitud-beca.create', $beca->idBeca)}}" class="btn-boton-formulario2 btn-accion" title="Solicitar beca">
                                             Solicitar beca
                                         </a>
 

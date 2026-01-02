@@ -3,13 +3,34 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 use App\Models\SolicitudDeBeca;
 use App\Models\TipoDeDocumentacion;
 use App\Models\DocumentacionDeUsuario;
+use App\Models\Beca;
 
 class SolicitudDeBecaController extends Controller
 {
+    /**
+     * Mostrar formulario de solicitud de beca
+     */
+    public function create($idBeca)
+    {
+        $usuario = auth()->user();
+
+        if (!$usuario || !$usuario->estudiante) {
+            abort(403, 'Acceso no autorizado');
+        }
+
+        $beca = Beca::where('idBeca', $idBeca)
+            ->where('idEstatus', 1) // activa
+            ->firstOrFail();
+
+        return view('SGFIDMA.moduloSolicitudBeca.formularioSolicitudDeBeca', compact('beca'));
+    }
+
     /**
      * Guardar solicitud de beca
      */
@@ -18,20 +39,15 @@ class SolicitudDeBecaController extends Controller
         DB::beginTransaction();
 
         try {
-
-            /* =========================================
-               1️⃣ VALIDACIÓN
-            ========================================= */
+            // 1️⃣ Validación de ambos archivos
             $request->validate([
                 'idBeca' => 'required|exists:beca,idBeca',
                 'promedio' => 'required|numeric|min:0|max:10',
                 'examenExtraordinario' => 'nullable|string|max:255',
-                'documento' => 'required|file|mimes:pdf|max:5120'
+                'documento_solicitud' => 'required|file|mimes:pdf|max:5120',
+                'documento_adicional' => 'nullable|file|mimes:pdf|max:5120'
             ]);
 
-            /* =========================================
-               2️⃣ USUARIO Y ESTUDIANTE
-            ========================================= */
             $usuario = auth()->user();
             $estudiante = $usuario->estudiante;
 
@@ -39,34 +55,46 @@ class SolicitudDeBecaController extends Controller
                 abort(403, 'El usuario no es estudiante');
             }
 
-            /* =========================================
-               3️⃣ SUBIR DOCUMENTO PDF
-            ========================================= */
-            $rutaArchivo = $request->file('documento')
-                ->store('documentos/becas', 'public');
+            // 2️⃣ Validar solicitud duplicada
+            $existeSolicitud = SolicitudDeBeca::where('idEstudiante', $estudiante->idEstudiante)
+                ->where('idBeca', $request->idBeca)
+                ->whereIn('idEstatus', [1, 2]) // pendiente o aprobada
+                ->exists();
 
-            /* =========================================
-               4️⃣ OBTENER TIPO DE DOCUMENTACIÓN
-            ========================================= */
-            $tipoDocumento = TipoDeDocumentacion::where('nombreDocumento', 'Solicitud de beca')
-                ->first();
-
-            if (!$tipoDocumento) {
-                throw new \Exception('No existe el tipo de documento "Solicitud de beca"');
+            if ($existeSolicitud) {
+                return back()
+                    ->withErrors(['error' => 'Ya tienes una solicitud registrada para esta beca'])
+                    ->withInput();
             }
 
-            /* =========================================
-               5️⃣ GUARDAR DOCUMENTACIÓN
-            ========================================= */
+            // 3️⃣ Guardar archivos
+            $archivos = [];
+            if ($request->hasFile('documento_solicitud')) {
+                $archivos['solicitud'] = $request->file('documento_solicitud')->store('documentos/becas', 'public');
+            }
+            if ($request->hasFile('documento_adicional')) {
+                $archivos['adicional'] = $request->file('documento_adicional')->store('documentos/becas', 'public');
+            }
+
+            // 4️⃣ Guardar documentos del usuario usando IDs fijos
+            $idTipoSolicitud = 1;   // Solicitud de beca
+            $idTipoAdicional = 2;   // Documentación adicional
+
             DocumentacionDeUsuario::create([
                 'idUsuario' => $usuario->idUsuario,
-                'idTipoDeDocumento' => $tipoDocumento->idTipoDeDocumentacion,
-                'ruta' => $rutaArchivo
+                'idTipoDeDocumentacion' => $idTipoSolicitud,
+                'ruta' => $archivos['solicitud'] ?? ''
             ]);
 
-            /* =========================================
-               6️⃣ GUARDAR SOLICITUD DE BECA
-            ========================================= */
+            if (isset($archivos['adicional'])) {
+                DocumentacionDeUsuario::create([
+                    'idUsuario' => $usuario->idUsuario,
+                    'idTipoDeDocumentacion' => $idTipoAdicional,
+                    'ruta' => $archivos['adicional']
+                ]);
+            }
+
+            // 5️⃣ Guardar solicitud de beca
             SolicitudDeBeca::create([
                 'idEstudiante' => $estudiante->idEstudiante,
                 'idBeca' => $request->idBeca,
@@ -83,11 +111,13 @@ class SolicitudDeBecaController extends Controller
                 ->with('success', 'Solicitud de beca enviada correctamente');
 
         } catch (\Exception $e) {
-
             DB::rollBack();
 
-            if (isset($rutaArchivo)) {
-                Storage::disk('public')->delete($rutaArchivo);
+            // Eliminar archivos en caso de error
+            if (!empty($archivos)) {
+                foreach ($archivos as $ruta) {
+                    Storage::disk('public')->delete($ruta);
+                }
             }
 
             return back()
@@ -95,4 +125,5 @@ class SolicitudDeBecaController extends Controller
                 ->withInput();
         }
     }
+
 }
