@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,12 +7,13 @@
     @vite(['resources/css/app.css'])
 </head>
 <body>
+
     @include('layouts.barraNavegacion')
 
-    <form action="#" method="POST" class="formulario">
+    <form action="{{ route('solicitud-beca.store') }}" method="POST" enctype="multipart/form-data" class="formulario2">
     @csrf
-    @method('PUT') 
 
+        {{-- ================= REQUISITOS ================= --}}
         <div class="contenedor-requisitos">
 
             <h2 class="titulo-requisitos">Requisitos para renovación del beneficio</h2>
@@ -22,86 +23,115 @@
                     Para la renovación del beneficio se requiere de lo siguiente:
                     <ol class="lista-letras">
                         <li>
-                            Acreditar todas las materias de la carga académica correspondiente 
-                            al periodo escolar vigente de manera ordinaria, cumpliendo con el 
-                            promedio mínimo o mayor de <strong>8.5</strong> para licenciaturas 
+                            Acreditar todas las materias de la carga académica correspondiente
+                            al periodo escolar vigente de manera ordinaria, cumpliendo con el
+                            promedio mínimo o mayor de <strong>8.5</strong> para licenciaturas
                             (sólo aplica para alumnos que renuevan su beca, apoyo o descuento).
                         </li>
 
                         <li>Demostrar situación económica que impide cubrir parcialmente las colegiaturas.</li>
-
                         <li>Registro de buena conducta.</li>
-
                         <li>No contar con adeudo de pagos de inscripción y colegiaturas.</li>
-
                         <li>Haber realizado el pago y el formulario de inscripción para el ciclo escolar a cursar.</li>
                     </ol>
                 </li>
 
                 <li>
-                    Si se comprueba que se presenta documentación apócrifa, será retirado el beneficio 
+                    Si se comprueba que se presenta documentación apócrifa, será retirado el beneficio
                     de beca, apoyo o descuento, debiendo pagar íntegramente las cuotas correspondientes.
                 </li>
             </ol>
 
-
-
         </div>
 
+        {{-- ================= DATOS DE LA BECA ================= --}}
+        <input type="hidden" name="idBeca" value="{{ $beca->idBeca ?? '' }}">
 
-        <div class="form-group">
+        <div class="form-group2">
             <label for="nombreBeca">Nombre de Beca:</label>
-             <input type="text" id="nombreBeca" name="nombreBeca" class="input-grande input-bloqueado" value="" readonly>
+            <input
+                type="text"
+                id="nombreBeca"
+                class="input-grande2 input-bloqueado2"
+                value="{{ $beca->nombreBeca ?? '' }}"
+                readonly
+            >
         </div>
 
-        <div class="form-group">
+        <div class="form-group2">
             <label for="porcentajeBeca">Porcentaje de descuento:</label>
-            <div class="contenedor-input-icono">
-                <input type="text" id="porcentajeBeca" name="porcentajeBeca" class="input-chico input-bloqueado" value="" readonly>
+            <div class="contenedor-input-icono2">
+                <input
+                    type="text"
+                    id="porcentajeBeca"
+                    class="input-chico2 input-bloqueado2"
+                    value="{{ $beca->porcentaje ?? '' }}"
+                    readonly
+                >
                 <img src="{{ asset('imagenes/IconoPorcentaje.png') }}" class="icono-input-img" alt="icono">
             </div>
         </div>
 
-        <div class="form-group">
-            <label for="promedio">¿Cuál fue tu promedio en el semestre que acabas de cursar?</label>
-             <input type="text" id="promedio" name="promedio" class="input-chico" required>
+        {{-- ================= DATOS DEL ESTUDIANTE ================= --}}
+        <div class="form-group2">
+            <label for="promedio">
+                ¿Cuál fue tu promedio en el semestre que acabas de cursar?
+            </label>
+            <input
+                type="number"
+                step="0.01"
+                min="0"
+                max="10"
+                id="promedio"
+                name="promedio"
+                class="input-chico2"
+                required
+            >
         </div>
 
-        <div class="form-group">
-            <label for="examenExtraordinario">En el semestre cursado ¿Presentaste algún examen extraordinario? ¿Cuál?</label>
-             <input type="text" id="examenExtraordinario" name="examenExtraordinario" class="input-grande" required>
+        <div class="form-group2">
+            <label for="examenExtraordinario">
+                En el semestre cursado ¿Presentaste algún examen extraordinario? ¿Cuál?
+            </label>
+            <input
+                type="text"
+                id="examenExtraordinario"
+                name="examenExtraordinario"
+                class="input-grande2"
+                placeholder="Especifica o deja vacío"
+            >
         </div>
 
-
+        {{-- ================= TEXTO INFORMATIVO ================= --}}
         <div class="textoNormal">
             <p><strong>Solicitud de renovación de BECA</strong></p>
-
-            <p>Llenado en <strong>tinta azul y a mano</strong> </p>
-
+            <p>Llenado en <strong>tinta azul y a mano</strong></p>
             <p>
-                Escaneo de buena calidad <strong>(no se admiten fotografías).  
-                El escaneo puedes hacerlo en una papelería, te pedimos lo hagas en la mejor calidad posible.</strong> 
+                Escaneo de buena calidad <strong>(no se admiten fotografías).
+                El escaneo puedes hacerlo en una papelería, te pedimos lo hagas en la mejor calidad posible.</strong>
             </p>
-
             <p>Formato PDF</p>
-            
         </div>
 
-        <a href="documentos/DocumentoDePrueba.pdf" class="link-descarga" download>
-                Descárguelo aquí
+        <a href="{{ asset('documentos/DocumentoDePrueba.pdf') }}" class="link-descarga" download>
+            Descárguelo aquí
         </a>
 
+        {{-- ================= CASO ESPECIAL ================= --}}
         <div>
             <div class="textoNormal">
                 <p>Beca por Padre o Madre soltera</p>
             </div>
 
             <div class="textoNormal">
-                <p>Si tu solicitud de beca es por "padre o madre soltera", adjunta a continuación tus documentos probatorios en un solo archivo PDF:</p>
+                <p>
+                    Si tu solicitud de beca es por "padre o madre soltera", adjunta a continuación
+                    tus documentos probatorios en un solo archivo PDF:
+                </p>
 
-                <li>-Constancia de Padre o Madre soltera, expedida por el Registro civil, DIF o Ayuntamiento de tu residencia. </li>
-                <li>-Documento que acredite la tutoría legal. </li>
-                <li>-Puedes agregar otro documento que consideres oportuno.</li>
+                <li>- Constancia de Padre o Madre soltera.</li>
+                <li>- Documento que acredite la tutoría legal.</li>
+                <li>- Puedes agregar otro documento que consideres oportuno.</li>
             </div>
 
             <div class="textoNormal">
@@ -109,23 +139,28 @@
             </div>
         </div>
 
+        {{-- ================= SUBIDA DE DOCUMENTO ================= --}}
         <div class="subir-documento">
             <label for="documento" class="label-documento">
                 Adjuntar documento
             </label>
 
             <div class="contenedor-archivo">
-                <input 
-                    type="file" 
-                    id="documento" 
+                <input
+                    type="file"
+                    id="documento"
                     name="documento"
                     accept=".pdf"
                     hidden
+                    required
                     onchange="validarPDF(this)"
                 >
 
-                <button type="button" class="boton-subir"
-                    onclick="document.getElementById('documento').click()">
+                <button
+                    type="button"
+                    class="boton-subir"
+                    onclick="document.getElementById('documento').click()"
+                >
                     Seleccionar archivo
                 </button>
 
@@ -135,21 +170,21 @@
             </div>
         </div>
 
-        
+        {{-- ================= BOTONES ================= --}}
+        <div class="form-group2">
+            <button type="submit" class="btn-boton-formulario2">
+                Solicitar beca
+            </button>
 
-
-
-
-        <div class="form-group">
-            <button type="submit"  name="accion" value="guardar" class="btn-boton-formulario">Solicitar beca</button>
-            <a href="{{ route('consultaBeca') }}" class="btn-boton-formulario btn-cancelar">Cancelar</a>
+            <a href="{{ route('consultaBeca') }}"
+            class="btn-boton-formulario2 btn-cancelar2">
+                Cancelar
+            </a>
         </div>
 
-
-        
     </form>
 
-
+    {{-- ================= VALIDACIÓN PDF ================= --}}
     <script>
     function validarPDF(input) {
         const archivo = input.files[0];
@@ -160,9 +195,7 @@
             return;
         }
 
-        const extension = archivo.name.split('.').pop().toLowerCase();
-
-        if (extension !== "pdf") {
+        if (archivo.type !== "application/pdf") {
             alert("Solo se permiten archivos PDF");
             input.value = "";
             nombreArchivo.textContent = "Ningún archivo seleccionado";
@@ -173,7 +206,5 @@
     }
     </script>
 
-    
-    
 </body>
 </html>

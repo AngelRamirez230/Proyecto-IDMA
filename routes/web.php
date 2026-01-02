@@ -9,6 +9,7 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\EstudianteController;
 use App\Http\Controllers\GeneracionController;
 use App\Http\Controllers\InicioController;
+use App\Http\Controllers\SolicitudDeBecaController;
 
 
 /*--------------------------RUTAS PARA INVITADOS (LOGIN)--------------------------*/
@@ -125,6 +126,11 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
     Route::get('/formularioSolicitudDeBeca', function () {
         return view('SGFIDMA.moduloSolicitudBeca.formularioSolicitudDeBeca');
     })->name('formularioSolicitudBeca');
+    Route::get('/solicitud-beca/crear/{idBeca}', [SolicitudDeBecaController::class, 'create'])->name('solicitud-beca.create');
+    Route::post('/solicitud-beca', [SolicitudDeBecaController::class, 'store'])->name('solicitud-beca.store');
+    Route::get('/solicitud-beca/documento/{id}', [SolicitudDeBecaController::class, 'verDocumento'])->name('solicitud-beca.documento');
+
+
 
     /*----------- PAGOS -----------*/
     Route::get('/apartadoPago', function () {

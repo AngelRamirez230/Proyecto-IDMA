@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Beca;
+use App\Models\Usuario;
 
 class BecaController extends Controller
 {
@@ -75,26 +76,36 @@ class BecaController extends Controller
 
     public function index(Request $request)
     {
-        $orden = $request->orden;
+        $orden  = $request->orden;
         $filtro = $request->filtro;
         $buscar = $request->buscarBeca;
 
+        
+        $usuario = null;
+        if (session()->has('idUsuario')) {
+            $usuario = \App\Models\Usuario::find(session('idUsuario'));
+        }
+
         $query = Beca::with('estatus');
 
+        
+        if ($usuario && $usuario->idtipoDeUsuario == 4) {
+            $query->where('idEstatus', 1);
+        }
+
+        
         if ($request->filled('buscarBeca')) {
             $query->where('nombreDeBeca', 'LIKE', '%' . $buscar . '%');
         }
 
-
+        
         if ($filtro === 'activas') {
             $query->where('idEstatus', 1);
         } elseif ($filtro === 'suspendidas') {
             $query->where('idEstatus', 2);
-        } elseif ($filtro === 'todas') {
-
         }
 
-        // Aplicar orden
+        
         if ($orden === 'alfabetico') {
             $query->orderBy('nombreDeBeca', 'asc');
         } elseif ($orden === 'porcentaje_mayor') {
@@ -105,8 +116,10 @@ class BecaController extends Controller
 
         $becas = $query->paginate(5)->withQueryString();
 
-        return view('SGFIDMA.moduloBecas.consultaDeBeca', compact('becas', 'orden', 'filtro','buscar'));
+        return view('SGFIDMA.moduloBecas.consultaDeBeca', compact('becas', 'orden', 'filtro', 'buscar')
+        );
     }
+
 
     public function edit($id)
     {
