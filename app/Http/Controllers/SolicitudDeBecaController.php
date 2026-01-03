@@ -101,6 +101,8 @@ class SolicitudDeBecaController extends Controller
                 'promedioAnterior' => $request->promedio,
                 'examenExtraordinario' => $request->examenExtraordinario,
                 'observacion' => null,
+                'fechaDeSolicitud'=> now(),
+                'fechaDeConclusion' => null,
                 'idEstatus' => 5 // PENDIENTE
             ]);
 
@@ -177,9 +179,9 @@ class SolicitudDeBecaController extends Controller
         ↕️ ORDENAMIENTO
         ========================== */
         if ($orden === 'mas_reciente') {
-            $query->orderBy('created_at', 'desc');
+            $query->orderBy('fechaDeSolicitud', 'desc');
         } elseif ($orden === 'menos_reciente') {
-            $query->orderBy('created_at', 'asc');
+            $query->orderBy('fechaDeSolicitud', 'asc');
         }
 
         $solicitudes = $query->paginate(10)->withQueryString();

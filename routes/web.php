@@ -125,13 +125,10 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
     /*----------- SOLICITUD DE BECA -----------*/
 
     Route::get('/consulta-solicitudes-beca',[SolicitudDeBecaController::class, 'index'])->name('consultaSolicitudBeca');
-
     // formulario
     Route::get('/solicitud-beca/crear/{idBeca}',[SolicitudDeBecaController::class, 'create'])->name('solicitud-beca.create');
-
     // guardar
     Route::post('/solicitud-beca',[SolicitudDeBecaController::class, 'store'])->name('solicitud-beca.store');
-
     // ver documento
     Route::get('/solicitud-beca/documento/{id}',[SolicitudDeBecaController::class, 'verDocumento'])->name('solicitud-beca.documento');
 

@@ -14,7 +14,7 @@
 
         <section class="consulta-controles">
             <form action="{{ route('consultaSolicitudBeca') }}" method="GET">
-                <div class="consulta-busqueda-group">
+                <div class="consulta-busqueda-group ">
                     <img src="{{ asset('imagenes/IconoBusqueda.png') }}" alt="Buscar">
                     <input type="text" id="buscarSolicitudDeBeca" name="buscarSolicitudDeBeca" placeholder="Ingresa nombre del estudiante o beca" value="{{ $buscar ?? '' }}" onkeydown="if(event.key === 'Enter') this.form.submit();"/>
                 </div>
@@ -23,13 +23,15 @@
             
             <div class="consulta-selects">
                 <form action="{{ route('consultaSolicitudBeca') }}" method="GET" id="formFiltro">
-                        <select name="filtro" class="select select-boton" onchange="this.form.submit()">
-                            <option value="" disabled selected>Filtrar por</option>
-                            <option value="todas" {{ ($filtro ?? '') == 'todas' ? 'selected' : '' }}>Ver todas</option>
-                            <option value="pendientes" {{ ($filtro ?? '') == 'pendientes' ? 'selected' : '' }}>Pendientes de revisión</option>
-                            <option value="aprobadas" {{ ($filtro ?? '') == 'aprobadas' ? 'selected' : '' }}>Aprobadas</option>
-                            <option value="rechazadas" {{ ($filtro ?? '') == 'rechazadas' ? 'selected' : '' }}>Rechzadas</option>
-                        </select>
+                    <input type="hidden" name="buscarSolicitudDeBeca" value="{{ $buscar ?? '' }}">
+
+                    <select name="filtro" class="select select-boton" onchange="this.form.submit()">
+                        <option value="" disabled selected>Filtrar por</option>
+                        <option value="todas" {{ ($filtro ?? '') == 'todas' ? 'selected' : '' }}>Ver todas</option>
+                        <option value="pendientes" {{ ($filtro ?? '') == 'pendientes' ? 'selected' : '' }}>Pendientes de revisión</option>
+                        <option value="aprobadas" {{ ($filtro ?? '') == 'aprobadas' ? 'selected' : '' }}>Aprobadas</option>
+                        <option value="rechazadas" {{ ($filtro ?? '') == 'rechazadas' ? 'selected' : '' }}>Rechzadas</option>
+                    </select>
 
                     <select name="orden" class="select select-boton" onchange="this.form.submit()">
                         <option value="" disabled selected>Ordenar por</option>
@@ -52,8 +54,9 @@
                 <thead>
                     <tr class="tabla-encabezado">
                         <th>Matricula alfanumérica</th>
-                        <th>Nombre de estudiante</th>
+                        <th>Nombre del estudiante</th>
                         <th>Beca solicitada</th>
+                        <th>Fecha de solicitud</th>
                         <th>Estatus</th>
                         <th>Acciones</th>
                     </tr>
@@ -65,7 +68,7 @@
                         </tr>
                     @else
                         @foreach ($solicitudes as $solicitud)
-
+                        <tr>
                             <td>{{ $solicitud->estudiante->matriculaAlfanumerica }}</td>
                             
                             <td>
@@ -75,12 +78,13 @@
                                 {{ $solicitud->estudiante->usuario->segundoApellido }}
                             </td>
                             <td>{{ $solicitud->beca->nombreDeBeca ?? 'Sin beca' }}</td>
+                            <td>{{ $solicitud->fechaDeSolicitud ?? 'Sin fecha definida' }}</td>
                             <td>{{ $solicitud->estatus->nombreTipoDeEstatus ?? 'Sin estatus' }}</td>
 
                             <td>
                                 <div class="tabla-acciones">
                             
-                                    <!-- BOTÓN SOLICITAR BECA -->
+                                    <!-- BOTÓN VER SOLICITUD -->
                                     <a href="#" class="btn-boton-formulario2 btn-accion" title="Ver solicitud">
                                         Ver solicitud
                                     </a>
@@ -88,7 +92,7 @@
 
                                 </div>
                             </td>
-                        
+                        </tr>
                         @endforeach
 
                     @endif

@@ -80,7 +80,7 @@
             <input
                 type="number"
                 step="0.01"
-                min="0"
+                min="8.5"
                 max="10"
                 id="promedio"
                 name="promedio"

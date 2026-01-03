@@ -16,12 +16,14 @@
             <form action="{{ route('consultaPlan') }}" method="GET">
                 <div class="consulta-busqueda-group">
                     <img src="{{ asset('imagenes/IconoBusqueda.png') }}" alt="Buscar">
-                    <input type="text" id="buscarBeca" name="buscarBeca" placeholder="Ingresa nombre del plan de pago" value="{{ $buscar ?? '' }}" onkeydown="if(event.key === 'Enter') this.form.submit();"/>
+                    <input type="text" id="buscarPlan" name="buscarPlan" placeholder="Ingresa nombre del plan de pago" value="{{ $buscar ?? '' }}" onkeydown="if(event.key === 'Enter') this.form.submit();"/>
                 </div>
             </form>
 
             <div class="consulta-selects">
                 <form action="{{ route('consultaPlan') }}" method="GET" id="formFiltro">
+                    <input type="hidden" name="buscarPlan" value="{{ $buscar ?? '' }}">
+
                     <select name="filtro" class="select select-boton" onchange="this.form.submit()">
                         <option value="" disabled selected>Filtrar por</option>
                         <option value="todas" {{ ($filtro ?? '') == 'todas' ? 'selected' : '' }}>Ver todas</option>

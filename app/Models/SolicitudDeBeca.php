@@ -16,6 +16,8 @@ class SolicitudDeBeca extends Model
         'promedioAnterior',
         'examenExtraordinario',
         'observacion',
+        'fechaDeSolicitud',
+        'fechaDeConclusion',
         'idEstatus'
     ];
 

@@ -34,7 +34,7 @@
         
         <div class="consulta-selects">
             <form action="{{ route('estudiantes.index') }}" method="GET" id="formFiltro">
-
+                <input type="hidden" name="buscarEstudiante" value="{{ $buscar ?? '' }}">
                 <select name="filtro" class="select select-boton" onchange="this.form.submit()">
                     <option value="" disabled selected>Filtrar por</option>
                     <option value="todos" {{ request('filtro') == 'todos' ? 'selected' : '' }}>Ver todos</option>
