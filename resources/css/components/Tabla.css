@@ -96,6 +96,7 @@
 .consulta-tabla-contenedor {
     margin-top: 42px;
     overflow-x: auto; /* para responsive */
+    margin-bottom: 40px;
 }
 
 .tabla {

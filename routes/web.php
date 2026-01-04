@@ -131,6 +131,11 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
     Route::post('/solicitud-beca',[SolicitudDeBecaController::class, 'store'])->name('solicitud-beca.store');
     // ver documento
     Route::get('/solicitud-beca/documento/{id}',[SolicitudDeBecaController::class, 'verDocumento'])->name('solicitud-beca.documento');
+    // editar solicitud
+    Route::get('/solicitud-beca/{id}/editar',[SolicitudDeBecaController::class, 'edit'])->name('solicitud-beca.edit');
+
+    // actualizar solicitud
+    Route::put('/solicitud-beca/{id}',[SolicitudDeBecaController::class, 'update'])->name('solicitud-beca.update');
 
 
 

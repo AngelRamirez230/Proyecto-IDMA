@@ -84,10 +84,16 @@
                             <td>
                                 <div class="tabla-acciones">
                             
-                                    <!-- BOTÓN VER SOLICITUD -->
-                                    <a href="#" class="btn-boton-formulario2 btn-accion" title="Ver solicitud">
-                                        Ver solicitud
-                                    </a>
+                                    @if($solicitud->idEstatus == 5 || $solicitud->idEstatus === 6) {{-- PENDIENTE --}}
+                                        <a href="{{ route('solicitud-beca.edit', $solicitud->idSolicitudDeBeca) }}"
+                                        class="btn-boton-formulario2 btn-accion">
+                                            Ver solicitud
+                                        </a>
+                                    @else
+                                        <span class="texto-bloqueado">
+                                            No editable
+                                        </span>
+                                    @endif
 
 
                                 </div>

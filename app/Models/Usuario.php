@@ -127,13 +127,12 @@ class Usuario extends Authenticatable
         return $this->hasOne(Estudiante::class, 'idUsuario', 'idUsuario');
     }
 
-    public function documentos()
+    public function documentaciones()
     {
-        return $this->belongsToMany(
-            TipoDeDocumentacion::class,
-            'Documentacion_de_usuario',
+        return $this->hasMany(
+            DocumentacionDeUsuario::class,
             'idUsuario',
-            'idTipoDeDocumento'
-        )->withPivot('ruta');
+            'idUsuario'
+        );
     }
 }

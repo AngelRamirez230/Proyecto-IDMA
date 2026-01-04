@@ -47,4 +47,13 @@ class SolicitudDeBeca extends Model
             'idTipoDeEstatus'
         );
     }
+
+    public function documentaciones()
+{
+    return $this->hasMany(
+        DocumentacionSolicitudDeBeca::class,
+        'idSolicitudDeBeca',
+        'idSolicitudDeBeca'
+    );
+}
 }

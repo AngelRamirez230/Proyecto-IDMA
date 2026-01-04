@@ -99,6 +99,24 @@
     white-space: nowrap;
 }
 
+
+.btn-ver {
+    padding: 8px 30px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #79272C;              
+    background-color: #FFB300;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-ver:hover {
+    background-color: #79272C;
+    color: #fff;                
+}
+
 @media (max-width: 768px) {
 
     .subir-documento {

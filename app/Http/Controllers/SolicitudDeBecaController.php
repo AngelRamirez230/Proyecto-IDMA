@@ -7,15 +7,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 use App\Models\SolicitudDeBeca;
-use App\Models\TipoDeDocumentacion;
-use App\Models\DocumentacionDeUsuario;
 use App\Models\Beca;
+use App\Models\DocumentacionSolicitudDeBeca;
 
 class SolicitudDeBecaController extends Controller
 {
-    /**
-     * Mostrar formulario de solicitud de beca
-     */
+    /* ======================================================
+       FORMULARIO DE SOLICITUD
+    ====================================================== */
     public function create($idBeca)
     {
         $usuario = auth()->user();
@@ -25,27 +24,30 @@ class SolicitudDeBecaController extends Controller
         }
 
         $beca = Beca::where('idBeca', $idBeca)
-            ->where('idEstatus', 1) // activa
+            ->where('idEstatus', 1)
             ->firstOrFail();
 
-        return view('SGFIDMA.moduloSolicitudBeca.formularioSolicitudDeBeca', compact('beca'));
+        return view(
+            'SGFIDMA.moduloSolicitudBeca.formularioSolicitudDeBeca',
+            compact('beca')
+        );
     }
 
-    /**
-     * Guardar solicitud de beca
-     */
+    /* ======================================================
+       GUARDAR SOLICITUD
+    ====================================================== */
     public function store(Request $request)
     {
         DB::beginTransaction();
 
         try {
-            // 1️⃣ Validación de ambos archivos
+
             $request->validate([
                 'idBeca' => 'required|exists:beca,idBeca',
                 'promedio' => 'required|numeric|min:0|max:10',
                 'examenExtraordinario' => 'nullable|string|max:255',
                 'documento_solicitud' => 'required|file|mimes:pdf|max:5120',
-                'documento_adicional' => 'required|file|mimes:pdf|max:5120'
+                'documento_adicional' => 'required|file|mimes:pdf|max:5120',
             ]);
 
             $usuario = auth()->user();
@@ -55,10 +57,12 @@ class SolicitudDeBecaController extends Controller
                 abort(403, 'El usuario no es estudiante');
             }
 
-            // 2️⃣ Validar solicitud duplicada
+            /* ===============================
+               VALIDAR DUPLICADO
+            =============================== */
             $existeSolicitud = SolicitudDeBeca::where('idEstudiante', $estudiante->idEstudiante)
                 ->where('idBeca', $request->idBeca)
-                ->whereIn('idEstatus', [5, 6]) // pendiente o aprobada
+                ->whereIn('idEstatus', [5, 6])
                 ->exists();
 
             if ($existeSolicitud) {
@@ -67,44 +71,43 @@ class SolicitudDeBecaController extends Controller
                     ->withInput();
             }
 
-            // 3️⃣ Guardar archivos
-            $archivos = [];
-            if ($request->hasFile('documento_solicitud')) {
-                $archivos['solicitud'] = $request->file('documento_solicitud')->store('documentos/becas', 'public');
-            }
-            if ($request->hasFile('documento_adicional')) {
-                $archivos['adicional'] = $request->file('documento_adicional')->store('documentos/becas', 'public');
-            }
-
-            // 4️⃣ Guardar documentos del usuario usando IDs fijos
-            $idTipoSolicitud = 1;   // Solicitud de beca
-            $idTipoAdicional = 2;   // Documentación adicional
-
-            DocumentacionDeUsuario::create([
-                'idUsuario' => $usuario->idUsuario,
-                'idTipoDeDocumentacion' => $idTipoSolicitud,
-                'ruta' => $archivos['solicitud'] ?? ''
-            ]);
-
-            if (isset($archivos['adicional'])) {
-                DocumentacionDeUsuario::create([
-                    'idUsuario' => $usuario->idUsuario,
-                    'idTipoDeDocumentacion' => $idTipoAdicional,
-                    'ruta' => $archivos['adicional']
-                ]);
-            }
-
-            // 5️⃣ Guardar solicitud de beca
-            SolicitudDeBeca::create([
+            /* ===============================
+               CREAR SOLICITUD
+            =============================== */
+            $solicitud = SolicitudDeBeca::create([
                 'idEstudiante' => $estudiante->idEstudiante,
                 'idBeca' => $request->idBeca,
                 'promedioAnterior' => $request->promedio,
                 'examenExtraordinario' => $request->examenExtraordinario,
                 'observacion' => null,
-                'fechaDeSolicitud'=> now(),
+                'fechaDeSolicitud' => now(),
                 'fechaDeConclusion' => null,
-                'idEstatus' => 5 // PENDIENTE
+                'idEstatus' => 5,
             ]);
+
+            /* ===============================
+               GUARDAR DOCUMENTOS
+            =============================== */
+            $documentos = [
+                'documento_solicitud' => 1,
+                'documento_adicional' => 2,
+            ];
+
+            foreach ($documentos as $input => $idTipo) {
+
+                if ($request->hasFile($input)) {
+
+                    $ruta = $request->file($input)
+                        ->store('documentos/becas', 'public');
+
+                    DocumentacionSolicitudDeBeca::create([
+                        'idEstudiante' => $estudiante->idEstudiante,
+                        'idSolicitudDeBeca' => $solicitud->idSolicitudDeBeca,
+                        'idTipoDeDocumentacion' => $idTipo,
+                        'ruta' => $ruta,
+                    ]);
+                }
+            }
 
             DB::commit();
 
@@ -113,14 +116,8 @@ class SolicitudDeBecaController extends Controller
                 ->with('success', 'Solicitud de beca enviada correctamente');
 
         } catch (\Exception $e) {
-            DB::rollBack();
 
-            // Eliminar archivos en caso de error
-            if (!empty($archivos)) {
-                foreach ($archivos as $ruta) {
-                    Storage::disk('public')->delete($ruta);
-                }
-            }
+            DB::rollBack();
 
             return back()
                 ->withErrors(['error' => $e->getMessage()])
@@ -128,7 +125,9 @@ class SolicitudDeBecaController extends Controller
         }
     }
 
-
+    /* ======================================================
+       LISTADO
+    ====================================================== */
     public function index(Request $request)
     {
         $orden  = $request->orden;
@@ -141,43 +140,28 @@ class SolicitudDeBecaController extends Controller
             'estatus'
         ]);
 
-        /* ==========================
-        🔍 BÚSQUEDA
-        ========================== */
         if ($request->filled('buscarSolicitudDeBeca')) {
             $query->where(function ($q) use ($buscar) {
 
-                // Buscar por nombre de beca
-                $q->whereHas('beca', function ($b) use ($buscar) {
-                    $b->where('nombreDeBeca', 'LIKE', "%{$buscar}%");
-                })
-
-                // Buscar por nombre del estudiante
-                ->orWhereHas('estudiante.usuario', function ($u) use ($buscar) {
+                $q->whereHas('beca', fn ($b) =>
+                    $b->where('nombreDeBeca', 'LIKE', "%{$buscar}%")
+                )
+                ->orWhereHas('estudiante.usuario', fn ($u) =>
                     $u->where('primerNombre', 'LIKE', "%{$buscar}%")
-                    ->orWhere('segundoNombre', 'LIKE', "%{$buscar}%")
-                    ->orWhere('primerApellido', 'LIKE', "%{$buscar}%")
-                    ->orWhere('segundoApellido', 'LIKE', "%{$buscar}%");
-                });
+                      ->orWhere('primerApellido', 'LIKE', "%{$buscar}%")
+                );
             });
         }
 
-        /* ==========================
-        🧮 FILTRO POR ESTATUS
-        ========================== */
         if ($filtro) {
-            if ($filtro === 'pendientes') {
-                $query->where('idEstatus', 5);
-            } elseif ($filtro === 'aprobadas') {
-                $query->where('idEstatus', 6);
-            } elseif ($filtro === 'rechazadas') {
-                $query->where('idEstatus', 7);
-            }
+            $map = [
+                'pendientes' => 5,
+                'aprobadas'  => 6,
+                'rechazadas' => 7,
+            ];
+            $query->where('idEstatus', $map[$filtro]);
         }
 
-        /* ==========================
-        ↕️ ORDENAMIENTO
-        ========================== */
         if ($orden === 'mas_reciente') {
             $query->orderBy('fechaDeSolicitud', 'desc');
         } elseif ($orden === 'menos_reciente') {
@@ -192,5 +176,101 @@ class SolicitudDeBecaController extends Controller
         );
     }
 
+    /* ======================================================
+       EDITAR
+    ====================================================== */
+    public function edit($id)
+    {
+        $solicitud = SolicitudDeBeca::with([
+            'beca',
+            'estatus',
+            'documentaciones.tipoDeDocumentacion'
+        ])->findOrFail($id);
 
+        $docSolicitud = $solicitud->documentaciones
+            ->where('idTipoDeDocumentacion', 1)
+            ->first();
+
+        $docAdicional = $solicitud->documentaciones
+            ->where('idTipoDeDocumentacion', 2)
+            ->first();
+
+        return view(
+            'SGFIDMA.moduloSolicitudBeca.modificacionSolicitudDeBeca',
+            compact('solicitud', 'docSolicitud', 'docAdicional')
+        );
+    }
+
+    /* ======================================================
+       ACTUALIZAR
+    ====================================================== */
+    public function update(Request $request, $id)
+    {
+        DB::beginTransaction();
+
+        try {
+
+            $solicitud = SolicitudDeBeca::with('documentaciones')
+                ->findOrFail($id);
+
+            $request->validate([
+                'promedio' => 'required|numeric|min:8.5|max:10',
+                'examenExtraordinario' => 'nullable|string|max:255',
+                'documento_solicitud' => 'nullable|file|mimes:pdf|max:5120',
+                'documento_adicional' => 'nullable|file|mimes:pdf|max:5120',
+            ]);
+
+            $solicitud->update([
+                'promedioAnterior' => $request->promedio,
+                'examenExtraordinario' => $request->examenExtraordinario,
+            ]);
+
+            $documentos = [
+                'documento_solicitud' => 1,
+                'documento_adicional' => 2,
+            ];
+
+            foreach ($documentos as $input => $idTipo) {
+
+                if ($request->hasFile($input)) {
+
+                    $doc = $solicitud->documentaciones
+                        ->where('idTipoDeDocumentacion', $idTipo)
+                        ->first();
+
+                    if ($doc && Storage::disk('public')->exists($doc->ruta)) {
+                        Storage::disk('public')->delete($doc->ruta);
+                    }
+
+                    $ruta = $request->file($input)
+                        ->store('documentos/becas', 'public');
+
+                    if ($doc) {
+                        $doc->update(['ruta' => $ruta]);
+                    } else {
+                        DocumentacionSolicitudDeBeca::create([
+                            'idEstudiante' => $solicitud->idEstudiante,
+                            'idSolicitudDeBeca' => $solicitud->idSolicitudDeBeca,
+                            'idTipoDeDocumentacion' => $idTipo,
+                            'ruta' => $ruta,
+                        ]);
+                    }
+                }
+            }
+
+            DB::commit();
+
+            return redirect()
+                ->route('consultaSolicitudBeca')
+                ->with('success', 'Solicitud actualizada correctamente');
+
+        } catch (\Exception $e) {
+
+            DB::rollBack();
+
+            return back()
+                ->withErrors(['error' => $e->getMessage()])
+                ->withInput();
+        }
+    }
 }

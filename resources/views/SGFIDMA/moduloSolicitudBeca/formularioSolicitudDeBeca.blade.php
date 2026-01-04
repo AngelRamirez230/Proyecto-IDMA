@@ -68,7 +68,7 @@
                     value="{{ $beca->porcentajeDeDescuento ?? '' }}"
                     readonly
                 >
-                <img src="{{ asset('imagenes/IconoPorcentaje.png') }}" class="icono-input-img" alt="icono">
+                <img src="{{ asset('imagenes/IconoPorcentaje.png') }}" class="icono-input-img2" alt="icono">
             </div>
         </div>
 
@@ -114,7 +114,7 @@
             <p>Formato PDF</p>
         </div>
 
-        <a href="{{ asset('documentos/DocumentoDePrueba.pdf') }}" class="link-descarga" download>
+        <a href="{{ asset('storage/documentos/becas/DocumentoDePrueba.pdf') }}" class="link-descarga" download>
             Descárguelo aquí
         </a>
 
