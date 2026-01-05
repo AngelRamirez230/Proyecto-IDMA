@@ -153,48 +153,72 @@ class UsuarioController extends Controller
         $filtro = $request->input('filtro');
         $orden  = $request->input('orden');
 
-        $usuarios = Usuario::with(['tipoDeUsuario', 'estatus']);
+        /*
+        |----------------------------------------------------------
+        | QUERY BASE
+        |----------------------------------------------------------
+        */
+        $usuariosQuery = Usuario::with(['tipoDeUsuario', 'estatus']);
 
-        /* =========================
-        BÚSQUEDA
-        ========================= */
-        if ($buscar) {
-            $usuarios->where(function ($q) use ($buscar) {
-                $q->whereRaw("CONCAT(primerNombre,' ',segundoNombre,' ',primerApellido,' ',segundoApellido) LIKE ?", ["%{$buscar}%"])
+        /*
+        |----------------------------------------------------------
+        | FILTRO PRINCIPAL POR ESTATUS
+        |----------------------------------------------------------
+        */
+        if ($filtro === 'eliminados') {
+            // SOLO eliminados
+            $usuariosQuery->where('idestatus', 8);
+        } else {
+            // Cualquier otro caso → excluir eliminados
+            $usuariosQuery->where('idestatus', '!=', 8);
+
+            if ($filtro === 'activos') {
+                $usuariosQuery->where('idestatus', 1);
+            } elseif ($filtro === 'suspendidos') {
+                $usuariosQuery->where('idestatus', 2);
+            }
+            // 'todos' o vacío → ya queda cubierto
+        }
+
+        /*
+        |----------------------------------------------------------
+        | BÚSQUEDA
+        |----------------------------------------------------------
+        */
+        if (!empty($buscar)) {
+            $usuariosQuery->where(function ($q) use ($buscar) {
+                $q->whereRaw(
+                    "CONCAT_WS(' ', primerNombre, segundoNombre, primerApellido, segundoApellido) LIKE ?",
+                    ["%{$buscar}%"]
+                )
                 ->orWhere('correoInstitucional', 'LIKE', "%{$buscar}%")
+                ->orWhere('correoElectronico', 'LIKE', "%{$buscar}%")
                 ->orWhereHas('tipoDeUsuario', function ($q2) use ($buscar) {
                     $q2->where('nombreTipoDeUsuario', 'LIKE', "%{$buscar}%");
                 });
             });
         }
 
-        /* =========================
-        FILTROS
-        ========================= */
-        if ($filtro === 'activos') {
-            $usuarios->where('idestatus', 1);
-        }
-
-        if ($filtro === 'suspendidos') {
-            $usuarios->where('idestatus', 2);
-        }
-
-        /* =========================
-        ORDEN
-        ========================= */
+        /*
+        |----------------------------------------------------------
+        | ORDEN
+        |----------------------------------------------------------
+        */
         if ($orden === 'alfabetico') {
-            $usuarios->orderBy('primerApellido')
-                    ->orderBy('primerNombre');
+            $usuariosQuery->orderBy('primerApellido')
+                        ->orderBy('primerNombre');
+        } elseif ($orden === 'recientes') {
+            $usuariosQuery->orderByDesc('idUsuario');
+        } else {
+            $usuariosQuery->orderByDesc('idUsuario');
         }
 
-        if ($orden === 'recientes') {
-            $usuarios->orderByDesc('idUsuario');
-        }
-
-        $usuarios = $usuarios->paginate(10)->withQueryString();
+        $usuarios = $usuariosQuery
+            ->paginate(10)
+            ->withQueryString();
 
         return view('shared.moduloUsuarios.consultaDeUsuarios', compact(
-            'usuarios','buscar','filtro','orden'
+            'usuarios', 'buscar', 'filtro', 'orden'
         ));
     }
 
@@ -376,5 +400,24 @@ class UsuarioController extends Controller
         return redirect()
             ->route('consultaUsuarios')
             ->with('success', 'Usuario actualizado correctamente');
+    }
+
+    public function destroy(Usuario $usuario)
+    {
+        // Evitar eliminar usuarios ya inactivos (opcional)
+        if ((int) $usuario->idestatus === 8) {
+            return redirect()
+                ->route('consultaUsuarios')
+                ->with('warning', 'El usuario ya está eliminado.');
+        }
+
+        // Estatus 8 = Eliminado
+        $usuario->update([
+            'idestatus' => 8,
+        ]);
+
+        return redirect()
+            ->route('consultaUsuarios')
+            ->with('success', 'Usuario eliminado correctamente.');
     }
 }
