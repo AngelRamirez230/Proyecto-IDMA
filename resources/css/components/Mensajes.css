@@ -23,6 +23,8 @@
         font-size: 18px;
         color: #333;
         animation: aparecer 0.3s ease-out;
+        position: relative;
+        z-index: 2147483647;
     }
 
     /* Botón */
@@ -76,7 +78,13 @@
         display: none;        /* Oculto por defecto */
         justify-content: center;
         align-items: center;
-        z-index: 5000;
+        inset: 0;                 /* en vez de top/left/width/height */
+        z-index: 2147483647;      /* máximo práctico */
+        pointer-events: auto;
+    }
+
+    .popup-confirmacion *{
+        pointer-events: auto;
     }
 
     /* Botones del popup de confirmación */

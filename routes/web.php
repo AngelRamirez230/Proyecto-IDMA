@@ -62,6 +62,9 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
 
     Route::put('/usuarios/{usuario}', [UsuarioController::class, 'update'])->name('usuarios.update');
 
+    Route::delete('/usuarios/{usuario}', [UsuarioController::class, 'destroy'])
+    ->name('usuarios.destroy');
+
     /*----------- ESTUDIANTES -----------*/
     Route::get('/apartadoEstudiantes', function () {
         return view('shared.moduloEstudiantes.apartadoEstudiantes');
