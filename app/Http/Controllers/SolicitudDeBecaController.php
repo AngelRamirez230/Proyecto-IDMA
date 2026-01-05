@@ -47,7 +47,7 @@ class SolicitudDeBecaController extends Controller
                 'promedio' => 'required|numeric|min:0|max:10',
                 'examenExtraordinario' => 'nullable|string|max:255',
                 'documento_solicitud' => 'required|file|mimes:pdf|max:5120',
-                'documento_adicional' => 'required|file|mimes:pdf|max:5120',
+                'documento_adicional' => 'nullable|file|mimes:pdf|max:5120',
             ]);
 
             $usuario = auth()->user();

@@ -21,6 +21,66 @@
         <input type="hidden" name="idBeca" value="{{ $solicitud->beca->idBeca }}">
 
         <div class="form-group2">
+            <label>Nombre del estudiante:</label>
+            <input
+                type="text"
+                class="input-grande2 input-bloqueado2"
+                value="{{ $solicitud->estudiante->usuario->primerNombre}} {{$solicitud->estudiante->usuario->segundoNombre}}"
+                readonly
+            >
+        </div>
+
+        <div class="form-group2">
+            <label>Apellidos:</label>
+            <input
+                type="text"
+                class="input-grande2 input-bloqueado2"
+                value="{{ $solicitud->estudiante->usuario->primerApellido }} {{ $solicitud->estudiante->usuario->segundoApellido }}"
+                readonly
+            >
+        </div>
+
+        <div class="form-group2">
+            <label>Correo electrónico:</label>
+            <input
+                type="email"
+                class="input-grande2 input-bloqueado2"
+                value="{{ $solicitud->estudiante->usuario->correoElectronico }}"
+                readonly
+            >
+        </div>
+
+        <div class="form-group2">
+            <label>Generación:</label>
+            <input
+                type="text"
+                class="input-chico2 input-bloqueado2"
+                value="{{ $solicitud->estudiante->generacion->nombreGeneracion }}"
+                readonly
+            >
+        </div>
+
+        <div class="form-group2">
+            <label>Ciclo escolar:</label>
+            <input
+                type="text"
+                class="input-chico2 input-bloqueado2"
+                value=""
+                readonly
+            >
+        </div>
+
+        <div class="form-group2">
+            <label>Semestre al que ingresará:</label>
+            <input
+                type="number"
+                class="input-chico2 input-bloqueado2"
+                value="{{ $solicitud->estudiante->grado }}"
+                readonly
+            >
+        </div>
+
+        <div class="form-group2">
             <label>Nombre de Beca:</label>
             <input
                 type="text"

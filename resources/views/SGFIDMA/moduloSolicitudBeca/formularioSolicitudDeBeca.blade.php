@@ -118,35 +118,48 @@
             Descárguelo aquí
         </a>
 
-        <div class="subir-documento">
-            <label for="documento_solicitud" class="label-documento">
-                Adjuntar solicitud de renovación de BECA
-            </label>
+        <section class="consulta-tabla-contenedor">
+            <table class="tabla">
+                <thead>
+                    <tr>
+                        <th>Tipo de documento</th>
+                        <th>Acción</th>
+                        <th>Archivo seleccionado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Solicitud de renovación de BECA (PDF)</td>
 
-            <div class="contenedor-archivo">
-                <input
-                    type="file"
-                    id="documento_solicitud"
-                    name="documento_solicitud"
-                    accept=".pdf"
-                    hidden
-                    required
-                    onchange="validarPDF(this, 'nombreArchivoSolicitud')"
-                >
+                        <td>
+                            <input
+                                type="file"
+                                id="documento_solicitud"
+                                name="documento_solicitud"
+                                accept=".pdf"
+                                hidden
+                                required
+                                onchange="validarPDF(this, 'nombreArchivoSolicitud')"
+                            >
 
-                <button
-                    type="button"
-                    class="boton-subir"
-                    onclick="document.getElementById('documento_solicitud').click()"
-                >
-                    Seleccionar archivo
-                </button>
+                            <button
+                                type="button"
+                                class="boton-subir"
+                                onclick="document.getElementById('documento_solicitud').click()"
+                            >
+                                Seleccionar archivo
+                            </button>
+                        </td>
 
-                <span id="nombreArchivoSolicitud" class="nombre-archivo">
-                    Ningún archivo seleccionado
-                </span>
-            </div>
-        </div>
+                        <td>
+                            <span id="nombreArchivoSolicitud" class="nombre-archivo">
+                                Ningún archivo seleccionado
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
 
 
         {{-- ================= CASO ESPECIAL ================= --}}
@@ -172,35 +185,48 @@
         </div>
 
         {{-- ================= SUBIDA DE DOCUMENTO ================= --}}
-        <div class="subir-documento">
-            <label for="documento_adicional" class="label-documento">
-                Adjuntar documento
-            </label>
+        <section class="consulta-tabla-contenedor">
+            <table class="tabla">
+                <thead>
+                    <tr>
+                        <th>Tipo de documento</th>
+                        <th>Acción</th>
+                        <th>Archivo seleccionado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Documento adicional (PDF)</td>
 
-            <div class="contenedor-archivo">
-                <input
-                    type="file"
-                    id="documento_adicional"
-                    name="documento_adicional"
-                    accept=".pdf"
-                    hidden
-                    required
-                    onchange="validarPDF(this, 'nombreArchivoAdicional')"
-                >
+                        <td>
+                            <input
+                                type="file"
+                                id="documento_adicional"
+                                name="documento_adicional"
+                                accept=".pdf"
+                                hidden
+                                onchange="validarPDF(this, 'nombreArchivoAdicional')"
+                            >
 
-                <button
-                    type="button"
-                    class="boton-subir"
-                    onclick="document.getElementById('documento_adicional').click()"
-                >
-                    Seleccionar archivo
-                </button>
+                            <button
+                                type="button"
+                                class="boton-subir"
+                                onclick="document.getElementById('documento_adicional').click()"
+                            >
+                                Seleccionar archivo
+                            </button>
+                        </td>
 
-                <span id="nombreArchivoAdicional" class="nombre-archivo">
-                    Ningún archivo seleccionado
-                </span>
-            </div>
-        </div>
+                        <td>
+                            <span id="nombreArchivoAdicional" class="nombre-archivo">
+                                Ningún archivo seleccionado
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
 
 
         {{-- ================= BOTONES ================= --}}
