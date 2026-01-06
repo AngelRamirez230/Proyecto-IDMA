@@ -11,6 +11,9 @@ use App\Models\Municipio;
 use App\Models\Localidad;
 use App\Models\Domicilio; 
 use App\Models\Pais;
+use App\Models\Empleado;
+use App\Models\Departamento;
+use App\Models\NivelAcademico;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 
@@ -43,6 +46,8 @@ class UsuarioController extends Controller
             'municipios'     => collect(),
             'localidades'    => collect(),
             'paises'         => Pais::orderBy('nombrePais')->get(),
+            'departamentos'  => Departamento::orderBy('idDepartamento')->get(),
+            'nivelesAcademicos' => NivelAcademico::orderBy('idNivelAcademico')->get(),
         ]);
     }
 
@@ -51,6 +56,8 @@ class UsuarioController extends Controller
      */
     public function store(UsuarioRequest $request)
     {
+        $rol = (int) $request->input('rol', 1);
+
         /*
         |----------------------------------------------------------
         | 1. LOCALIDAD DE NACIMIENTO (OBLIGATORIA)
@@ -115,7 +122,7 @@ class UsuarioController extends Controller
         | 4. CREAR USUARIO
         |----------------------------------------------------------
         */
-        Usuario::create([
+        $usuario = Usuario::create([
             'primerNombre'            => $request->primer_nombre,
             'segundoNombre'           => $request->segundo_nombre,
             'primerApellido'          => $request->primer_apellido,
@@ -138,9 +145,17 @@ class UsuarioController extends Controller
             'idLocalidadNacimiento'   => $idLocalidadNacimiento,
             'idDomicilio'             => $domicilioId,
 
-            'idtipoDeUsuario'         => session('rol_seleccionado', 1),
+            'idtipoDeUsuario'         => $rol,
             'idestatus'               => 1,
         ]);
+
+        if ($rol === 2) {
+            Empleado::create([
+                'idUsuario'        => $usuario->idUsuario,
+                'idDepartamento'   => $request->idDepartamento,
+                'idNivelAcademico' => $request->idNivelAcademico,
+            ]);
+        }
 
         return redirect()
             ->route('consultaUsuarios')

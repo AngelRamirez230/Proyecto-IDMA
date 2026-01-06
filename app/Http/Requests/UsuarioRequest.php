@@ -41,6 +41,9 @@ class UsuarioRequest extends FormRequest
         $idUsuario = $this->routeUserId(); // clave para ignore()
 
         return [
+            'rol' => $isUpdate
+                ? ['nullable', 'integer', Rule::in([1, 2, 3, 4])]
+                : ['required', 'integer', Rule::in([1, 2, 3, 4])],
 
             /* =======================
                DATOS PERSONALES
@@ -88,6 +91,23 @@ class UsuarioRequest extends FormRequest
                 'max:100',
                 Rule::unique('Usuario', 'correoElectronico')
                     ->ignore($isUpdate ? $idUsuario : null, 'idUsuario'),
+            ],
+
+            /* =======================
+               EMPLEADO
+            ======================= */
+            'idDepartamento' => [
+                'nullable',
+                'integer',
+                'required_if:rol,2',
+                'exists:Departamento,idDepartamento',
+            ],
+
+            'idNivelAcademico' => [
+                'nullable',
+                'integer',
+                'required_if:rol,2',
+                'exists:Nivel_academico,idNivelAcademico',
             ],
 
             /* =======================
@@ -142,6 +162,9 @@ class UsuarioRequest extends FormRequest
     public function attributes(): array
     {
         return [
+            'rol'                 => 'rol',
+            'idDepartamento'       => 'departamento',
+            'idNivelAcademico'     => 'nivel academico',
             'primer_nombre'        => 'primer nombre',
             'primer_apellido'      => 'primer apellido',
             'sexo'                 => 'sexo',
