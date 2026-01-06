@@ -21,10 +21,12 @@ class SolicitudDeBecaController extends Controller
     {
         $usuario = Auth::user();
 
+        // Solo estudiantes pueden solicitar beca
         if (!$usuario || !$usuario->estudiante) {
             abort(403, 'Acceso no autorizado');
         }
 
+        // Beca activa
         $beca = Beca::where('idBeca', $idBeca)
             ->where('idEstatus', 1)
             ->firstOrFail();
@@ -35,18 +37,21 @@ class SolicitudDeBecaController extends Controller
         );
     }
 
+
     /* ======================================================
        GUARDAR SOLICITUD
     ====================================================== */
     public function store(Request $request)
     {
+        
         DB::beginTransaction();
+
 
         try {
 
             $request->validate([
-                'idBeca' => 'required|exists:beca,idBeca',
-                'promedio' => 'required|numeric|min:0|max:10',
+                'idBeca' => 'required|exists:beca,idBeca', // ajusta si tu tabla es "becas"
+                'promedio' => 'required|numeric|min:8.5|max:10',
                 'examenExtraordinario' => 'nullable|string|max:255',
                 'documento_solicitud' => 'required|file|mimes:pdf|max:5120',
                 'documento_adicional' => 'nullable|file|mimes:pdf|max:5120',
@@ -59,23 +64,26 @@ class SolicitudDeBecaController extends Controller
                 abort(403, 'El usuario no es estudiante');
             }
 
-            /* ===============================
-               VALIDAR DUPLICADO
-            =============================== */
+            /* ======================================================
+            VALIDAR DUPLICADO (SOLO PENDIENTE)
+            ====================================================== */
             $existeSolicitud = SolicitudDeBeca::delEstudiante($estudiante->idEstudiante)
                 ->where('idBeca', $request->idBeca)
-                ->whereIn('idEstatus', [5, 6])
+                ->where('idEstatus', 5) // SOLO pendiente
                 ->exists();
-
+            
+            
+            
+            
             if ($existeSolicitud) {
                 return back()
-                    ->with('popupError', 'Ya tienes una solicitud registrada para esta beca')
+                    ->with('popupError', 'Ya tienes una solicitud pendiente para esta beca')
                     ->withInput();
             }
 
-            /* ===============================
-               CREAR SOLICITUD
-            =============================== */
+            /* ======================================================
+            CREAR SOLICITUD
+            ====================================================== */
             $solicitud = SolicitudDeBeca::create([
                 'idEstudiante' => $estudiante->idEstudiante,
                 'idBeca' => $request->idBeca,
@@ -84,12 +92,12 @@ class SolicitudDeBecaController extends Controller
                 'observacion' => null,
                 'fechaDeSolicitud' => now(),
                 'fechaDeConclusion' => null,
-                'idEstatus' => 5,
+                'idEstatus' => 5, // Pendiente
             ]);
 
-            /* ===============================
-               GUARDAR DOCUMENTOS
-            =============================== */
+            /* ======================================================
+            GUARDAR DOCUMENTOS
+            ====================================================== */
             $documentos = [
                 'documento_solicitud' => 1,
                 'documento_adicional' => 2,
@@ -121,11 +129,14 @@ class SolicitudDeBecaController extends Controller
 
             DB::rollBack();
 
+            throw $e;
+
             return back()
                 ->withErrors(['error' => $e->getMessage()])
                 ->withInput();
         }
     }
+
 
     /* ======================================================
        LISTADO
@@ -210,7 +221,7 @@ class SolicitudDeBecaController extends Controller
             'documentaciones.tipoDeDocumentacion'
         ]);
 
-        if ($usuario->idTipoDeUsuario == 4) {
+        if ($usuario->idtipoDeUsuario == 4) {
             $query->delEstudiante($usuario->estudiante->idEstudiante);
         }
 
@@ -223,6 +234,7 @@ class SolicitudDeBecaController extends Controller
         $docAdicional = $solicitud->documentaciones
             ->where('idTipoDeDocumentacion', 2)
             ->first();
+            
 
         return view(
             'SGFIDMA.moduloSolicitudBeca.modificacionSolicitudDeBeca',
@@ -240,6 +252,10 @@ class SolicitudDeBecaController extends Controller
         try {
 
             $usuario = Auth::user();
+
+            $request->validate([
+                'observaciones' => 'nullable|string|max:200',
+            ]);
 
             /* ======================================================
             VALIDAR ACCIÓN
@@ -259,15 +275,11 @@ class SolicitudDeBecaController extends Controller
 
                 $solicitud = SolicitudDeBeca::findOrFail($id);
 
-                if (in_array($solicitud->idEstatus, [6, 7])) {
-                    return redirect()
-                        ->route('consultaSolicitudBeca')
-                        ->with('popupError', 'La solicitud ya fue procesada');
-                }
 
                 $solicitud->update([
                     'idEstatus' => 6,
                     'fechaDeConclusion' => now(),
+                    'observacion' => null,
                 ]);
 
                 DB::commit();
@@ -288,15 +300,11 @@ class SolicitudDeBecaController extends Controller
 
                 $solicitud = SolicitudDeBeca::findOrFail($id);
 
-                if (in_array($solicitud->idEstatus, [6, 7])) {
-                    return redirect()
-                        ->route('consultaSolicitudBeca')
-                        ->with('popupError', 'La solicitud ya fue procesada');
-                }
 
                 $solicitud->update([
                     'idEstatus' => 7,
                     'fechaDeConclusion' => now(),
+                    'observacion' => $request->observaciones,
                 ]);
 
                 DB::commit();
@@ -330,7 +338,46 @@ class SolicitudDeBecaController extends Controller
                 $solicitud->update([
                     'promedioAnterior' => $request->promedio,
                     'examenExtraordinario' => $request->examenExtraordinario,
+                    'observacion' => null,
+                    'idEstatus'=>5,
+                    'fechaDeSolicitud' => now(),
                 ]);
+
+                /* ===============================
+                    ACTUALIZAR DOCUMENTOS
+                    =============================== */
+                    $tipos = [
+                        'documento_solicitud' => 1,
+                        'documento_adicional' => 2,
+                    ];
+
+                    foreach ($tipos as $input => $idTipo) {
+
+                        if ($request->hasFile($input)) {
+
+                            $archivo = $request->file($input);
+                            $ruta = $archivo->store('documentos/becas', 'public');
+
+                            $documento = $solicitud->documentaciones
+                                ->where('idTipoDeDocumentacion', $idTipo)
+                                ->first();
+
+                            if ($documento) {
+                                // 🔁 Reemplazar
+                                $documento->update([
+                                    'ruta' => $ruta,
+                                ]);
+                            } else {
+                                // ➕ Crear si no existía
+                                DocumentacionSolicitudDeBeca::create([
+                                    'idEstudiante' => $usuario->estudiante->idEstudiante,
+                                    'idSolicitudDeBeca' => $solicitud->idSolicitudDeBeca,
+                                    'idTipoDeDocumentacion' => $idTipo,
+                                    'ruta' => $ruta,
+                                ]);
+                            }
+                        }
+                    }
 
                 DB::commit();
 

@@ -137,7 +137,7 @@
                                 id="documento_solicitud"
                                 name="documento_solicitud"
                                 accept=".pdf"
-                                hidden
+                                style="display:none"
                                 required
                                 onchange="validarPDF(this, 'nombreArchivoSolicitud')"
                             >
@@ -204,7 +204,7 @@
                                 id="documento_adicional"
                                 name="documento_adicional"
                                 accept=".pdf"
-                                hidden
+                                style="display:none"
                                 onchange="validarPDF(this, 'nombreArchivoAdicional')"
                             >
 

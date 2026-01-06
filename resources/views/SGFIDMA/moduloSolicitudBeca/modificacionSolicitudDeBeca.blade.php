@@ -105,7 +105,7 @@
 
         {{-- ================= DATOS DEL ESTUDIANTE ================= --}}
         <div class="form-group2">
-            <label>¿Cuál fue tu promedio en el semestre que acabas de cursar?</label>
+            <label>Promedio anterior:</label>
             <input
                 type="number"
                 step="0.01"
@@ -120,7 +120,7 @@
 
         <div class="form-group2">
             <label>
-                En el semestre cursado ¿Presentaste algún examen extraordinario? ¿Cuál?
+                Examen extrairdinario:
             </label>
             <input
                 type="text"
@@ -263,6 +263,32 @@
         </section>
 
 
+        @admin
+        <div class="form-group2">
+            <label for="observaciones">Observaciones:</label>
+            <textarea
+                id="observaciones"
+                name="observaciones"
+                class="textarea-grande"
+                maxlength="200"
+                placeholder="Escribe las observaciones aquí..."
+            >{{ old('observaciones', $solicitud->observacion) }}</textarea>
+        </div>
+        @endadmin
+
+
+        @estudiante
+        <div class="form-group2">
+            <label>Observaciones:</label>
+            <textarea
+                class="textarea-grande"
+                readonly
+            >{{ $solicitud->observacion ?? 'Sin observaciones' }}</textarea>
+        </div>
+        @endestudiante
+
+
+
 
         {{-- ================= ACCIONES ================= --}}
 
@@ -277,11 +303,15 @@
 
 
         @admin
-            <button type="submit" name="accion" value="aprobar" class="btn-boton-formulario2">
+            <button type="submit" name="accion" value="aprobar" class="btn-boton-formulario2"
+            {{ $solicitud->idEstatus == 6 ? 'disabled' : '' }}
+            >
                 Aprobar
             </button>
         
-            <button type="submit" name="accion" value="rechazar" class="btn-boton-formulario2">
+            <button type="submit" name="accion" value="rechazar" class="btn-boton-formulario2"
+            {{ $solicitud->idEstatus == 7 ? 'disabled' : '' }}
+            >
                 Rechazar
             </button>
         @endadmin
@@ -294,6 +324,7 @@
             </a>
         </div>
 
+        
     </form>
 
     <script>
