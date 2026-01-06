@@ -253,6 +253,36 @@
         <x-error-field field="email" />
     </div>
 
+    @if(isset($rol) && (int) $rol === 2)
+        <h3 class="subtitulo-form">Datos del empleado</h3>
+
+        <div class="form-group">
+            <label for="idDepartamento">Departamento:</label>
+            <select id="idDepartamento" name="idDepartamento" class="select" required>
+                <option value="" disabled {{ old('idDepartamento') ? '' : 'selected' }}>Seleccionar</option>
+                @foreach($departamentos as $departamento)
+                    <option value="{{ $departamento->idDepartamento }}" {{ old('idDepartamento') == $departamento->idDepartamento ? 'selected' : '' }}>
+                        {{ $departamento->nombreDepartamento ?? ('Departamento #' . $departamento->idDepartamento) }}
+                    </option>
+                @endforeach
+            </select>
+            <x-error-field field="idDepartamento" />
+        </div>
+
+        <div class="form-group">
+            <label for="idNivelAcademico">Nivel academico:</label>
+            <select id="idNivelAcademico" name="idNivelAcademico" class="select" required>
+                <option value="" disabled {{ old('idNivelAcademico') ? '' : 'selected' }}>Seleccionar</option>
+                @foreach($nivelesAcademicos as $nivel)
+                    <option value="{{ $nivel->idNivelAcademico }}" {{ old('idNivelAcademico') == $nivel->idNivelAcademico ? 'selected' : '' }}>
+                        {{ $nivel->nombreNivelAcademico }}{{ $nivel->abreviacionNombre ? ' (' . $nivel->abreviacionNombre . ')' : '' }}
+                    </option>
+                @endforeach
+            </select>
+            <x-error-field field="idNivelAcademico" />
+        </div>
+    @endif
+
     <h3 class="subtitulo-form">Datos del domicilio</h3>
 
         {{-- ENTIDAD --}}

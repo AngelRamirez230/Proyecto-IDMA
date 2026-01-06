@@ -11,6 +11,9 @@ use App\Models\Municipio;
 use App\Models\Localidad;
 use App\Models\Domicilio; 
 use App\Models\Pais;
+use App\Models\Empleado;
+use App\Models\Departamento;
+use App\Models\NivelAcademico;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 
@@ -43,6 +46,8 @@ class UsuarioController extends Controller
             'municipios'     => collect(),
             'localidades'    => collect(),
             'paises'         => Pais::orderBy('nombrePais')->get(),
+            'departamentos'  => Departamento::orderBy('idDepartamento')->get(),
+            'nivelesAcademicos' => NivelAcademico::orderBy('idNivelAcademico')->get(),
         ]);
     }
 
@@ -51,6 +56,8 @@ class UsuarioController extends Controller
      */
     public function store(UsuarioRequest $request)
     {
+        $rol = (int) $request->input('rol', 1);
+
         /*
         |----------------------------------------------------------
         | 1. LOCALIDAD DE NACIMIENTO (OBLIGATORIA)
@@ -115,7 +122,7 @@ class UsuarioController extends Controller
         | 4. CREAR USUARIO
         |----------------------------------------------------------
         */
-        Usuario::create([
+        $usuario = Usuario::create([
             'primerNombre'            => $request->primer_nombre,
             'segundoNombre'           => $request->segundo_nombre,
             'primerApellido'          => $request->primer_apellido,
@@ -138,9 +145,17 @@ class UsuarioController extends Controller
             'idLocalidadNacimiento'   => $idLocalidadNacimiento,
             'idDomicilio'             => $domicilioId,
 
-            'idtipoDeUsuario'         => session('rol_seleccionado', 1),
+            'idtipoDeUsuario'         => $rol,
             'idestatus'               => 1,
         ]);
+
+        if ($rol === 2) {
+            Empleado::create([
+                'idUsuario'        => $usuario->idUsuario,
+                'idDepartamento'   => $request->idDepartamento,
+                'idNivelAcademico' => $request->idNivelAcademico,
+            ]);
+        }
 
         return redirect()
             ->route('consultaUsuarios')
@@ -419,5 +434,37 @@ class UsuarioController extends Controller
         return redirect()
             ->route('consultaUsuarios')
             ->with('success', 'Usuario eliminado correctamente.');
+    }
+
+    public function toggleEstatus(Usuario $usuario)
+    {
+        $estatusActual = (int) $usuario->idestatus;
+
+        // Reglas:
+        // 1 <-> 2
+        // 8 -> 1 (lo “reactiva” sin crear función de recuperación)
+        if ($estatusActual === 2) {
+            $nuevoEstatus = 1; // Habilitar
+            $mensaje = 'Usuario habilitado correctamente.';
+        } elseif ($estatusActual === 1) {
+            $nuevoEstatus = 2; // Suspender
+            $mensaje = 'Usuario suspendido correctamente.';
+        } elseif ($estatusActual === 8) {
+            $nuevoEstatus = 2; // Eliminado -> Activo
+            $mensaje = 'Usuario reactivado y suspendido correctamente.';
+        } else {
+            // Cualquier otro estatus que exista en tu catálogo
+            // lo mandamos a 1 por seguridad (o puedes bloquearlo)
+            $nuevoEstatus = 1;
+            $mensaje = 'Estatus actualizado correctamente.';
+        }
+
+        $usuario->update([
+            'idestatus' => $nuevoEstatus,
+        ]);
+
+        return redirect()
+            ->route('consultaUsuarios')
+            ->with('success', $mensaje);
     }
 }

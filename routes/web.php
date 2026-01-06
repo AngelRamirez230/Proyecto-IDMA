@@ -65,6 +65,9 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
     Route::delete('/usuarios/{usuario}', [UsuarioController::class, 'destroy'])
     ->name('usuarios.destroy');
 
+    Route::put('/usuarios/{usuario}/toggle-estatus', [UsuarioController::class, 'toggleEstatus'])
+    ->name('usuarios.toggleEstatus');
+
     /*----------- ESTUDIANTES -----------*/
     Route::get('/apartadoEstudiantes', function () {
         return view('shared.moduloEstudiantes.apartadoEstudiantes');
