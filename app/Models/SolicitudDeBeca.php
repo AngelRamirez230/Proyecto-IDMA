@@ -49,11 +49,17 @@ class SolicitudDeBeca extends Model
     }
 
     public function documentaciones()
-{
-    return $this->hasMany(
-        DocumentacionSolicitudDeBeca::class,
-        'idSolicitudDeBeca',
-        'idSolicitudDeBeca'
-    );
-}
+    {
+        return $this->hasMany(
+            DocumentacionSolicitudDeBeca::class,
+            'idSolicitudDeBeca',
+            'idSolicitudDeBeca'
+        );
+    }
+
+    public function scopeDelEstudiante($query, $idEstudiante)
+    {
+        return $query->where('idEstudiante', $idEstudiante);
+    }
+
 }

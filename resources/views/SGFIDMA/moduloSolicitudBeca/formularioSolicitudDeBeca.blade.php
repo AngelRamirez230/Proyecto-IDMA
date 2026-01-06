@@ -123,7 +123,7 @@
                 <thead>
                     <tr>
                         <th>Tipo de documento</th>
-                        <th>Acción</th>
+                        <th>Acciones</th>
                         <th>Archivo seleccionado</th>
                     </tr>
                 </thead>
@@ -144,10 +144,10 @@
 
                             <button
                                 type="button"
-                                class="boton-subir"
+                                class="btn-boton-formulario2 btn-accion"
                                 onclick="document.getElementById('documento_solicitud').click()"
                             >
-                                Seleccionar archivo
+                                Subir archivo
                             </button>
                         </td>
 
@@ -190,7 +190,7 @@
                 <thead>
                     <tr>
                         <th>Tipo de documento</th>
-                        <th>Acción</th>
+                        <th>Acciones</th>
                         <th>Archivo seleccionado</th>
                     </tr>
                 </thead>
@@ -210,10 +210,10 @@
 
                             <button
                                 type="button"
-                                class="boton-subir"
+                                class="btn-boton-formulario2 btn-accion"
                                 onclick="document.getElementById('documento_adicional').click()"
                             >
-                                Seleccionar archivo
+                                Subir archivo
                             </button>
                         </td>
 

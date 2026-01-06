@@ -64,7 +64,7 @@
                 <tbody class="tabla-cuerpo">
                     @if ($solicitudes->isEmpty())
                         <tr>
-                            <td colspan="5" class="tablaVacia"> No existen solicitudes de becas disponibles.</td>
+                            <td colspan="6" class="tablaVacia"> No existen solicitudes de becas disponibles.</td>
                         </tr>
                     @else
                         @foreach ($solicitudes as $solicitud)
@@ -84,16 +84,27 @@
                             <td>
                                 <div class="tabla-acciones">
                             
-                                    @if($solicitud->idEstatus == 5 || $solicitud->idEstatus === 6) {{-- PENDIENTE --}}
+                                    @admin
+                                        {{-- ADMIN: siempre puede --}}
                                         <a href="{{ route('solicitud-beca.edit', $solicitud->idSolicitudDeBeca) }}"
                                         class="btn-boton-formulario2 btn-accion">
                                             Ver solicitud
                                         </a>
-                                    @else
-                                        <span class="texto-bloqueado">
-                                            No editable
-                                        </span>
-                                    @endif
+                                    @endadmin
+
+                                    @estudiante
+                                        @if($solicitud->idEstatus != 6)
+                                            {{-- ESTUDIANTE: solo si NO está aprobada --}}
+                                            <a href="{{ route('solicitud-beca.edit', $solicitud->idSolicitudDeBeca) }}"
+                                            class="btn-boton-formulario2 btn-accion">
+                                                Ver solicitud
+                                            </a>
+                                        @else
+                                            <span class="texto-bloqueado">
+                                                No editable
+                                            </span>
+                                        @endif
+                                    @endestudiante
 
 
                                 </div>

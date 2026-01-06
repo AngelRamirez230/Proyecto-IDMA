@@ -8,8 +8,8 @@
 </head>
 <body>
 
-    @include('layouts.barraNavegacion')
-
+    
+@include('layouts.barraNavegacion')
 
     <form action="{{ route('solicitud-beca.update', $solicitud->idSolicitudDeBeca) }}" method="POST" class="formulario2" enctype="multipart/form-data">
         @csrf
@@ -114,7 +114,7 @@
                 name="promedio"
                 class="input-chico2"
                 value="{{ old('promedio', $solicitud->promedioAnterior) }}"
-                required
+                
             >
         </div>
 
@@ -139,10 +139,13 @@
                 {{-- ================= ENCABEZADO ================= --}}
                 <thead>
                     <tr class="tabla-encabezado">
-                        <th>Tipo de documento documento</th>
+                        <th>Tipo de documento</th>
                         <th>Archivo</th>
-                        <th>Acciones</th>
-                        <th>Archivo seleccionado</th>
+
+                        @estudiante
+                            <th>Acciones</th>
+                            <th>Archivo seleccionado</th>
+                        @endestudiante
                     </tr>
                 </thead>
 
@@ -170,34 +173,36 @@
                             @endif
                         </td>
 
-                        {{-- ACCIONES --}}
-                        <td>
-                            <div class="tabla-acciones">
-                                <input
-                                    type="file"
-                                    id="documento_solicitud"
-                                    name="documento_solicitud"
-                                    accept=".pdf"
-                                    hidden
-                                    onchange="validarPDF(this, 'nombreArchivoSolicitud')"
-                                >
+                        @estudiante
+                            {{-- ACCIONES --}}
+                            <td>
+                                <div class="tabla-acciones">
+                                    <input
+                                        type="file"
+                                        id="documento_solicitud"
+                                        name="documento_solicitud"
+                                        accept=".pdf"
+                                        hidden
+                                        onchange="validarPDF(this, 'nombreArchivoSolicitud')"
+                                    >
 
-                                <button
-                                    type="button"
-                                    class="btn-boton-formulario2 btn-accion"
-                                    onclick="document.getElementById('documento_solicitud').click()"
-                                >
-                                    Cambiar archivo
-                                </button>
-                            </div>
-                        </td>
+                                    <button
+                                        type="button"
+                                        class="btn-boton-formulario2 btn-accion"
+                                        onclick="document.getElementById('documento_solicitud').click()"
+                                    >
+                                        Cambiar archivo
+                                    </button>
+                                </div>
+                            </td>
 
-                        {{-- ARCHIVO SELECCIONADO --}}
-                        <td>
-                            <span id="nombreArchivoSolicitud" class="nombre-archivo">
-                                Ningún archivo seleccionado
-                            </span>
-                        </td>
+                            {{-- ARCHIVO SELECCIONADO --}}
+                            <td>
+                                <span id="nombreArchivoSolicitud" class="nombre-archivo">
+                                    Ningún archivo seleccionado
+                                </span>
+                            </td>
+                        @endestudiante
                     </tr>
 
                     {{-- ================= DOCUMENTO ADICIONAL ================= --}}
@@ -221,34 +226,36 @@
                             @endif
                         </td>
 
-                        {{-- ACCIONES --}}
-                        <td>
-                            <div class="tabla-acciones">
-                                <input
-                                    type="file"
-                                    id="documento_adicional"
-                                    name="documento_adicional"
-                                    accept=".pdf"
-                                    hidden
-                                    onchange="validarPDF(this, 'nombreArchivoAdicional')"
-                                >
+                        @estudiante
+                            {{-- ACCIONES --}}
+                            <td>
+                                <div class="tabla-acciones">
+                                    <input
+                                        type="file"
+                                        id="documento_adicional"
+                                        name="documento_adicional"
+                                        accept=".pdf"
+                                        hidden
+                                        onchange="validarPDF(this, 'nombreArchivoAdicional')"
+                                    >
 
-                                <button
-                                    type="button"
-                                    class="btn-boton-formulario2 btn-accion"
-                                    onclick="document.getElementById('documento_adicional').click()"
-                                >
-                                    Cambiar archivo
-                                </button>
-                            </div>
-                        </td>
+                                    <button
+                                        type="button"
+                                        class="btn-boton-formulario2 btn-accion"
+                                        onclick="document.getElementById('documento_adicional').click()"
+                                    >
+                                        Cambiar archivo
+                                    </button>
+                                </div>
+                            </td>
 
-                        {{-- ARCHIVO SELECCIONADO --}}
-                        <td>
-                            <span id="nombreArchivoAdicional" class="nombre-archivo">
-                                Ningún archivo seleccionado
-                            </span>
-                        </td>
+                            {{-- ARCHIVO SELECCIONADO --}}
+                            <td>
+                                <span id="nombreArchivoAdicional" class="nombre-archivo">
+                                    Ningún archivo seleccionado
+                                </span>
+                            </td>
+                        @endestudiante
                     </tr>
 
                 </tbody>
@@ -256,20 +263,28 @@
         </section>
 
 
+
         {{-- ================= ACCIONES ================= --}}
+
+        
         <div class="form-group2">
 
+        @estudiante    
             <button type="submit" name="accion" value="guardar" class="btn-boton-formulario2">
                 Guardar cambios
             </button>
+        @endestudiante
 
+
+        @admin
             <button type="submit" name="accion" value="aprobar" class="btn-boton-formulario2">
                 Aprobar
             </button>
-
+        
             <button type="submit" name="accion" value="rechazar" class="btn-boton-formulario2">
                 Rechazar
             </button>
+        @endadmin
 
             <a
                 href="{{ route('consultaSolicitudBeca') }}"

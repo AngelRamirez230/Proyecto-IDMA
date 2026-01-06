@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\BecaController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\ConceptoController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\SolicitudDeBecaController;
 
 /*--------------------------RUTAS PARA INVITADOS (LOGIN)--------------------------*/
 Route::middleware(['guest.manual', 'nocache'])->group(function () {
+    
 
     Route::get('/', [LoginController::class, 'showLogin'])->name('login.view');
 
@@ -26,6 +28,7 @@ Route::middleware(['guest.manual', 'nocache'])->group(function () {
 
 /*--------------------------RUTAS PROTEGIDAS (USUARIOS AUTENTICADOS)--------------------------*/
 Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(function () {
+
 
     /*------------INICIO------------*/
     Route::get('/inicio', [InicioController::class, 'index'])->name('inicio');
