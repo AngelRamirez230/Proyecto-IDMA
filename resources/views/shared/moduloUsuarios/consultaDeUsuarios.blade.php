@@ -134,15 +134,20 @@
                                             </a>
                                         @endif
 
-                                        {{-- SUSPENDER/HABILITAR (placeholder) --}}
-                                        <button type="button" class="accion-boton" title="Suspender/Habilitar">
-                                            <img
-                                                src="{{ ((int)($usuario->idestatus ?? 0) === 2)
-                                                    ? asset('imagenes/IconoHabilitar.png')
-                                                    : asset('imagenes/IconoSuspender.png') }}"
-                                                alt="Suspender/Habilitar"
-                                            >
-                                        </button>
+                                        {{-- SUSPENDER/HABILITAR --}}
+                                        <form action="{{ route('usuarios.toggleEstatus', $usuario->idUsuario) }}" method="POST" style="display:inline">
+                                            @csrf
+                                            @method('PUT')
+
+                                            <button type="submit" class="accion-boton" title="Suspender/Habilitar">
+                                                <img
+                                                    src="{{ ((int)($usuario->idestatus ?? 0) === 2)
+                                                        ? asset('imagenes/IconoHabilitar.png')
+                                                        : asset('imagenes/IconoSuspender.png') }}"
+                                                    alt="Suspender/Habilitar"
+                                                >
+                                            </button>
+                                        </form>
 
                                         {{-- ELIMINAR --}}
                                         <form action="{{ route('usuarios.destroy', $usuario->idUsuario) }}" method="POST" style="display:inline">
@@ -153,12 +158,18 @@
                                                 type="button"
                                                 class="accion-boton"
                                                 title="Eliminar"
+                                                {{ ((int)($usuario->idestatus ?? 0) === 8) ? 'disabled' : '' }}
                                                 onclick="mostrarPopupConfirmacionUsuario(
                                                     '{{ trim(($usuario->primerNombre ?? '').' '.($usuario->primerApellido ?? '')) }}',
                                                     this
                                                 )"
                                             >
-                                                <img src="{{ asset('imagenes/IconoEliminar.png') }}" alt="Eliminar">
+                                                <img
+                                                    src="{{ ((int)($usuario->idestatus ?? 0) === 2 || (int)($usuario->idestatus ?? 0) === 8)
+                                                        ? asset('imagenes/IconoEliminarGris.png')
+                                                        : asset('imagenes/IconoEliminar.png') }}"
+                                                    alt="Eliminar"
+                                                />
                                             </button>
                                         </form>
                                     </div>

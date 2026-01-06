@@ -420,4 +420,36 @@ class UsuarioController extends Controller
             ->route('consultaUsuarios')
             ->with('success', 'Usuario eliminado correctamente.');
     }
+
+    public function toggleEstatus(Usuario $usuario)
+    {
+        $estatusActual = (int) $usuario->idestatus;
+
+        // Reglas:
+        // 1 <-> 2
+        // 8 -> 1 (lo “reactiva” sin crear función de recuperación)
+        if ($estatusActual === 2) {
+            $nuevoEstatus = 1; // Habilitar
+            $mensaje = 'Usuario habilitado correctamente.';
+        } elseif ($estatusActual === 1) {
+            $nuevoEstatus = 2; // Suspender
+            $mensaje = 'Usuario suspendido correctamente.';
+        } elseif ($estatusActual === 8) {
+            $nuevoEstatus = 2; // Eliminado -> Activo
+            $mensaje = 'Usuario reactivado y suspendido correctamente.';
+        } else {
+            // Cualquier otro estatus que exista en tu catálogo
+            // lo mandamos a 1 por seguridad (o puedes bloquearlo)
+            $nuevoEstatus = 1;
+            $mensaje = 'Estatus actualizado correctamente.';
+        }
+
+        $usuario->update([
+            'idestatus' => $nuevoEstatus,
+        ]);
+
+        return redirect()
+            ->route('consultaUsuarios')
+            ->with('success', $mensaje);
+    }
 }
