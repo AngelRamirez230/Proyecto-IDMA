@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use App\Models\RangoDeHorario;
 
 class UsuarioRequest extends FormRequest
 {
@@ -106,8 +107,39 @@ class UsuarioRequest extends FormRequest
             'idNivelAcademico' => [
                 'nullable',
                 'integer',
-                'required_if:rol,2',
+                'required_if:rol,2,3',
                 'exists:Nivel_academico,idNivelAcademico',
+            ],
+
+            /* =======================
+               DOCENTE
+            ======================= */
+            'horarios' => [
+                'nullable',
+                'array',
+                'required_if:rol,3',
+                'min:1',
+            ],
+
+            'horarios.*.idDiaSemana' => [
+                'nullable',
+                'integer',
+                'required_if:rol,3',
+                'exists:Dia_semana,idDiaSemana',
+            ],
+
+            'horarios.*.idRangoDeHorario' => [
+                'nullable',
+            ],
+
+            'horarios.*.horaInicio' => [
+                'nullable',
+                'date_format:H:i',
+            ],
+
+            'horarios.*.horaFin' => [
+                'nullable',
+                'date_format:H:i',
             ],
 
             /* =======================
@@ -159,12 +191,53 @@ class UsuarioRequest extends FormRequest
         ];
     }
 
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            if ((int) $this->input('rol') !== 3) {
+                return;
+            }
+
+            $horarios = $this->input('horarios');
+
+            if (!is_array($horarios) || count($horarios) === 0) {
+                $validator->errors()->add('horarios', 'Debes registrar al menos un horario.');
+                return;
+            }
+
+            foreach ($horarios as $index => $horario) {
+                $idRango = $horario['idRangoDeHorario'] ?? null;
+                $horaInicio = $horario['horaInicio'] ?? null;
+                $horaFin = $horario['horaFin'] ?? null;
+
+                $usaManual = ($idRango === 'manual') || (!$idRango && ($horaInicio || $horaFin));
+
+                if ($idRango && $idRango !== 'manual') {
+                    if (!is_numeric($idRango) || !RangoDeHorario::where('idRangoDeHorario', $idRango)->exists()) {
+                        $validator->errors()->add("horarios.$index.idRangoDeHorario", 'El rango seleccionado no es valido.');
+                    }
+                }
+
+                if ($usaManual) {
+                    if (!$horaInicio || !$horaFin) {
+                        $validator->errors()->add("horarios.$index.horaInicio", 'Debes indicar hora inicio y fin.');
+                    }
+                }
+
+                if (!$idRango && !$horaInicio && !$horaFin) {
+                    $validator->errors()->add("horarios.$index.idRangoDeHorario", 'Selecciona un rango o captura horas.');
+                }
+            }
+        });
+    }
+
     public function attributes(): array
     {
         return [
             'rol'                 => 'rol',
             'idDepartamento'       => 'departamento',
             'idNivelAcademico'     => 'nivel academico',
+            'horarios'            => 'horarios',
             'primer_nombre'        => 'primer nombre',
             'primer_apellido'      => 'primer apellido',
             'sexo'                 => 'sexo',
@@ -186,11 +259,15 @@ class UsuarioRequest extends FormRequest
         return [
             'password.required' => 'La contraseña es obligatoria.',
             'password.min'      => 'La contraseña debe tener al menos 8 caracteres.',
+            'curp.max'          => 'El CURP no debe tener mas de 18 caracteres.',
             'rfc.max'           => 'El RFC no debe tener más de 13 caracteres.',
             'email.email'       => 'El correo electrónico no tiene un formato válido.',
             'email.unique'      => 'El correo electrónico ya está registrado.',
             'emailInstitucional.email'  => 'El correo institucional no tiene un formato válido.',
             'emailInstitucional.unique' => 'El correo institucional ya está registrado.',
+            'nombreUsuario.unique' => 'El nombre de usuario ya esta registrado.',
+            'localidadNacimiento.required_if' =>
+                'La localidad de nacimiento es obligatoria cuando el pais de nacimiento es Mexico.',
             'localidad.required_without' =>
                 'Debes seleccionar una localidad o escribir una manualmente.',
             'localidadManual.required_without' =>
@@ -198,3 +275,5 @@ class UsuarioRequest extends FormRequest
         ];
     }
 }
+
+
