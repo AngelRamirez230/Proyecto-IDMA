@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 use App\Models\Estudiante;
 use App\Models\SolicitudDeBeca;
@@ -14,6 +15,28 @@ use App\Models\DocumentacionSolicitudDeBeca;
 
 class SolicitudDeBecaController extends Controller
 {
+
+
+    private function fueraDePeriodoDeSolicitud(): bool
+    {
+        $hoy = Carbon::now();
+
+        $anio = $hoy->year;
+
+        // Última semana de febrero
+        $inicioFebrero = Carbon::create($anio, 2, 1)->endOfMonth()->subDays(6);
+        $finFebrero = Carbon::create($anio, 2, 1)->endOfMonth();
+
+        // Última semana de agosto
+        $inicioAgosto = Carbon::create($anio, 8, 1)->endOfMonth()->subDays(6);
+        $finAgosto = Carbon::create($anio, 8, 1)->endOfMonth();
+
+        return !(
+            $hoy->between($inicioFebrero, $finFebrero) ||
+            $hoy->between($inicioAgosto, $finAgosto)
+        );
+    }
+
     /* ======================================================
        FORMULARIO DE SOLICITUD
     ====================================================== */
@@ -24,6 +47,12 @@ class SolicitudDeBecaController extends Controller
         // Solo estudiantes pueden solicitar beca
         if (!$usuario || !$usuario->estudiante) {
             abort(403, 'Acceso no autorizado');
+        }
+
+        if ($this->fueraDePeriodoDeSolicitud()) {
+            return redirect()
+                ->route('consultaBeca')
+                ->with('popupError', 'No te encuentras en el periodo válido para solicitar una beca.');
         }
 
         // Beca activa
@@ -50,7 +79,7 @@ class SolicitudDeBecaController extends Controller
         try {
 
             $request->validate([
-                'idBeca' => 'required|exists:beca,idBeca', // ajusta si tu tabla es "becas"
+                'idBeca' => 'required|exists:beca,idBeca', 
                 'promedio' => 'required|numeric|min:8.5|max:10',
                 'examenExtraordinario' => 'nullable|string|max:255',
                 'documento_solicitud' => 'required|file|mimes:pdf|max:5120',
@@ -242,6 +271,47 @@ class SolicitudDeBecaController extends Controller
         );
     }
 
+
+
+    private function calcularFechaConclusion(Carbon $fechaSolicitud): Carbon
+    {
+        $anio = $fechaSolicitud->year;
+
+        // Última semana de febrero
+        $inicioUltimaSemanaFebrero = Carbon::create($anio, 2, 1)
+            ->endOfMonth()
+            ->subDays(6);
+
+        $finUltimaSemanaFebrero = Carbon::create($anio, 2, 1)
+            ->endOfMonth();
+
+        // Última semana de agosto
+        $inicioUltimaSemanaAgosto = Carbon::create($anio, 8, 1)
+            ->endOfMonth()
+            ->subDays(6);
+
+        $finUltimaSemanaAgosto = Carbon::create($anio, 8, 1)
+            ->endOfMonth();
+
+        // 👉 Si fue solicitada en febrero → termina antes de agosto
+        if ($fechaSolicitud->between($inicioUltimaSemanaFebrero, $finUltimaSemanaFebrero)) {
+
+            return $inicioUltimaSemanaAgosto->subDays(2); // 1 o 2 días antes
+        }
+
+        // 👉 Si fue solicitada en agosto → termina antes de febrero (siguiente año)
+        if ($fechaSolicitud->between($inicioUltimaSemanaAgosto, $finUltimaSemanaAgosto)) {
+
+            return Carbon::create($anio + 1, 2, 1)
+                ->endOfMonth()
+                ->subDays(8); // 1–2 días antes de la última semana
+        }
+
+        // Fallback (no debería pasar)
+        return Carbon::now();
+    }
+
+
     /* ======================================================
        ACTUALIZAR
     ====================================================== */
@@ -275,10 +345,13 @@ class SolicitudDeBecaController extends Controller
 
                 $solicitud = SolicitudDeBeca::findOrFail($id);
 
+                $fechaSolicitud = Carbon::parse($solicitud->fechaDeSolicitud);
+
+                $fechaConclusion = $this->calcularFechaConclusion($fechaSolicitud);
 
                 $solicitud->update([
-                    'idEstatus' => 6,
-                    'fechaDeConclusion' => now(),
+                    'idEstatus' => 6, // Aprobada
+                    'fechaDeConclusion' => $fechaConclusion,
                     'observacion' => null,
                 ]);
 

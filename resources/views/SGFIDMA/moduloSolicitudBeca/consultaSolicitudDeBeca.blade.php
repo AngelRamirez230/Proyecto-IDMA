@@ -93,8 +93,7 @@
                                     @endadmin
 
                                     @estudiante
-                                        @if($solicitud->idEstatus != 6)
-                                            {{-- ESTUDIANTE: solo si NO está aprobada --}}
+                                        @if(!in_array($solicitud->idEstatus, [6, 9]))
                                             <a href="{{ route('solicitud-beca.edit', $solicitud->idSolicitudDeBeca) }}"
                                             class="btn-boton-formulario2 btn-accion">
                                                 Ver solicitud
