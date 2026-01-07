@@ -258,6 +258,27 @@
 }
 
 /* =======================
+   DOCENTE: HORARIOS EN LINEA
+======================= */
+.horario-row{
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px 24px;
+    align-items: flex-end;
+}
+
+.horario-row .form-group{
+    flex: 1 1 180px;
+}
+
+.horario-row .btn-boton-formulario{
+    width: auto;
+    height: auto;
+    padding: 10px 16px;
+}
+
+/* =======================
    RESPONSIVE: 1 columna
 ======================= */
 @media screen and (max-width: 950px){
@@ -274,5 +295,70 @@
     .btn-boton-formulario{
         width: 191px;
         height: 49px;
+    }
+}
+
+/* =======================
+   DOCENTE: BLOQUE FULL WIDTH
+======================= */
+.docente-nivel{
+    grid-column: 1 / -1;
+    max-width: 520px; /* opcional: para que el select no se estire demasiado */
+}
+
+.docente-horarios{
+    grid-column: 1 / -1;
+}
+
+/* El botón "Agregar horario" debajo y alineado */
+.docente-horarios-acciones{
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-start;
+}
+
+/* =======================
+   DOCENTE: HORARIOS EN LÍNEA (ajuste fino)
+======================= */
+.horario-row{
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px 24px;
+    align-items: flex-end;
+}
+
+/* ancho de cada bloque para que no se “apachurre” */
+.horario-row .form-group{
+    flex: 0 1 220px;
+}
+
+/* Inputs de manual un poco más chicos */
+.horario-row .horario-manual{
+    flex: 0 1 160px;
+}
+
+/* Altura consistente para controles en filas de horario */
+.horario-row .btn-quitar-horario{
+    height: 44px;          /* ajusta si tu diseño usa otra altura */
+    box-sizing: border-box;
+}
+
+/* El botón quitar como “caja” igual al select */
+.horario-row .btn-quitar-horario{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+    padding: 10px 16px;
+}
+
+/* Responsive: en móvil sí se apilan */
+@media screen and (max-width: 950px){
+    .docente-nivel{
+        max-width: 100%;
+    }
+    .horario-row .form-group{
+        flex: 1 1 100%;
     }
 }

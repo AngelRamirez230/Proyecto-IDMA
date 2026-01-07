@@ -14,6 +14,10 @@ use App\Models\Pais;
 use App\Models\Empleado;
 use App\Models\Departamento;
 use App\Models\NivelAcademico;
+use App\Models\Docente;
+use App\Models\RangoDeHorario;
+use App\Models\DiaSemana;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 
@@ -48,6 +52,8 @@ class UsuarioController extends Controller
             'paises'         => Pais::orderBy('nombrePais')->get(),
             'departamentos'  => Departamento::orderBy('idDepartamento')->get(),
             'nivelesAcademicos' => NivelAcademico::orderBy('idNivelAcademico')->get(),
+            'diasSemana'     => DiaSemana::orderBy('idDiaSemana')->get(),
+            'rangosHorarios' => RangoDeHorario::orderBy('horaInicio')->orderBy('horaFin')->get(),
         ]);
     }
 
@@ -155,6 +161,49 @@ class UsuarioController extends Controller
                 'idDepartamento'   => $request->idDepartamento,
                 'idNivelAcademico' => $request->idNivelAcademico,
             ]);
+        }
+
+        if ($rol === 3) {
+            $docente = Docente::create([
+                'idUsuario'        => $usuario->idUsuario,
+                'idNivelAcademico' => $request->idNivelAcademico,
+            ]);
+
+            $horarios = $request->input('horarios', []);
+
+            foreach ($horarios as $horario) {
+                $idDiaSemana = $horario['idDiaSemana'] ?? null;
+                $idRango = $horario['idRangoDeHorario'] ?? null;
+
+                if (!$idDiaSemana) {
+                    continue;
+                }
+
+                if (!$idRango || $idRango === 'manual') {
+                    $horaInicio = $horario['horaInicio'] ?? null;
+                    $horaFin = $horario['horaFin'] ?? null;
+
+                    if (!$horaInicio || !$horaFin) {
+                        continue;
+                    }
+
+                    $rango = RangoDeHorario::create([
+                        'horaInicio'     => $horaInicio,
+                        'horaFin'        => $horaFin,
+                        'idTipoDeEstatus' => 3,
+                    ]);
+
+                    $idRango = $rango->idRangoDeHorario;
+                }
+
+                if ($idRango) {
+                    DB::table('Docente_dia_rango_de_horario')->insert([
+                        'idDocente'       => $docente->idDocente,
+                        'idRangoDeHorario'=> $idRango,
+                        'idDiaSemana'     => $idDiaSemana,
+                    ]);
+                }
+            }
         }
 
         return redirect()

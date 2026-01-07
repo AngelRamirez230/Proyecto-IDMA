@@ -270,7 +270,7 @@
         </div>
 
         <div class="form-group">
-            <label for="idNivelAcademico">Nivel academico:</label>
+            <label for="idNivelAcademico">Nivel académico:</label>
             <select id="idNivelAcademico" name="idNivelAcademico" class="select" required>
                 <option value="" disabled {{ old('idNivelAcademico') ? '' : 'selected' }}>Seleccionar</option>
                 @foreach($nivelesAcademicos as $nivel)
@@ -281,6 +281,152 @@
             </select>
             <x-error-field field="idNivelAcademico" />
         </div>
+    @endif
+
+    @if(isset($rol) && (int) $rol === 3)
+        <h3 class="subtitulo-form">Datos del docente y disponibilidad de horario</h3>
+
+        <div class="form-group">
+            <label for="idNivelAcademicoDocente">Nivel academico:</label>
+            <select id="idNivelAcademicoDocente" name="idNivelAcademico" class="select" required>
+                <option value="" disabled {{ old('idNivelAcademico') ? '' : 'selected' }}>Seleccionar</option>
+                @foreach($nivelesAcademicos as $nivel)
+                    <option value="{{ $nivel->idNivelAcademico }}" {{ old('idNivelAcademico') == $nivel->idNivelAcademico ? 'selected' : '' }}>
+                        {{ $nivel->nombreNivelAcademico }}{{ $nivel->abreviacionNombre ? ' (' . $nivel->abreviacionNombre . ')' : '' }}
+                    </option>
+                @endforeach
+            </select>
+            <x-error-field field="idNivelAcademico" />
+        </div>
+
+        @php
+            $horariosOld = old('horarios');
+            if (!is_array($horariosOld) || count($horariosOld) === 0) {
+                $horariosOld = [
+                    [
+                        'idDiaSemana' => '',
+                        'idRangoDeHorario' => '',
+                        'horaInicio' => '',
+                        'horaFin' => '',
+                    ],
+                ];
+            }
+        @endphp
+
+        <div id="horarios-container" class="docente-horarios">
+            @foreach($horariosOld as $index => $horario)
+                @php
+                    $usaManual = empty($horario['idRangoDeHorario'])
+                        && (!empty($horario['horaInicio']) || !empty($horario['horaFin']));
+                @endphp
+                <div class="horario-row" data-index="{{ $index }}">
+                    <div class="form-group docente-nivel">
+                        <label>Día:</label>
+                        <select name="horarios[{{ $index }}][idDiaSemana]" class="select" required>
+                            <option value="" disabled {{ !empty($horario['idDiaSemana']) ? '' : 'selected' }}>Seleccionar</option>
+                            @foreach($diasSemana as $dia)
+                                <option value="{{ $dia->idDiaSemana }}" {{ (string)($horario['idDiaSemana'] ?? '') === (string)$dia->idDiaSemana ? 'selected' : '' }}>
+                                    {{ $dia->nombreDia }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <x-error-field field="horarios.{{ $index }}.idDiaSemana" />
+                    </div>
+
+                    <div class="form-group docente-nivel">
+                        <label>Horario:</label>
+                        <select name="horarios[{{ $index }}][idRangoDeHorario]" class="select rango-select">
+                            <option value="" {{ empty($horario['idRangoDeHorario']) && !$usaManual ? 'selected' : '' }}>Seleccionar</option>
+                            @foreach($rangosHorarios as $rango)
+                                <option value="{{ $rango->idRangoDeHorario }}" {{ (string)($horario['idRangoDeHorario'] ?? '') === (string)$rango->idRangoDeHorario ? 'selected' : '' }}>
+                                    {{ $rango->horaInicio }} - {{ $rango->horaFin }}
+                                </option>
+                            @endforeach
+                            <option value="manual" {{ $usaManual ? 'selected' : '' }}>Otro horario...</option>
+                        </select>
+                        <x-error-field field="horarios.{{ $index }}.idRangoDeHorario" />
+                    </div>
+
+                    <div class="form-group horario-manual" style="{{ $usaManual ? '' : 'display:none;' }}">
+                        <label>Hora inicio:</label>
+                        <input
+                            type="time"
+                            name="horarios[{{ $index }}][horaInicio]"
+                            class="input-chico"
+                            value="{{ $horario['horaInicio'] ?? '' }}"
+                        >
+                        <x-error-field field="horarios.{{ $index }}.horaInicio" />
+                    </div>
+
+                    <div class="form-group horario-manual" style="{{ $usaManual ? '' : 'display:none;' }}">
+                        <label>Hora fin:</label>
+                        <input
+                            type="time"
+                            name="horarios[{{ $index }}][horaFin]"
+                            class="input-chico"
+                            value="{{ $horario['horaFin'] ?? '' }}"
+                        >
+                        <x-error-field field="horarios.{{ $index }}.horaFin" />
+                    </div>
+
+                    <div class="form-group docente-nivel">
+                        <button type="button" class="btn-boton-formulario btn-cancelar btn-quitar-horario">
+                            Quitar
+                        </button>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
+        <div class="form-group docente-horarios-acciones">
+            <button type="button" class="btn-boton-formulario" id="agregar-horario">
+                Agregar horario
+            </button>
+        </div>
+        <x-error-field field="horarios" />
+
+        <template id="horario-template">
+            <div class="horario-row" data-index="__INDEX__">
+                <div class="form-group docente-nivel">
+                    <label>Dia:</label>
+                    <select name="horarios[__INDEX__][idDiaSemana]" class="select" required>
+                        <option value="" disabled selected>Seleccionar</option>
+                        @foreach($diasSemana as $dia)
+                            <option value="{{ $dia->idDiaSemana }}">{{ $dia->nombreDia }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="form-group docente-nivel">
+                    <label>Horario:</label>
+                    <select name="horarios[__INDEX__][idRangoDeHorario]" class="select rango-select">
+                        <option value="" selected>Seleccionar</option>
+                        @foreach($rangosHorarios as $rango)
+                            <option value="{{ $rango->idRangoDeHorario }}">
+                                {{ $rango->horaInicio }} - {{ $rango->horaFin }}
+                            </option>
+                        @endforeach
+                        <option value="manual">Otro horario...</option>
+                    </select>
+                </div>
+
+                <div class="form-group horario-manual" style="display:none;">
+                    <label>Hora inicio:</label>
+                    <input type="time" name="horarios[__INDEX__][horaInicio]" class="input-chico">
+                </div>
+
+                <div class="form-group horario-manual" style="display:none;">
+                    <label>Hora fin:</label>
+                    <input type="time" name="horarios[__INDEX__][horaFin]" class="input-chico">
+                </div>
+
+                <div class="form-group docente-nivel">
+                    <button type="button" class="btn-boton-formulario btn-cancelar btn-quitar-horario">
+                        Quitar
+                    </button>
+                </div>
+            </div>
+        </template>
     @endif
 
     <h3 class="subtitulo-form">Datos del domicilio</h3>
@@ -465,7 +611,7 @@
         <div class="form-group">
             <label>Entidad de nacimiento:</label>
             <select id="entidadNacimientoSelect" name="entidadNacimiento" class="select select-buscable">
-                <option value="">Seleccionar país</option>
+                <option value="">Seleccionar entidad</option>
                 @foreach($entidades as $e)
                     <option value="{{ $e->idEntidad }}">{{ $e->nombreEntidad }}</option>
                 @endforeach
@@ -980,6 +1126,177 @@ document.addEventListener('DOMContentLoaded', function () {
         .querySelectorAll('.select-buscable-wrapper')
         .forEach(initSelectBuscable);
 
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const horariosContainer = document.getElementById('horarios-container');
+    const addHorarioBtn = document.getElementById('agregar-horario');
+    const template = document.getElementById('horario-template');
+
+    if (!horariosContainer || !addHorarioBtn || !template) {
+        return;
+    }
+
+    const getRowKey = (row) => {
+        const diaSelect = row.querySelector('select[name*="[idDiaSemana]"]');
+        const rangoSelect = row.querySelector('.rango-select');
+        const horaInicio = row.querySelector('input[name*="[horaInicio]"]');
+        const horaFin = row.querySelector('input[name*="[horaFin]"]');
+
+        const idDia = diaSelect ? diaSelect.value : '';
+        const rangoValue = rangoSelect ? rangoSelect.value : '';
+
+        if (!idDia || !rangoValue) {
+            return null;
+        }
+
+        if (rangoValue === 'manual') {
+            const inicio = horaInicio ? horaInicio.value : '';
+            const fin = horaFin ? horaFin.value : '';
+            if (!inicio || !fin) {
+                return null;
+            }
+            return `${idDia}|manual|${inicio}-${fin}`;
+        }
+
+        return `${idDia}|${rangoValue}`;
+    };
+
+    const isDuplicate = (row) => {
+        const key = getRowKey(row);
+        if (!key) {
+            return false;
+        }
+
+        const rows = horariosContainer.querySelectorAll('.horario-row');
+        for (const other of rows) {
+            if (other === row) {
+                continue;
+            }
+            if (getRowKey(other) === key) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    const resetRowSelection = (row) => {
+        const diaSelect = row.querySelector('select[name*=\"[idDiaSemana]\"]');
+        const rangoSelect = row.querySelector('.rango-select');
+        const horaInicio = row.querySelector('input[name*=\"[horaInicio]\"]');
+        const horaFin = row.querySelector('input[name*=\"[horaFin]\"]');
+        const manualFields = row.querySelectorAll('.horario-manual');
+
+        if (rangoSelect) {
+            rangoSelect.value = '';
+        }
+        if (horaInicio) {
+            horaInicio.value = '';
+        }
+        if (horaFin) {
+            horaFin.value = '';
+        }
+        manualFields.forEach(field => {
+            field.style.display = 'none';
+            const input = field.querySelector('input');
+            if (input) {
+                input.required = false;
+            }
+        });
+        if (diaSelect) {
+            diaSelect.value = '';
+        }
+    };
+
+    const bindHorarioRow = (row) => {
+        const diaSelect = row.querySelector('select[name*="[idDiaSemana]"]');
+        const rangoSelect = row.querySelector('.rango-select');
+        const manualFields = row.querySelectorAll('.horario-manual');
+        const horaInicio = row.querySelector('input[name*="[horaInicio]"]');
+        const horaFin = row.querySelector('input[name*="[horaFin]"]');
+
+        const toggleManual = () => {
+            const isManual = rangoSelect && rangoSelect.value === 'manual';
+
+            manualFields.forEach(field => {
+                field.style.display = isManual ? '' : 'none';
+                const input = field.querySelector('input');
+                if (input) {
+                    input.required = isManual;
+                    if (!isManual) {
+                        input.value = '';
+                    }
+                }
+            });
+        };
+
+        if (rangoSelect) {
+            rangoSelect.addEventListener('change', toggleManual);
+            rangoSelect.addEventListener('change', () => {
+                if (isDuplicate(row)) {
+                    alert('Ya existe la misma combinacion de dia y rango de horario.');
+                    resetRowSelection(row);
+                }
+            });
+        }
+
+        toggleManual();
+
+        if (diaSelect) {
+            diaSelect.addEventListener('change', () => {
+                if (isDuplicate(row)) {
+                    alert('Ya existe la misma combinacion de dia y rango de horario.');
+                    resetRowSelection(row);
+                }
+            });
+        }
+
+        if (horaInicio) {
+            horaInicio.addEventListener('change', () => {
+                if (isDuplicate(row)) {
+                    alert('Ya existe la misma combinacion de dia y rango de horario.');
+                    resetRowSelection(row);
+                }
+            });
+        }
+
+        if (horaFin) {
+            horaFin.addEventListener('change', () => {
+                if (isDuplicate(row)) {
+                    alert('Ya existe la misma combinacion de dia y rango de horario.');
+                    resetRowSelection(row);
+                }
+            });
+        }
+
+        const removeBtn = row.querySelector('.btn-quitar-horario');
+        if (removeBtn) {
+            removeBtn.addEventListener('click', () => {
+                row.remove();
+            });
+        }
+    };
+
+    horariosContainer.querySelectorAll('.horario-row').forEach(bindHorarioRow);
+
+    let nextIndex = horariosContainer.querySelectorAll('.horario-row').length;
+
+    addHorarioBtn.addEventListener('click', () => {
+        const html = template.innerHTML.replace(/__INDEX__/g, nextIndex);
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = html.trim();
+        const newRow = wrapper.firstElementChild;
+
+        if (!newRow) {
+            return;
+        }
+
+        horariosContainer.appendChild(newRow);
+        bindHorarioRow(newRow);
+        nextIndex += 1;
+    });
 });
 </script>
 
