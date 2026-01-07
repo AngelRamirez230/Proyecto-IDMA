@@ -24,6 +24,7 @@
             
             <div class="consulta-selects">
                 <form action="{{ route('consultaBeca') }}" method="GET" id="formFiltro">
+                    <input type="hidden" name="buscarBeca" value="{{ $buscar ?? '' }}">
 
                     
                     @admin
@@ -36,6 +37,7 @@
                     @endadmin
 
                     <select name="orden" class="select select-boton" onchange="this.form.submit()">
+                        
                         <option value="" disabled selected>Ordenar por</option>
                         <option value="alfabetico" {{ ($orden ?? '') == 'alfabetico' ? 'selected' : '' }}>
                             Alfabéticamente (A-Z)
@@ -125,7 +127,7 @@
 
                                     @estudiante
                                         <!-- BOTÓN SOLICITAR BECA -->
-                                        <a href="{{ route('formularioSolicitudBeca') }}" class="btn-boton-formulario2 btn-accion" title="Solicitar beca">
+                                        <a href="{{ route('solicitud-beca.create', $beca->idBeca)}}" class="btn-boton-formulario2 btn-accion" title="Solicitar beca">
                                             Solicitar beca
                                         </a>
 

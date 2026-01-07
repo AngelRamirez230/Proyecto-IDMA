@@ -53,7 +53,7 @@
                 type="text"
                 id="nombreBeca"
                 class="input-grande2 input-bloqueado2"
-                value="{{ $beca->nombreBeca ?? '' }}"
+                value="{{ $beca->nombreDeBeca ?? '' }}"
                 readonly
             >
         </div>
@@ -65,10 +65,10 @@
                     type="text"
                     id="porcentajeBeca"
                     class="input-chico2 input-bloqueado2"
-                    value="{{ $beca->porcentaje ?? '' }}"
+                    value="{{ $beca->porcentajeDeDescuento ?? '' }}"
                     readonly
                 >
-                <img src="{{ asset('imagenes/IconoPorcentaje.png') }}" class="icono-input-img" alt="icono">
+                <img src="{{ asset('imagenes/IconoPorcentaje.png') }}" class="icono-input-img2" alt="icono">
             </div>
         </div>
 
@@ -80,10 +80,11 @@
             <input
                 type="number"
                 step="0.01"
-                min="0"
+                min="8.5"
                 max="10"
                 id="promedio"
                 name="promedio"
+                placeholder="Ejemplo: 9.5"
                 class="input-chico2"
                 required
             >
@@ -113,9 +114,53 @@
             <p>Formato PDF</p>
         </div>
 
-        <a href="{{ asset('documentos/DocumentoDePrueba.pdf') }}" class="link-descarga" download>
+        <a href="{{ asset('storage/documentos/becas/DocumentoDePrueba.pdf') }}" class="link-descarga" download>
             Descárguelo aquí
         </a>
+
+        <section class="consulta-tabla-contenedor">
+            <table class="tabla">
+                <thead>
+                    <tr>
+                        <th>Tipo de documento</th>
+                        <th>Acciones</th>
+                        <th>Archivo seleccionado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Solicitud de renovación de BECA (PDF)</td>
+
+                        <td>
+                            <input
+                                type="file"
+                                id="documento_solicitud"
+                                name="documento_solicitud"
+                                accept=".pdf"
+                                style="display:none"
+                                required
+                                onchange="validarPDF(this, 'nombreArchivoSolicitud')"
+                            >
+
+                            <button
+                                type="button"
+                                class="btn-boton-formulario2 btn-accion"
+                                onclick="document.getElementById('documento_solicitud').click()"
+                            >
+                                Subir archivo
+                            </button>
+                        </td>
+
+                        <td>
+                            <span id="nombreArchivoSolicitud" class="nombre-archivo">
+                                Ningún archivo seleccionado
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
 
         {{-- ================= CASO ESPECIAL ================= --}}
         <div>
@@ -140,35 +185,49 @@
         </div>
 
         {{-- ================= SUBIDA DE DOCUMENTO ================= --}}
-        <div class="subir-documento">
-            <label for="documento" class="label-documento">
-                Adjuntar documento
-            </label>
+        <section class="consulta-tabla-contenedor">
+            <table class="tabla">
+                <thead>
+                    <tr>
+                        <th>Tipo de documento</th>
+                        <th>Acciones</th>
+                        <th>Archivo seleccionado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Documento adicional (PDF)</td>
 
-            <div class="contenedor-archivo">
-                <input
-                    type="file"
-                    id="documento"
-                    name="documento"
-                    accept=".pdf"
-                    hidden
-                    required
-                    onchange="validarPDF(this)"
-                >
+                        <td>
+                            <input
+                                type="file"
+                                id="documento_adicional"
+                                name="documento_adicional"
+                                accept=".pdf"
+                                style="display:none"
+                                onchange="validarPDF(this, 'nombreArchivoAdicional')"
+                            >
 
-                <button
-                    type="button"
-                    class="boton-subir"
-                    onclick="document.getElementById('documento').click()"
-                >
-                    Seleccionar archivo
-                </button>
+                            <button
+                                type="button"
+                                class="btn-boton-formulario2 btn-accion"
+                                onclick="document.getElementById('documento_adicional').click()"
+                            >
+                                Subir archivo
+                            </button>
+                        </td>
 
-                <span id="nombreArchivo" class="nombre-archivo">
-                    Ningún archivo seleccionado
-                </span>
-            </div>
-        </div>
+                        <td>
+                            <span id="nombreArchivoAdicional" class="nombre-archivo">
+                                Ningún archivo seleccionado
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+
 
         {{-- ================= BOTONES ================= --}}
         <div class="form-group2">
@@ -186,9 +245,9 @@
 
     {{-- ================= VALIDACIÓN PDF ================= --}}
     <script>
-    function validarPDF(input) {
+    function validarPDF(input, idSpan) {
         const archivo = input.files[0];
-        const nombreArchivo = document.getElementById("nombreArchivo");
+        const nombreArchivo = document.getElementById(idSpan);
 
         if (!archivo) {
             nombreArchivo.textContent = "Ningún archivo seleccionado";
@@ -205,6 +264,7 @@
         nombreArchivo.textContent = archivo.name;
     }
     </script>
+
 
 </body>
 </html>

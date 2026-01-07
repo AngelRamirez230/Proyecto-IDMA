@@ -85,7 +85,6 @@
     color: #fff;
     background-color: #79272C;
     border: none;
-    border-radius: 6px;
     cursor: pointer;
 }
 
@@ -98,6 +97,36 @@
     font-size: 14px;
     color: #79272C;
     white-space: nowrap;
+}
+
+
+.btn-ver {
+    padding: 8px 30px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #79272C;              
+    background-color: #FFB300;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-ver:hover {
+    background-color: #79272C;
+    color: #fff;                
+}
+
+
+.textarea-grande {
+    width: 60%;
+    min-height: 90px;   /* altura */
+    padding: 12px;
+    font-size: 16px;
+    resize: vertical;   /* permite crecer solo hacia abajo */
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-family: inherit;
 }
 
 @media (max-width: 768px) {
@@ -115,6 +144,10 @@
 
     .nombre-archivo {
         white-space: normal;
+    }
+
+    .textarea-grande{
+        width: 90%;
     }
 }
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Usuario;
 use App\Models\Estudiante;
 
@@ -85,6 +86,9 @@ class LoginController extends Controller
             ])->withInput();
         }
 
+
+        Auth::login($usuario);
+
         /**
          * 6️⃣ Crear sesión
          */
@@ -116,6 +120,7 @@ class LoginController extends Controller
      */
     public function logout()
     {
+        Auth::logout();
         session()->flush();
         return redirect()->route('login.form');
     }

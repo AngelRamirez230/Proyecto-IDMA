@@ -6,12 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class DocumentacionDeUsuario extends Model
 {
-    protected $table = 'Documentacion_de_usuario';
+    protected $table = 'documentacion_de_usuario';
     public $timestamps = false;
 
     protected $fillable = [
         'idUsuario',
-        'idTipoDeDocumento',
+        'idTipoDeDocumentacion',
         'ruta'
     ];
 
@@ -24,11 +24,11 @@ class DocumentacionDeUsuario extends Model
         );
     }
 
-    public function tipoDeDocumento()
+    public function tipoDeDocumentacion()
     {
         return $this->belongsTo(
             TipoDeDocumentacion::class,
-            'idTipoDeDocumento',
+            'idTipoDeDocumentacion',
             'idTipoDeDocumentacion'
         );
     }

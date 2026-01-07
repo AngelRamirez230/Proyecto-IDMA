@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\BecaController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\ConceptoController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\SolicitudDeBecaController;
 
 /*--------------------------RUTAS PARA INVITADOS (LOGIN)--------------------------*/
 Route::middleware(['guest.manual', 'nocache'])->group(function () {
+    
 
     Route::get('/', [LoginController::class, 'showLogin'])->name('login.view');
 
@@ -26,6 +28,7 @@ Route::middleware(['guest.manual', 'nocache'])->group(function () {
 
 /*--------------------------RUTAS PROTEGIDAS (USUARIOS AUTENTICADOS)--------------------------*/
 Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(function () {
+
 
     /*------------INICIO------------*/
     Route::get('/inicio', [InicioController::class, 'index'])->name('inicio');
@@ -129,16 +132,19 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
     Route::delete('/planes/{id}', [PlanDePagoController::class, 'destroy'])->name('planes.destroy');
 
     /*----------- SOLICITUD DE BECA -----------*/
-    Route::get('/apartadoSolicitudDeBeca', function () {
-        return view('SGFIDMA.moduloSolicitudBeca.apartadoSolicitudBeca');
-    })->name('apartadoSolicitudBeca');
 
-    Route::get('/formularioSolicitudDeBeca', function () {
-        return view('SGFIDMA.moduloSolicitudBeca.formularioSolicitudDeBeca');
-    })->name('formularioSolicitudBeca');
-    Route::get('/solicitud-beca/crear/{idBeca}', [SolicitudDeBecaController::class, 'create'])->name('solicitud-beca.create');
-    Route::post('/solicitud-beca', [SolicitudDeBecaController::class, 'store'])->name('solicitud-beca.store');
-    Route::get('/solicitud-beca/documento/{id}', [SolicitudDeBecaController::class, 'verDocumento'])->name('solicitud-beca.documento');
+    Route::get('/consulta-solicitudes-beca',[SolicitudDeBecaController::class, 'index'])->name('consultaSolicitudBeca');
+    // formulario
+    Route::get('/solicitud-beca/crear/{idBeca}',[SolicitudDeBecaController::class, 'create'])->name('solicitud-beca.create');
+    // guardar
+    Route::post('/solicitud-beca',[SolicitudDeBecaController::class, 'store'])->name('solicitud-beca.store');
+    // ver documento
+    Route::get('/solicitud-beca/documento/{id}',[SolicitudDeBecaController::class, 'verDocumento'])->name('solicitud-beca.documento');
+    // editar solicitud
+    Route::get('/solicitud-beca/{id}/editar',[SolicitudDeBecaController::class, 'edit'])->name('solicitud-beca.edit');
+
+    // actualizar solicitud
+    Route::put('/solicitud-beca/{id}',[SolicitudDeBecaController::class, 'update'])->name('solicitud-beca.update');
 
 
 

@@ -352,8 +352,10 @@ class EstudianteController extends Controller
                 $q->where('matriculaAlfanumerica', 'like', "%$buscar%")
                 ->orWhere('matriculaNumerica', 'like', "%$buscar%")
                 ->orWhereHas('usuario', function ($u) use ($buscar) {
-                    $u->where('primerNombre', 'like', "%$buscar%")
-                        ->orWhere('primerApellido', 'like', "%$buscar%");
+                    $u->where('primerNombre', 'LIKE', "%{$buscar}%")
+                        ->orWhere('segundoNombre', 'LIKE', "%{$buscar}%")
+                        ->orWhere('primerApellido', 'LIKE', "%{$buscar}%")
+                        ->orWhere('segundoApellido', 'LIKE', "%{$buscar}%");
                 });
             });
         }

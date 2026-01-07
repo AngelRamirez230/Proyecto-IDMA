@@ -16,6 +16,8 @@ class SolicitudDeBeca extends Model
         'promedioAnterior',
         'examenExtraordinario',
         'observacion',
+        'fechaDeSolicitud',
+        'fechaDeConclusion',
         'idEstatus'
     ];
 
@@ -45,4 +47,19 @@ class SolicitudDeBeca extends Model
             'idTipoDeEstatus'
         );
     }
+
+    public function documentaciones()
+    {
+        return $this->hasMany(
+            DocumentacionSolicitudDeBeca::class,
+            'idSolicitudDeBeca',
+            'idSolicitudDeBeca'
+        );
+    }
+
+    public function scopeDelEstudiante($query, $idEstudiante)
+    {
+        return $query->where('idEstudiante', $idEstudiante);
+    }
+
 }
