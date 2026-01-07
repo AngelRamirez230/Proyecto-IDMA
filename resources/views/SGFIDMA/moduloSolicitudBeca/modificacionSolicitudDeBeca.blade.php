@@ -20,115 +20,92 @@
         {{-- ================= DATOS DE LA BECA ================= --}}
         <input type="hidden" name="idBeca" value="{{ $solicitud->beca->idBeca }}">
 
-        <div class="form-group2">
-            <label>Nombre del estudiante:</label>
-            <input
-                type="text"
-                class="input-grande2 input-bloqueado2"
-                value="{{ $solicitud->estudiante->usuario->primerNombre}} {{$solicitud->estudiante->usuario->segundoNombre}}"
-                readonly
-            >
-        </div>
+        <section class="consulta-tabla-contenedor">
+            <table class="tabla" style="margin-bottom: 18px;">
+                <tbody class="tabla-cuerpo">
 
-        <div class="form-group2">
-            <label>Apellidos:</label>
-            <input
-                type="text"
-                class="input-grande2 input-bloqueado2"
-                value="{{ $solicitud->estudiante->usuario->primerApellido }} {{ $solicitud->estudiante->usuario->segundoApellido }}"
-                readonly
-            >
-        </div>
+                    <tr class="tabla-fila">
+                        <td><strong>Nombre del estudiante</strong></td>
+                        <td>
+                            {{ 
+                                trim(
+                                    ($solicitud->estudiante->usuario->primerNombre ?? '') . ' ' .
+                                    ($solicitud->estudiante->usuario->segundoNombre ?? '')
+                                ) ?: 'N/D'
+                            }}
+                        </td>
 
-        <div class="form-group2">
-            <label>Correo electrónico:</label>
-            <input
-                type="email"
-                class="input-grande2 input-bloqueado2"
-                value="{{ $solicitud->estudiante->usuario->correoElectronico }}"
-                readonly
-            >
-        </div>
+                        <td><strong>Apellidos</strong></td>
+                        <td>
+                            {{ 
+                                trim(
+                                    ($solicitud->estudiante->usuario->primerApellido ?? '') . ' ' .
+                                    ($solicitud->estudiante->usuario->segundoApellido ?? '')
+                                ) ?: 'N/D'
+                            }}
+                        </td>
+                    </tr>
 
-        <div class="form-group2">
-            <label>Generación:</label>
-            <input
-                type="text"
-                class="input-chico2 input-bloqueado2"
-                value="{{ $solicitud->estudiante->generacion->nombreGeneracion }}"
-                readonly
-            >
-        </div>
+                    <tr class="tabla-fila">
+                        <td><strong>Correo electrónico</strong></td>
+                        <td>{{ $solicitud->estudiante->usuario->correoElectronico ?? 'Sin correo electrónico' }}</td>
 
-        <div class="form-group2">
-            <label>Ciclo escolar:</label>
-            <input
-                type="text"
-                class="input-chico2 input-bloqueado2"
-                value=""
-                readonly
-            >
-        </div>
+                        <td><strong>Generación</strong></td>
+                        <td>{{ $solicitud->estudiante->generacion->nombreGeneracion ?? 'Sin generación definida' }}</td>
+                    </tr>
 
-        <div class="form-group2">
-            <label>Semestre al que ingresará:</label>
-            <input
-                type="number"
-                class="input-chico2 input-bloqueado2"
-                value="{{ $solicitud->estudiante->grado }}"
-                readonly
-            >
-        </div>
+                    <tr class="tabla-fila">
+                        <td><strong>Ciclo escolar</strong></td>
+                        <td>{{ 'Sin ciclo escolar definido' }}</td>
 
-        <div class="form-group2">
-            <label>Nombre de Beca:</label>
-            <input
-                type="text"
-                class="input-grande2 input-bloqueado2"
-                value="{{ $solicitud->beca->nombreDeBeca }}"
-                readonly
-            >
-        </div>
+                        <td><strong>Semestre al que ingresará</strong></td>
+                        <td>{{ ($solicitud->estudiante->grado ?? 0) + 1 }}</td>
+                    </tr>
 
-        <div class="form-group2">
-            <label>Porcentaje de descuento:</label>
-            <div class="contenedor-input-icono2">
-                <input
-                    type="text"
-                    class="input-chico2 input-bloqueado2"
-                    value="{{ $solicitud->beca->porcentajeDeDescuento }}"
-                    readonly
-                >
-                <img src="{{ asset('imagenes/IconoPorcentaje.png') }}" class="icono-input-img2">
-            </div>
-        </div>
+                    <tr class="tabla-fila">
+                        <td><strong>Nombre de la beca</strong></td>
+                        <td>{{ $solicitud->beca->nombreDeBeca ?? 'N/D' }}</td>
 
-        {{-- ================= DATOS DEL ESTUDIANTE ================= --}}
-        <div class="form-group2">
-            <label>Promedio anterior:</label>
-            <input
-                type="number"
-                step="0.01"
-                min="8.5"
-                max="10"
-                name="promedio"
-                class="input-chico2"
-                value="{{ old('promedio', $solicitud->promedioAnterior) }}"
-                
-            >
-        </div>
+                        <td><strong>Porcentaje de descuento</strong></td>
+                        <td>{{ $solicitud->beca->porcentajeDeDescuento ?? '—' }}%</td>
+                    </tr>
 
-        <div class="form-group2">
-            <label>
-                Examen extrairdinario:
-            </label>
-            <input
-                type="text"
-                name="examenExtraordinario"
-                class="input-grande2"
-                value="{{ old('examenExtraordinario', $solicitud->examenExtraordinario) }}"
-            >
+                    <tr class="tabla-fila">
+                        <td><strong>Promedio anterior</strong></td>
+                        <td>{{ $solicitud->promedioAnterior ?? 'No registrado' }}</td>
+
+                        <td><strong>Examen extraordinario</strong></td>
+                        <td>{{ $solicitud->examenExtraordinario ?: 'Ninguno' }}</td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </section>
+
+        @estudiante
+        <div class="form-group2"> 
+            <label>Promedio anterior:</label> 
+            <input type="number" 
+            step="0.01" 
+            min="8.5" 
+            max="10" 
+            name="promedio" 
+            class="input-chico2" 
+            value="{{ old('promedio', $solicitud->promedioAnterior ?? 'No registrado') }}" > 
+        </div> 
+
+        
+        <div class="form-group2"> 
+            <label> Examen extrairdinario: </label> 
+            <input type="text" 
+            name="examenExtraordinario" 
+            class="input-chico2" 
+            value="{{ old('examenExtraordinario', $solicitud->examenExtraordinario ?? 'Ninguno') }}" > 
         </div>
+        
+
+        @endestudiante
+
 
 
         {{-- ================= DOCUMENTACIÓN DE SOLICITUD ================= --}}
@@ -154,7 +131,7 @@
 
                     {{-- ================= SOLICITUD DE BECA ================= --}}
                     <tr>
-                        <td>Solicitud de beca (PDF)</td>
+                        <td>Solicitud de renovación de BECA (PDF)</td>
 
                         {{-- ARCHIVO ACTUAL --}}
                         <td>

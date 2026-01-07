@@ -145,6 +145,10 @@
     .nombre-archivo {
         white-space: normal;
     }
+
+    .textarea-grande{
+        width: 90%;
+    }
 }
 
 /* =========================

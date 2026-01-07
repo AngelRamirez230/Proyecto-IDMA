@@ -323,6 +323,7 @@ class SolicitudDeBecaController extends Controller
                     abort(403, 'No autorizado');
                 }
 
+
                 $request->validate([
                     'promedio' => 'required|numeric|min:8.5|max:10',
                     'examenExtraordinario' => 'nullable|string|max:255',
@@ -334,6 +335,14 @@ class SolicitudDeBecaController extends Controller
                     ->where('idEstudiante', $usuario->estudiante->idEstudiante)
                     ->with('documentaciones')
                     ->firstOrFail();
+
+                if ($solicitud->idEstatus == 6 ) {
+                    DB::rollBack();
+
+                    return redirect()
+                        ->route('consultaSolicitudBeca')
+                        ->with('popupError', 'Tu solicitud está siendo procesada y no puede ser modificada.');
+                }
 
                 $solicitud->update([
                     'promedioAnterior' => $request->promedio,
