@@ -153,7 +153,7 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
     /*----------- PAGOS -----------*/
 
     
-    Route::get('/pago/generar-referencia', [PagoController::class, 'generarReferencia'])->name('pago.generar-referencia');
+    Route::get('/pago/generar-referencia/{idConcepto}',[PagoController::class, 'generarReferencia'])->name('pago.generar-referencia');
 
     Route::get('/apartadoPago', function () {
         return view('SGFIDMA.moduloPagos.apartadoPago');

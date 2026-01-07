@@ -2,43 +2,60 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
+
+// MODELOS
+use App\Models\Pago;
+use App\Models\ConceptoDePago;
 
 class PagoController extends Controller
 {
-    public function generarReferencia()
+    public function generarReferencia($idConcepto)
     {
         // =============================
-        // DATOS BASE (mock / random)
+        // ESTUDIANTE Y USUARIO
         // =============================
+        $usuario = Auth::user();
+        $estudiante = $usuario->estudiante;
 
+        if (!$estudiante) {
+            abort(403, 'No se encontró información del estudiante.');
+        }
+
+        // =============================
+        // CONCEPTO DE PAGO
+        // =============================
+        $concepto = ConceptoDePago::findOrFail($idConcepto);
+
+        // =============================
+        // NOMBRE COMPLETO
+        // =============================
+        $nombreCompleto = trim(
+            $usuario->primerNombre . ' ' .
+            $usuario->segundoNombre . ' ' .
+            $usuario->primerApellido . ' ' .
+            $usuario->segundoApellido
+        );
+
+        // =============================
+        // REFERENCIA BANCARIA
+        // =============================
         $prefijo = '0007777';
+        $matricula = $estudiante->matriculaNumerica;
 
-        // matricula numerica del estudiante
-        // aquí normalmente la sacas del modelo Estudiante
-        $matricula = Auth::user()->estudiante->matriculaNumerica ?? '20230001';
+        $conceptoFormateado = str_pad(
+            $concepto->idConceptoDePago,
+            2,
+            '0',
+            STR_PAD_LEFT
+        );
 
-        // concepto de pago (ej. 1 → 01)
-        $idConcepto = 1;
-        $conceptoFormateado = str_pad($idConcepto, 2, '0', STR_PAD_LEFT);
-
-        // fecha condensada (RANDOM por ahora)
-        $fechaCondensada = now()->format('ymd'); // luego se cambia por excel
-
-        // importe condensado (RANDOM)
-        $importeCondensado = str_pad(rand(1000, 9999999), 7, '0', STR_PAD_LEFT);
-
-        // constante fija
-        $constante = 2;
-
-        // remanente (2 dígitos)
+        $fechaCondensada = now()->format('ymd');
+        $importeCondensado = str_pad(rand(1000, 9999), 6, '0', STR_PAD_LEFT);
+        $constante = '2';
         $remanente = str_pad(rand(0, 99), 2, '0', STR_PAD_LEFT);
 
-        // =============================
-        // REFERENCIA FINAL
-        // =============================
         $referencia = $prefijo
             . $matricula
             . $conceptoFormateado
@@ -48,14 +65,31 @@ class PagoController extends Controller
             . $remanente;
 
         // =============================
+        // GUARDAR PAGO
+        // =============================
+        Pago::create([
+            'Referencia' => $referencia,
+            'idConceptoDePago' => $concepto->idConceptoDePago,
+            'ImporteDePago' => $concepto->costo,
+            'fechaGeneracionDePago' => now(),
+            'idEstatus' => 3,
+            'idEstudiante' => $estudiante->idEstudiante,
+        ]);
+
+        // =============================
         // PDF
         // =============================
-        $pdf = Pdf::loadView('SGFIDMA.moduloPagos.formatoReferenciaDePago', [
-            'referencia' => $referencia,
-            'matricula' => $matricula,
-            'importe' => $importeCondensado,
-            'fecha' => now()->format('d/m/Y')
-        ]);
+        $pdf = Pdf::loadView(
+            'SGFIDMA.moduloPagos.formatoReferenciaDePago',
+            [
+                'referencia'      => $referencia,
+                'estudiante'      => $estudiante,
+                'concepto'        => $concepto,
+                'nombreCompleto'  => $nombreCompleto,
+                'fechaEmision'    => now()->format('d/m/Y'),
+                'fechaLimite'     => now()->addDays(12)->format('d/m/Y'),
+            ]
+        )->setPaper('letter');
 
         return $pdf->download('Referencia_de_Pago.pdf');
     }

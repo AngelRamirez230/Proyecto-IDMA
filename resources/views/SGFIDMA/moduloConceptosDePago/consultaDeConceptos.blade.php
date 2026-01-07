@@ -114,9 +114,9 @@
                                         </form>
                                         @endadmin
 
-                                        @estudiante
-                                            <!-- BOTÓN GENERAR REFERENCA -->
-                                            <a href="{{ route('pago.generar-referencia') }}"
+                                       @estudiante
+                                            <!-- BOTÓN GENERAR REFERENCIA -->
+                                            <a href="{{ route('pago.generar-referencia', $concepto->idConceptoDePago) }}"
                                             class="btn-boton-formulario2 btn-accion"
                                             title="Generar referencia de pago">
                                                 Generar referencia
