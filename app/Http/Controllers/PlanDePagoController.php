@@ -73,7 +73,7 @@ class PlanDePagoController extends Controller
             }
         }
 
-        return redirect()->route('altaPlan')->with('success', 'Plan de pago creado correctamente.');
+        return redirect()->route('altaPlan')->with('success', 'Plan de pagos creado correctamente.');
     }
 
     private function mbUcwords($string, $encoding = 'UTF-8')
@@ -201,7 +201,7 @@ class PlanDePagoController extends Controller
             }
         }
 
-        return redirect()->route('consultaPlan')->with('success', 'Plan de pago actualizado correctamente.');
+        return redirect()->route('consultaPlan')->with('success', 'Plan de pagos actualizado correctamente.');
     }
 
 

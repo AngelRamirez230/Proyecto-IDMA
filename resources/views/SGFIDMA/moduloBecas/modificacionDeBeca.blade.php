@@ -9,35 +9,37 @@
 <body>
     @include('layouts.barraNavegacion')
 
-    <form action="{{ route('becas.update', $beca->idBeca) }}" method="POST" class="formulario">
+    <form action="{{ route('becas.update', $beca->idBeca) }}" method="POST" class="formulario2">
     @csrf
     @method('PUT') 
 
-        <div class="form-group">
+        <h1 class="titulo-form2">Modificación de beca</h1>
+
+        <div class="form-group2">
             <label for="nombreBeca">Nombre de Beca:</label>
-             <input type="text" id="nombreBeca" name="nombreBeca" class="input-grande input-bloqueado" value="{{ $beca->nombreDeBeca }}" readonly>
+             <input type="text" id="nombreBeca" name="nombreBeca" class="input-grande2 input-bloqueado2" value="{{ $beca->nombreDeBeca }}" readonly>
         </div>
 
-        <div class="form-group">
+        <div class="form-group2">
             <label for="porcentajeBeca">Porcentaje de descuento:</label>
-            <div class="contenedor-input-icono">
-                <input type="text" id="porcentajeBeca" name="porcentajeBeca" class="input-chico" value="{{ $beca->porcentajeDeDescuento }}">
-                <img src="{{ asset('imagenes/IconoPorcentaje.png') }}" class="icono-input-img" alt="icono">
+            <div class="contenedor-input-icono2">
+                <input type="text" id="porcentajeBeca" name="porcentajeBeca" class="input-chico2" value="{{ $beca->porcentajeDeDescuento }}">
+                <img src="{{ asset('imagenes/IconoPorcentaje.png') }}" class="icono-input-img2" alt="icono">
             </div>
             <span id="porcentajeError" class="mensajeError"></span>
         </div>
         
 
 
-        <div class="form-group">
-            <button type="submit"  name="accion" value="guardar" class="btn-boton-formulario">Guardar cambios</button>
+        <div class="form-group2">
+            <button type="submit"  name="accion" value="guardar" class="btn-boton-formulario2">Guardar cambios</button>
             <button type="submit"
                     name="accion"
                     value="Suspender/Habilitar"
-                    class="btn-boton-formulario">
+                    class="btn-boton-formulario2">
                 {{ $beca->idEstatus == 1 ? 'Suspender' : 'Habilitar' }}
             </button>
-            <a href="{{ route('consultaBeca') }}" class="btn-boton-formulario btn-cancelar">Cancelar</a>
+            <a href="{{ route('consultaBeca') }}" class="btn-boton-formulario2 btn-cancelar2">Cancelar</a>
         </div>
     </form>
 

@@ -9,24 +9,26 @@
 <body>
     @include('layouts.barraNavegacion')
 
-    <form action="{{ route('concepto.update', $concepto->idConceptoDePago)}}" method="POST" class="formulario">
+    <form action="{{ route('concepto.update', $concepto->idConceptoDePago)}}" method="POST" class="formulario2">
     @csrf
     @method('PUT') 
 
-        <div class="form-group">
+        <h1 class="titulo-form2">Modificación de concepto de pago</h1>
+
+        <div class="form-group2">
             <label for="nombreConcepto">Nombre del concepto de pago:</label>
-            <input type="text" id="nombreConcepto" name="nombreConcepto" class="input-grande input-bloqueado" value="{{ $concepto->nombreConceptoDePago }}" readonly>
+            <input type="text" id="nombreConcepto" name="nombreConcepto" class="input-grande2 input-bloqueado2" value="{{ $concepto->nombreConceptoDePago }}" readonly>
         </div>
 
-        <div class="form-group">
+        <div class="form-group2">
             <label for="costo">Costo:</label>
-            <input type="text" id="costo" name="costo" class="input-chico" value="{{ $concepto->costo }}" >
+            <input type="text" id="costo" name="costo" class="input-chico2" value="{{ $concepto->costo }}" >
             <span id="costoError" class="mensajeError"></span>
         </div>
 
-        <div class="form-group">
+        <div class="form-group2">
             <label for="unidad">Unidad:</label>
-            <select id="unidad" name="unidad" class="select" required>
+            <select id="unidad" name="unidad" class="select2" required>
                 <option value="" disabled>Seleccionar</option>
 
                 @foreach ($unidades as $u)
@@ -39,15 +41,15 @@
         </div>
 
 
-        <div class="form-group">
-            <button type="submit" name="accion" value="guardar" class="btn-boton-formulario">Guardar cambios</button>
+        <div class="form-group2">
+            <button type="submit" name="accion" value="guardar" class="btn-boton-formulario2">Guardar cambios</button>
             <button type="submit"
                     name="accion"
                     value="Suspender/Habilitar"
-                    class="btn-boton-formulario">
+                    class="btn-boton-formulario2">
                 {{ $concepto->idEstatus == 1 ? 'Suspender' : 'Habilitar' }}
             </button>
-            <a href="{{ route('consultaConcepto') }}" class="btn-boton-formulario btn-cancelar">Cancelar</a>
+            <a href="{{ route('consultaConcepto') }}" class="btn-boton-formulario2 btn-cancelar2">Cancelar</a>
         </div>
     </form>
 

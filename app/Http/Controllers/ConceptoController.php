@@ -149,7 +149,7 @@ class ConceptoController extends Controller
             $concepto->idUnidad = $request->unidad; 
             $concepto->save();
 
-            return redirect()->route('consultaConcepto')->with('success', 'Concepto actualizado correctamente.');
+            return redirect()->route('consultaConcepto')->with('success', 'Concepto de pago actualizado correctamente.');
         }
 
         elseif ($request->accion === 'Suspender/Habilitar') {
