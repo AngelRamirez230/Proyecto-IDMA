@@ -24,15 +24,16 @@
                 <form action="{{ route('consultaConcepto') }}" method="GET" id="formFiltro">
                     <input type="hidden" name="buscarConcepto" value="{{ $buscar ?? '' }}">
 
-                    
-                    <select name="filtro" class="select select-boton" onchange="this.form.submit()">
-                        <option value="" disabled selected>Filtrar por</option>
-                        <option value="todas" {{ ($filtro ?? '') == 'todas' ? 'selected' : '' }}>Ver todas</option>
-                        <option value="activas" {{ ($filtro ?? '') == 'activas' ? 'selected' : '' }}>Activo(a)</option>
-                        <option value="suspendidas" {{ ($filtro ?? '') == 'suspendidas' ? 'selected' : '' }}>Suspendido(a)</option>
-                        <option value="pieza" {{ ($filtro ?? '') == 'pieza' ? 'selected' : '' }}>Pieza</option>
-                        <option value="servicio" {{ ($filtro ?? '') == 'servicio' ? 'selected' : '' }}>Servicio</option>
-                    </select>
+                    @admin
+                        <select name="filtro" class="select select-boton" onchange="this.form.submit()">
+                            <option value="" disabled selected>Filtrar por</option>
+                            <option value="todas" {{ ($filtro ?? '') == 'todas' ? 'selected' : '' }}>Ver todas</option>
+                            <option value="activas" {{ ($filtro ?? '') == 'activas' ? 'selected' : '' }}>Activo(a)</option>
+                            <option value="suspendidas" {{ ($filtro ?? '') == 'suspendidas' ? 'selected' : '' }}>Suspendido(a)</option>
+                            <option value="pieza" {{ ($filtro ?? '') == 'pieza' ? 'selected' : '' }}>Pieza</option>
+                            <option value="servicio" {{ ($filtro ?? '') == 'servicio' ? 'selected' : '' }}>Servicio</option>
+                        </select>
+                    @endadmin
 
                     <select name="orden" class="select select-boton" onchange="this.form.submit()">
                         <option value="" disabled selected>Ordenar por</option>
@@ -54,6 +55,7 @@
                         <th>Unidad</th>
                         <th>Estatus</th>
                         <th>Acciones</th>
+
                     </tr>
                 </thead>
                 <tbody class="tabla-cuerpo">
@@ -70,6 +72,8 @@
                                 <td>{{ $concepto->estatus->nombreTipoDeEstatus ?? 'Sin estatus' }}</td>
                                 <td>
                                     <div class="tabla-acciones">
+
+                                    @admin
                                         <!-- BOTÓN EDITAR -->
                                         <a href="{{route('concepto.edit', $concepto->idConceptoDePago)}}" class="accion-boton" title="Editar">
                                             <img 
@@ -108,7 +112,18 @@
                                                 >
                                             </button>
                                         </form>
+                                        @endadmin
+
+                                       @estudiante
+                                            <!-- BOTÓN GENERAR REFERENCIA -->
+                                            <a href="{{ route('pago.generar-referencia', $concepto->idConceptoDePago) }}"
+                                            class="btn-boton-formulario2 btn-accion"
+                                            title="Generar referencia de pago">
+                                                Generar referencia
+                                            </a>
+                                        @endestudiante
                                     </div>
+                                    
                                 </td>
                             </tr>
                         @endforeach
