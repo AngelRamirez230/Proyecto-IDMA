@@ -13,6 +13,8 @@ use App\Http\Controllers\InicioController;
 use App\Http\Controllers\SolicitudDeBecaController;
 use App\Http\Controllers\AsignaturaController;
 use App\Models\Empleado;
+use App\Http\Controllers\PagoController;
+
 
 
 /*--------------------------RUTAS PARA INVITADOS (LOGIN)--------------------------*/
@@ -182,6 +184,10 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
 
 
     /*----------- PAGOS -----------*/
+
+    
+    Route::get('/pago/generar-referencia/{idConcepto}',[PagoController::class, 'generarReferencia'])->name('pago.generar-referencia');
+
     Route::get('/apartadoPago', function () {
         return view('SGFIDMA.moduloPagos.apartadoPago');
     })->name('apartadoPagos');
