@@ -90,8 +90,9 @@
             min="8.5" 
             max="10" 
             name="promedio" 
-            class="input-chico2" 
-            value="{{ old('promedio', $solicitud->promedioAnterior ?? 'No registrado') }}" > 
+            class="input-chico2"
+            placeholder="Ejemplo: 9.5" 
+            value="{{ old('promedio', $solicitud->promedioAnterior ?? '') }}" > 
         </div> 
 
         
@@ -100,7 +101,8 @@
             <input type="text" 
             name="examenExtraordinario" 
             class="input-chico2" 
-            value="{{ old('examenExtraordinario', $solicitud->examenExtraordinario ?? 'Ninguno') }}" > 
+            placeholder="Especifica o deja vacío"
+            value="{{ old('examenExtraordinario', $solicitud->examenExtraordinario ?? '') }}" > 
         </div>
         
 
@@ -300,6 +302,19 @@
                 Cancelar
             </a>
         </div>
+
+
+        {{-- BLOQUE DE ERRORES DE VALIDACIÓN --}}
+        @if ($errors->any())
+            <div style="background:#ffdddd; padding:12px; border:1px solid #cc0000; margin:10px 0;">
+                <strong>Corrige los siguientes errores:</strong>
+                <ul style="margin: 8px 0 0 18px;">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
         
     </form>

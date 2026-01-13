@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+
 use App\Models\Beca;
 use App\Models\Usuario;
+
+
 
 class BecaController extends Controller
 {
@@ -13,18 +17,47 @@ class BecaController extends Controller
         return view('SGFIDMA.moduloBecas.altaDeBeca');
     }
 
-    public function store(Request $request)
+   public function store(Request $request)
     {
-        // Validaciones básicas
-        $request->validate([
-            'nombreBeca' => 'required|string',
-            'porcentajeBeca' => 'required|numeric|min:1|max:100',
-        ]);
+        $validator = Validator::make(
+            $request->all(),
+            [
+                // ======================
+                // BECA
+                // ======================
+                'nombreBeca'     => 'required|string|max:150',
+                'porcentajeBeca' => 'required|numeric|min:1|max:100',
+            ],
+            [
+                // ======================
+                // MENSAJES GENERALES
+                // ======================
+                'required' => 'El campo :attribute es obligatorio.',
+                'string'   => 'El campo :attribute debe ser texto.',
+                'numeric'  => 'El campo :attribute debe ser un número válido.',
+                'min'      => 'El campo :attribute debe ser mayor o igual a :min.',
+                'max'      => 'El campo :attribute no debe exceder :max.',
+            ],
+            [
+                // ======================
+                // NOMBRES AMIGABLES
+                // ======================
+                'nombreBeca'     => 'nombre de la beca',
+                'porcentajeBeca' => 'porcentaje de descuento',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return back()
+                ->with('popupError', 'No se pudo registrar la beca. Verifica los datos ingresados.')
+                ->withErrors($validator)
+                ->withInput();
+        }
 
         // Formatear nombre
         $nombre = $this->mbUcwords($request->nombreBeca);
 
-        // Validar si ya existe un registro idéntico
+        // Validar duplicados (nombre + porcentaje)
         $existe = Beca::whereRaw('LOWER(nombreDeBeca) = ?', [mb_strtolower($request->nombreBeca)])
                     ->where('porcentajeDeDescuento', $request->porcentajeBeca)
                     ->exists();
@@ -36,20 +69,18 @@ class BecaController extends Controller
         }
 
         try {
-
-            // Intentar guardar el registro
+            // Guardar beca
             Beca::create([
                 'nombreDeBeca' => $nombre,
                 'porcentajeDeDescuento' => $request->porcentajeBeca,
                 'idEstatus' => 1
             ]);
 
-            return redirect()->route('altaBeca')
-                            ->with('success', 'Beca registrada correctamente');
+            return redirect()
+                ->route('altaBeca')
+                ->with('success', 'Beca registrada correctamente');
 
         } catch (\Exception $e) {
-
-            // Error inesperado → NO se guardó
             return back()
                 ->with('popupError', 'Error: No se pudo registrar la beca. Inténtalo nuevamente.')
                 ->withInput();
@@ -136,10 +167,39 @@ class BecaController extends Controller
         $beca = Beca::findOrFail($idBeca);
 
         if ($request->accion === 'guardar') {
-            // Validar y guardar cambios
-            $request->validate([
-                'porcentajeBeca' => 'required|numeric|min:1|max:100',
-            ]);
+            
+            $validator = Validator::make(
+                $request->all(),
+                [
+                    // ======================
+                    // BECA
+                    // ======================
+                    'porcentajeBeca' => 'required|numeric|min:1|max:100',
+                ],
+                [
+                    // ======================
+                    // MENSAJES GENERALES
+                    // ======================
+                    'required' => 'El campo :attribute es obligatorio.',
+                    'string'   => 'El campo :attribute debe ser texto.',
+                    'numeric'  => 'El campo :attribute debe ser un número válido.',
+                    'min'      => 'El campo :attribute debe ser mayor o igual a :min.',
+                    'max'      => 'El campo :attribute no debe exceder :max.',
+                ],
+                [
+                    // ======================
+                    // NOMBRES AMIGABLES
+                    // ======================
+                    'porcentajeBeca' => 'porcentaje de descuento',
+                ]
+            );
+
+            if ($validator->fails()) {
+                return back()
+                    ->with('popupError', 'No se pudo actualizar la beca. Verifica los datos ingresados.')
+                    ->withErrors($validator)
+                    ->withInput();
+            }
 
             $beca->porcentajeDeDescuento = $request->porcentajeBeca;
             $beca->save();
