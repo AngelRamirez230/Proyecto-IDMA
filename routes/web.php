@@ -11,6 +11,8 @@ use App\Http\Controllers\EstudianteController;
 use App\Http\Controllers\GeneracionController;
 use App\Http\Controllers\InicioController;
 use App\Http\Controllers\SolicitudDeBecaController;
+use App\Http\Controllers\AsignaturaController;
+use App\Models\Empleado;
 use App\Http\Controllers\PagoController;
 
 
@@ -87,6 +89,37 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
     Route::put('/{id}', [EstudianteController::class, 'update'])->name('estudiantes.update');
     Route::delete('/{id}', [EstudianteController::class, 'destroy'])->name('estudiantes.destroy');
     
+    /*----------- ASIGNATURAS -----------*/
+    Route::get('/apartadoAsignaturas', function () {
+        $usuario = Auth::user();
+        $puedeAlta = false;
+
+        if ($usuario && (int) $usuario->idtipoDeUsuario === 1) {
+            $puedeAlta = true;
+        } else {
+            $empleado = $usuario ? Empleado::where('idUsuario', $usuario->idUsuario)->first() : null;
+            $departamentosAutorizados = [2, 4, 5, 7];
+            $puedeAlta = $empleado
+                && in_array((int) $empleado->idDepartamento, $departamentosAutorizados, true);
+        }
+
+        return view('SGAIDMA.moduloAsignaturas.apartadoAsignaturas', compact('puedeAlta'));
+    })->name('apartadoAsignaturas');
+
+    Route::get('/altaAsignatura', [AsignaturaController::class, 'create'])->name('altaAsignatura');
+    Route::post('/asignaturas', [AsignaturaController::class, 'store'])->name('asignaturas.store');
+
+    Route::get('/consultaAsignatura', [AsignaturaController::class, 'index'])
+        ->name('consultaAsignatura');
+    Route::get('/asignaturas/{id}', [AsignaturaController::class, 'show'])
+        ->name('asignaturas.show');
+    Route::get('/asignaturas/{id}/edit', [AsignaturaController::class, 'edit'])
+        ->name('asignaturas.edit');
+    Route::put('/asignaturas/{id}', [AsignaturaController::class, 'update'])
+        ->name('asignaturas.update');
+    Route::delete('/asignaturas/{id}', [AsignaturaController::class, 'destroy'])
+        ->name('asignaturas.destroy');
+
 
     /*----------- REPORTES -----------*/
     Route::get('/apartadoReporte', function () {
@@ -181,4 +214,3 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
     })->name('reportePagosAprobados');
 
 });
-
