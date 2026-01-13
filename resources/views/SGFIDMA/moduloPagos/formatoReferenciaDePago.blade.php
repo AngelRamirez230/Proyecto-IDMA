@@ -159,7 +159,11 @@
                     border-right:0;
                     height:18px;
                     padding:3px;">
-                <strong>PERIODO ESCOLAR:</strong> 01
+                <strong>PERIODO ESCOLAR:</strong>
+                {{
+                    $estudiante->generacion->idMesInicio == 3 ? '01' :
+                    ($estudiante->generacion->idMesInicio == 9 ? '02' : '')
+                }}
             </td>
         </tr>
 
@@ -208,7 +212,7 @@
                     height:18px;
                     line-height:1.4;">
                 <strong>APORTACIÓN:</strong>
-                {{ $concepto->descripcion ?? 'MES EN CURSO' }}
+                {{$concepto->nombreConceptoDePago}}
             </td>
 
             <td
@@ -253,7 +257,7 @@
                             <div style="width:100%;
                                         text-align:center;
                                         font-weight:bold;">
-                                PAGO DE {{ $concepto->unidad->nombreUnidad ?? 'MES EN CURSO' }}
+                                PAGO DE SERVICIO
                             </div>
                         </td>
 

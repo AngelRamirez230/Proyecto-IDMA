@@ -159,13 +159,10 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
         return view('SGFIDMA.moduloPagos.apartadoPago');
     })->name('apartadoPagos');
 
-    Route::get('/consultaPagos', function () {
-        return view('SGFIDMA.moduloPagos.consultaDePagos');
-    })->name('consultaPagos');
+    Route::get('/consultaPagos',[PagoController::class, 'index'])->name('consultaPagos');
+    Route::get('/pagos/{idPago}',[PagoController::class, 'show'])->name('pagos.show');
 
-    Route::get('/detallesPago', function () {
-        return view('SGFIDMA.moduloPagos.detallesDePago');
-    })->name('detallesPago');
+
 
     /*----------- REPORTES FINANZAS -----------*/
     Route::get('/apartadoReporteFinanzas', function () {
