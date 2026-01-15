@@ -124,10 +124,18 @@
                                 <td>
                                     <div class="tabla-acciones">
                                         <a href="{{ route('pagos.show', $pago->Referencia) }}"
-                                        title="Ver detalles"
-                                        class="btn-boton-formulario2 btn-accion">
+                                            title="Ver detalles"
+                                            class="btn-boton-formulario2 btn-accion">
                                                 Ver detalles
                                         </a>
+
+                                        <a href="{{ route('pagos.recibo', $pago->Referencia) }}"
+                                            class="btn-boton-formulario2 btn-accion"
+                                            title="Descargar recibo">
+                                                Descargar recibo
+                                        </a>
+
+
                                     </div>
                                 </td>
 
@@ -138,12 +146,11 @@
                 </tbody>
             </table>
 
-            <!-- PAGINACIÓN -->
-            <div class="paginacion">
-                {{ $pagos->links() }}
-            </div>
-
         </section>
+        <!-- PAGINACIÓN -->
+        <div class="paginacion">
+            {{ $pagos->links() }}
+        </div>
 
     </main>
 

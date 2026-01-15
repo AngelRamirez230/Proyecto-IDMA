@@ -163,6 +163,7 @@ class PagoController extends Controller
             'Referencia'             => $referenciaFinal,
             'idConceptoDePago'       => $concepto->idConceptoDePago,
             'fechaGeneracionDePago'  => now(),
+            'fechaLimiteDePago'     => $fechaLimitePago,
             'idEstatus'              => 3, // Pendiente
             'idEstudiante'           => $estudiante->idEstudiante,
         ]);
@@ -186,6 +187,40 @@ class PagoController extends Controller
     }
 
 
+    public function descargarRecibo($referencia)
+    {
+        $pago = Pago::with([
+            'estudiante.usuario',
+            'concepto'
+        ])->findOrFail($referencia); // 👈 usa la PK real
+
+        $usuario = $pago->estudiante->usuario;
+
+        $nombreCompleto = trim(
+            $usuario->primerNombre . ' ' .
+            $usuario->segundoNombre . ' ' .
+            $usuario->primerApellido . ' ' .
+            $usuario->segundoApellido
+        );
+
+        $pdf = Pdf::loadView(
+            'SGFIDMA.moduloPagos.formatoReferenciaDePago',
+            [
+                'referencia'     => $pago->Referencia,
+                'estudiante'     => $pago->estudiante,
+                'concepto'       => $pago->concepto,
+                'nombreCompleto' => $nombreCompleto,
+                'fechaEmision'   => $pago->fechaGeneracionDePago->format('d/m/Y'),
+                'fechaLimite'    => $pago->fechaLimiteDePago->format('d/m/Y'),
+            ]
+        )->setPaper('letter');
+
+        return $pdf->download(
+            'Recibo_Pago_' . $pago->Referencia . '.pdf'
+        );
+    }
+
+
     // =============================
     // CONSULTA DE PAGOS
     // =============================
@@ -200,6 +235,15 @@ class PagoController extends Controller
             'concepto',
             'estatus'
         ]);
+
+        $usuario = Auth::user();
+
+        // =============================
+        // RESTRICCIÓN POR ROL
+        // =============================
+        if ($usuario->estudiante) {
+            $query->where('idEstudiante', $usuario->estudiante->idEstudiante);
+        }
 
         // =============================
         // BUSCADOR
@@ -270,6 +314,9 @@ class PagoController extends Controller
             compact('pagos', 'orden', 'filtro', 'buscar')
         );
     }
+
+
+    
 
 
 

@@ -30,8 +30,15 @@ class Pago extends Model
         'idTipoDePago',
         'tipoDeRegistro',
         'fechaGeneracionDePago',
+        'fechaLimiteDePago',
         'idEstatus',
         'idEstudiante'
+    ];
+
+
+    protected $casts = [
+        'fechaGeneracionDePago' => 'datetime',
+        'fechaLimiteDePago'     => 'datetime',
     ];
 
     // =============================
