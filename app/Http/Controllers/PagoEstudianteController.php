@@ -102,10 +102,13 @@ class PagoEstudianteController extends Controller
             'idConceptoDePago' => 'required',
             'fechaLimiteDePago'=> 'required|date',
             'estudiantes'      => 'required|array|min:1',
+            'aportacion'       => 'required|string|max:100',
         ]);
 
         $concepto = ConceptoDePago::findOrFail($request->idConceptoDePago);
         $fechaLimitePago = Carbon::parse($request->fechaLimiteDePago);
+
+        $contadorReferencias = 0;
 
         foreach ($request->estudiantes as $idEstudiante) {
 
@@ -158,6 +161,8 @@ class PagoEstudianteController extends Controller
             $digitosRef = str_split($referenciaInicial);
             $suma = 0;
 
+            
+
             foreach ($digitosRef as $i => $digito) {
                 $pos = (count($digitosRef) - 1 - $i) % count($ponderadores97);
                 $suma += ((int)$digito) * $ponderadores97[$pos];
@@ -176,13 +181,16 @@ class PagoEstudianteController extends Controller
                 'idConceptoDePago'      => $concepto->idConceptoDePago,
                 'fechaGeneracionDePago' => now(),
                 'fechaLimiteDePago'     => $fechaLimitePago,
+                'aportacion'            => $request->aportacion,
                 'idEstatus'             => 3,
             ]);
+
+            $contadorReferencias++;
         }
 
         return redirect()
             ->route('admin.pagos.create')
-            ->with('success', 'Pagos generados correctamente');
+            ->with('success', "Se generaron correctamente {$contadorReferencias} referencias de pago.");
     }
 
 

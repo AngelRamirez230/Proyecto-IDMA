@@ -164,6 +164,7 @@ class PagoController extends Controller
             'idConceptoDePago'       => $concepto->idConceptoDePago,
             'fechaGeneracionDePago'  => now(),
             'fechaLimiteDePago'     => $fechaLimitePago,
+            'aportacion'            => null,
             'idEstatus'              => 3, // Pendiente
             'idEstudiante'           => $estudiante->idEstudiante,
         ]);
@@ -180,6 +181,7 @@ class PagoController extends Controller
                 'nombreCompleto' => $nombreCompleto,
                 'fechaEmision'   => now()->format('d/m/Y'),
                 'fechaLimite'    => $fechaLimitePago->format('d/m/Y'),
+                
             ]
         )->setPaper('letter');
 
@@ -212,6 +214,8 @@ class PagoController extends Controller
                 'nombreCompleto' => $nombreCompleto,
                 'fechaEmision'   => $pago->fechaGeneracionDePago->format('d/m/Y'),
                 'fechaLimite'    => $pago->fechaLimiteDePago->format('d/m/Y'),
+                'aportacion'     => $pago->aportacion,
+                'pago'           => $pago, 
             ]
         )->setPaper('letter');
 

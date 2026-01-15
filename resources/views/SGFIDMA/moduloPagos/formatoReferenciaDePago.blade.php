@@ -212,7 +212,7 @@
                     height:18px;
                     line-height:1.4;">
                 <strong>APORTACIÓN:</strong>
-                {{$concepto->nombreConceptoDePago}}
+                {{ $pago->aportacion ?? $concepto->nombreConceptoDePago }}
             </td>
 
             <td

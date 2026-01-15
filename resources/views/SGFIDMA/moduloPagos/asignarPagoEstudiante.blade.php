@@ -79,6 +79,20 @@
                 <x-error-field field="fechaLimiteDePago" />
             </div>
 
+
+            {{-- APORTACIÓN --}}
+            <div class="form-group2">
+                <label>Aportación:</label>
+                <input
+                    type="text"
+                    name="aportacion"
+                    class="input-chico2"
+                    placeholder="Ingresa aportación"
+                    required
+                >
+                <x-error-field field="aportacion" />
+            </div>
+
             {{-- SELECCIONAR TODOS --}}
             <div class="form-group2" style="margin-bottom:50px;">
                 <label class="chk-label">

@@ -31,6 +31,7 @@ class Pago extends Model
         'tipoDeRegistro',
         'fechaGeneracionDePago',
         'fechaLimiteDePago',
+        'aportacion',
         'idEstatus',
         'idEstudiante'
     ];
