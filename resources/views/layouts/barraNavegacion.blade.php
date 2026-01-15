@@ -38,8 +38,15 @@
         <li class="subnav-item"><a href="{{ route('apartadoUsuarios') }}">Usuarios</a></li>
         <li class="subnav-item"><a href="{{ route('apartadoEstudiantes') }}">Estudiantes</a></li>
         <li class="subnav-item"><a href="#">Docentes</a></li>
-        <li class="subnav-item"><a href="#">Asignaturas</a></li>
-        <li class="subnav-item"><a href="#">Grupos</a></li>
+        <li class="subnav-item"><a href="{{ route('apartadoAsignaturas') }}">Asignaturas</a></li>
+        @php
+            $puedeVerGrupos = auth()->check()
+                && in_array((int) auth()->user()->idtipoDeUsuario, [1, 2], true);
+        @endphp
+
+        @if($puedeVerGrupos)
+            <li class="subnav-item"><a href="{{ route('apartadoGrupos') }}">Grupos</a></li>
+        @endif
         <li class="subnav-item"><a href="#">Horarios</a></li>
         <li class="subnav-item"><a href="#">Calificaciones</a></li>
         <li class="subnav-item"><a href="{{ route('apartadoPlanDePago') }}">Planes de pago</a></li>
