@@ -196,6 +196,10 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
     Route::get('/pagos/{idPago}',[PagoController::class, 'show'])->name('pagos.show');
 
 
+    /*----------- GENERACION DE PAGOS DESDE ADMINISTRADOR -----------*/
+
+
+
 
     /*----------- REPORTES FINANZAS -----------*/
     Route::get('/apartadoReporteFinanzas', function () {
