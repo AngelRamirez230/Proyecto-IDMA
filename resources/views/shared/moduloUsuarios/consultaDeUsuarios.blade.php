@@ -115,11 +115,17 @@
                                     <div class="tabla-acciones">
 
                                         {{-- VER (placeholder) --}}
+                                        @if(((int)($usuario->idestatus ?? 0) === 2))
+                                            <span class="accion-boton" title="No disponible (suspendido)" style="pointer-events:none; opacity:.6;">
+                                                <img src="{{ asset('imagenes/IconoVerUsuarioGris.png') }}" alt="Ver">
+                                            </span>
+                                        @else
                                         <a href="{{ route('usuarios.show', $usuario->idUsuario) }}"
                                             class="accion-boton"
                                             title="Ver detalles">
-                                            <img src="{{ asset('imagenes/IconoInicioUsuarios.png') }}" alt="Ver">
+                                            <img src="{{ asset('imagenes/IconoVerUsuario.png') }}" alt="Ver">
                                         </a>
+                                        @endif
 
                                         {{-- EDITAR --}}
                                         @if(((int)($usuario->idestatus ?? 0) === 2))

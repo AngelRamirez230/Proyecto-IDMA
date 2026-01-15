@@ -63,7 +63,7 @@
             <span class="card-btn-title">Docentes</span>
         </a>
 
-        <a href="#" class="card-btn">
+        <a href="{{ route('apartadoAsignaturas') }}" class="card-btn">
             <img src="/imagenes/IconoInicioAsignaturas.png" alt="">
             <span class="card-btn-title">Asignaturas</span>
         </a>
