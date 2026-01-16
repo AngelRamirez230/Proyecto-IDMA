@@ -52,6 +52,11 @@
     font-family: "Poppins", sans-serif;
 }
 
+
+.barra-busqueda-asignacion-de-pago {
+    margin-left: 60px;
+}
+
 /* ==============================
    SELECTS
    ============================== */
@@ -313,29 +318,21 @@ font-size: 18px;
     to { transform: scale(1); opacity: 1; }
 }
 
-/* ==============================
-   RESPONSIVE
-   ============================== */
-@media (max-width: 992px) {
-    .consulta-controles {
-        flex-direction: column;
-        gap: 20px;
-        align-items: flex-start;
-    }
 
-    .consulta-selects {
-        width: 100%;
-        margin-top: 20px;
-        gap: 10px;
-    }
-}
-
-@media (max-width: 566px) {
+@media (max-width: 1024px) {
     .consulta-selects form {
         flex-direction: column !important; /* uno debajo del otro */
         align-items: flex-start !important; /* alineación izquierda */
         width: 100%;
         gap: 10px; /* separación entre los selects */
+    }
+
+    .consulta-selects {
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+        gap: 10px;
+        margin-left: 0;
     }
 
     .consulta-busqueda-group input {
@@ -345,6 +342,15 @@ font-size: 18px;
     .select-boton {
         width: 180px; /* mismo tamaño */
         margin: 0 !important;
+    }
+
+    .barra-busqueda-asignacion-de-pago {
+        margin-left: 0;
+    }
+
+    .consulta-titulo{
+        text-align: center;
+        padding-left: 0px;
     }
 }
 

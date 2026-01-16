@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Validator;
 
 // MODELOS
 use App\Models\Pago;
@@ -98,12 +99,48 @@ class PagoEstudianteController extends Controller
     // =============================
     public function store(Request $request)
     {
-        $request->validate([
-            'idConceptoDePago' => 'required',
-            'fechaLimiteDePago'=> 'required|date',
-            'estudiantes'      => 'required|array|min:1',
-            'aportacion'       => 'required|string|max:100',
-        ]);
+        $validator = Validator::make(
+            $request->all(),
+            [
+                // ======================
+                // PAGO
+                // ======================
+                'idConceptoDePago'   => 'required|exists:concepto_de_pago,idConceptoDePago',
+                'fechaLimiteDePago'  => 'required|date|after_or_equal:today',
+                'estudiantes'        => 'required|array|min:1',
+                'estudiantes.*'      => 'exists:estudiante,idEstudiante',
+                'aportacion'         => 'required|string|max:100',
+            ],
+            [
+                // ======================
+                // MENSAJES GENERALES
+                // ======================
+                'required' => 'El campo :attribute es obligatorio.',
+                'string'   => 'El campo :attribute debe ser texto.',
+                'date'     => 'El campo :attribute debe ser una fecha válida.',
+                'array'    => 'Debe seleccionar al menos un estudiante.',
+                'min'      => 'Debe seleccionar al menos :min estudiante.',
+                'max'      => 'El campo :attribute no debe exceder :max caracteres.',
+                'exists'   => 'El :attribute seleccionado no es válido.',
+                'after_or_equal'  => 'La :attribute no puede ser menor a la fecha actual.',
+            ],
+            [
+                // ======================
+                // NOMBRES AMIGABLES
+                // ======================
+                'idConceptoDePago'  => 'concepto de pago',
+                'fechaLimiteDePago' => 'fecha límite de pago',
+                'estudiantes'       => 'estudiantes',
+                'aportacion'        => 'aportación',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return back()
+                ->with('popupError', 'No se pudieron generar los pagos. Verifica la información.')
+                ->withErrors($validator)
+                ->withInput();
+        }
 
         $concepto = ConceptoDePago::findOrFail($request->idConceptoDePago);
         $fechaLimitePago = Carbon::parse($request->fechaLimiteDePago);
