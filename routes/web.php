@@ -15,6 +15,7 @@ use App\Http\Controllers\AsignaturaController;
 use App\Models\Empleado;
 use App\Http\Controllers\PagoController;
 use App\Http\Controllers\PagoEstudianteController;
+use App\Http\Controllers\NotificacionController;
 
 
 
@@ -43,6 +44,7 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
     Route::get('/prueba-middleware', function () {
         return 'Acceso autorizado: sesión activa';
     });
+
 
     /*----------- USUARIOS -----------*/
     Route::get('/apartadoUsuarios', function () {
@@ -194,8 +196,11 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
     })->name('apartadoPagos');
 
     Route::get('/consultaPagos',[PagoController::class, 'index'])->name('consultaPagos');
-    Route::get('/pagos/{idPago}',[PagoController::class, 'show'])->name('pagos.show');
+    //Route::get('/pagos/{idPago}',[PagoController::class, 'show'])->name('pagos.show');
     Route::get('/pagos/{referencia}/recibo',[PagoController::class, 'descargarRecibo'])->name('pagos.recibo');
+    Route::get('pagos/duplicados', [PagoEstudianteController::class, 'verDuplicados'])->name('pagos.duplicados');
+
+
 
 
     /*----------- GENERACION DE PAGOS DESDE ADMINISTRADOR -----------*/
@@ -203,7 +208,9 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
     Route::get('/admin/pagos/asignar',[PagoEstudianteController::class, 'create'])->name('admin.pagos.create');
     Route::post('/admin/pagos/asignar',[PagoEstudianteController::class, 'store'])->name('admin.pagos.store');
 
+    /*----------- NOTIFICACIONES -----------*/
 
+    Route::post('/notificaciones/{id}/leida', [NotificacionController::class, 'marcarComoLeida'])->name('notificaciones.leida');
 
 
     /*----------- REPORTES FINANZAS -----------*/

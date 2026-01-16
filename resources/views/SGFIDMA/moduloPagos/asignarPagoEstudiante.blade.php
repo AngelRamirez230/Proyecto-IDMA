@@ -9,6 +9,24 @@
 <body>
     @include('layouts.barraNavegacion')
 
+
+    @if(session('successPagos'))
+        <div class="popup-confirmacion" style="display:flex;">
+            <div class="popup-contenido">
+                <h3>Notificación</h3>
+                <p>{{ session('success') }}</p>
+
+                @if(session('duplicados') && count(session('duplicados')) > 0)
+                    <form action="{{ route('pagos.duplicados') }}" method="get" style="margin-top: 10px;">
+                        <button type="submit" class="popup-boton">Ver detalles</button>
+                    </form>
+                @endif
+
+                <button class="popup-boton" onclick="this.parentElement.parentElement.style.display='none';">Cerrar</button>
+            </div>
+        </div>
+    @endif
+
     
     <form method="POST" action="{{ route('admin.pagos.store') }}" class="formulario2">
         @csrf
@@ -115,6 +133,8 @@
                         <th>Selecionar</th>
                         <th>Nombre del estudiante</th>
                         <th>Matrícula</th>
+                        <th>Semestre</th>
+                        <th>Licenciatura</th>
                     </tr>
                 </thead>
 
@@ -141,10 +161,16 @@
                             <td>
                                 {{ $estudiante->matriculaAlfanumerica }}
                             </td>
+                            <td>
+                                {{ $estudiante->grado }}
+                            </td>
+                            <td>
+                                {{ $estudiante->planDeEstudios->licenciatura->nombreLicenciatura }}
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="3" class="tablaVacia">
+                            <td colspan="5" class="tablaVacia">
                                 No hay estudiantes disponibles.
                             </td>
                         </tr>
