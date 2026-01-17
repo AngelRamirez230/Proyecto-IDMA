@@ -3,15 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Estudiante;
+use App\Models\ConceptoDePago;
+use App\Models\Estatus;
 
 class Pago extends Model
 {
     protected $table = 'Pago';
 
     protected $primaryKey = 'Referencia';
-
     public $incrementing = false;
-
     protected $keyType = 'string';
 
     public $timestamps = false;
@@ -29,16 +30,46 @@ class Pago extends Model
         'idTipoDePago',
         'tipoDeRegistro',
         'fechaGeneracionDePago',
+        'fechaLimiteDePago',
+        'aportacion',
         'idEstatus',
         'idEstudiante'
     ];
 
+
+    protected $casts = [
+        'fechaGeneracionDePago' => 'datetime',
+        'fechaLimiteDePago'     => 'datetime',
+    ];
+
     // =============================
-    // RELACIONES (opcional)
+    // RELACIONES
     // =============================
 
     public function estudiante()
     {
-        return $this->belongsTo(Estudiante::class, 'idEstudiante');
+        return $this->belongsTo(
+            Estudiante::class,
+            'idEstudiante',
+            'idEstudiante'
+        );
+    }
+
+    public function concepto()
+    {
+        return $this->belongsTo(
+            ConceptoDePago::class,
+            'idConceptoDePago',
+            'idConceptoDePago'
+        );
+    }
+
+    public function estatus()
+    {
+        return $this->belongsTo(
+            TipoDeEstatus::class,
+            'idEstatus',
+            'idTipoDeEstatus'
+        );
     }
 }

@@ -149,8 +149,7 @@
 }
 
 
-/* Responsive */
-@media screen and (max-width: 950px) {
+@media screen and (max-width: 1024px) {
 
     .form-group2 {
         flex-direction: column;
@@ -159,12 +158,10 @@
         gap: 5px;
     }
 
-    .titulo-form2{
+    .titulo-form2 {
         text-align: center;
         padding-left: 0px;
-
     }
-    
 
     .form-group2 label,
     .form-group2 input {
@@ -172,32 +169,65 @@
         margin-left: 0;
     }
 
-    /* --- 📌 Ajustes para inputs con icono --- */
     .contenedor-input-icono2 {
-        width: 100%; /* el contenedor ocupa todo el ancho */
+        width: 100%;
     }
 
     .contenedor-input-icono2 input {
-        width: calc(100% - 40px);      /* input responsivo */
-        padding-right: 40px; /* espacio para icono */
+        width: calc(100% - 40px);
+        padding-right: 40px;
     }
 
     .icono-input-img2 {
-        right: 50px;     
+        right: 50px;
         width: 30px;
         height: 30px;
     }
-    /* --------------------------------------- */
 
     .btn-boton-formulario2 {
-        display: block;     
+        display: block;
         margin-top: 12px;
         margin-left: 0 !important;
-
         width: 191px;
         height: 49px;
-
         justify-content: center;
-        align-items: center;    
+        align-items: center;
     }
+
+    .form-group2 .chk-label {
+        width: auto;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .form-group2 .chk-label input {
+        width: auto;
+    }
+
+    .consulta-controles {
+        padding-left: 20px;
+        padding-right: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .consulta-controles > form {
+        width: 100%;
+    }
+
+    .consulta-busqueda-group {
+        width: 100%;
+    }
+
+    .consulta-busqueda-group input {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
 }
+
+
+
+

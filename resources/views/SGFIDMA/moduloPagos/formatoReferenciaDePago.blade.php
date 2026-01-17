@@ -55,6 +55,10 @@
             margin: 0;
             padding-top: 2px;
         }
+
+        .copia + .copia {
+            margin-top: 40px;
+        }
     </style>
 </head>
 <body>
@@ -109,7 +113,7 @@
             <td style="border-left:1px solid #000;
                     border-bottom:1px solid #000;
                     border-right:0;
-                    height:20px;
+                    height:18px;
                     padding:3px;">
                 <strong>NO. MATRÍCULA:</strong> {{ $estudiante->matriculaAlfanumerica }}
             </td>
@@ -119,16 +123,16 @@
             <td style="border-left:1px solid #000;
                     border-bottom:1px solid #000;
                     border-right:0;
-                    height:20px;"></td>
+                    height:18px;"></td>
         </tr>
 
         <tr>
             <td style="border-left:1px solid #000;
                     border-bottom:1px solid #000;
                     border-right:0;
-                    height:20px;
+                    height:18px;
                     padding:3px;">
-                <strong>NIVEL:</strong> LICENCIATURA
+                <strong>NIVEL:</strong> {{ $estudiante->planDeEstudios->licenciatura->nombreLicenciatura }}
             </td>
         </tr>
 
@@ -136,9 +140,16 @@
             <td style="border-left:1px solid #000;
                     border-bottom:1px solid #000;
                     border-right:0;
-                    height:20px;
+                    height:18px;
                     padding:3px;">
-                <strong>GENERACIÓN:</strong> 2022A
+                <strong>GENERACIÓN:</strong>
+                {{ 
+                    $estudiante->generacion->añoDeInicio .
+                    (
+                        $estudiante->generacion->idMesInicio == 3 ? 'A' :
+                        ($estudiante->generacion->idMesInicio == 9 ? 'B' : '')
+                    )
+                }}
             </td>
         </tr>
 
@@ -146,9 +157,13 @@
             <td style="border-left:1px solid #000;
                     border-bottom:1px solid #000;
                     border-right:0;
-                    height:20px;
+                    height:18px;
                     padding:3px;">
-                <strong>PERIODO ESCOLAR:</strong> 01
+                <strong>PERIODO ESCOLAR:</strong>
+                {{
+                    $estudiante->generacion->idMesInicio == 3 ? '01' :
+                    ($estudiante->generacion->idMesInicio == 9 ? '02' : '')
+                }}
             </td>
         </tr>
 
@@ -167,8 +182,8 @@
                 style="border-top:1px solid #000;
                     border-left:1px solid #000;
                     border-bottom:1px solid #000;
-                    padding:6px 4px;        /* padding vertical mayor */
-                    height:20px;            /* altura mínima */
+                    padding: 3px;        /* padding vertical mayor */
+                    height:18px;            /* altura mínima */
                     line-height:1.4;">
                 <strong>DESCRIPCIÓN:</strong>
                 {{ str_pad($concepto->idConceptoDePago, 2, '0', STR_PAD_LEFT) }}
@@ -182,7 +197,7 @@
                     border-bottom:1px solid #000;
                     text-align:center;
                     font-weight:bold;
-                    height:20px;
+                    height:18px;
                     line-height:1.4;">
                 IMPORTE
             </td>
@@ -193,11 +208,11 @@
             <td
                 style="border-left:1px solid #000;
                     border-bottom:1px solid #000;
-                    padding:6px 4px;
-                    height:20px;
+                    padding: 3px;
+                    height:18px;
                     line-height:1.4;">
                 <strong>APORTACIÓN:</strong>
-                {{ $concepto->descripcion ?? 'MES EN CURSO' }}
+                {{ $pago->aportacion ?? $concepto->nombreConceptoDePago }}
             </td>
 
             <td
@@ -205,9 +220,9 @@
                     border-right:1px solid #000;
                     border-bottom:1px solid #000;
                     text-align:center;
-                    padding:6px 4px;
+                    padding: 3px;
                     font-weight:bold;
-                    height:20px;
+                    height:18px;
                     line-height:1.4;">
                 $ {{ number_format($concepto->costo, 2) }}
             </td>
@@ -218,53 +233,62 @@
 
 
 
-    <table width="75%" cellspacing="0" cellpadding="0"
-        style="border-collapse: collapse;
-                border:1px solid #000;
-                margin-top:20px;
-                margin-bottom:12px;">
-
+    <table width="100%" cellspacing="0" cellpadding="0"
+       style="border-collapse:collapse; margin-top:18px; margin-bottom:12px;">
         <tr>
-            <!-- LOGO -->
-            <td width="15%"
-                style="text-align:center;
-                    vertical-align:middle;
-                    padding:25px;">
-                <img src="{{ public_path('imagenes/LogoBancoAzteca.png') }}"
-                    alt="Logo IDMA"
-                    style="width:60px;">
+            <!-- TABLA PRINCIPAL 75% -->
+            <td width="75%" style="vertical-align:bottom;">
+                <table width="100%" cellspacing="0" cellpadding="0"
+                    style="border-collapse: collapse; border:1px solid #000;">
+                    <tr>
+                        <!-- LOGO -->
+                        <td width="15%"
+                            style="text-align:center;
+                                vertical-align:middle;
+                                padding:25px;">
+                            <img src="{{ public_path('imagenes/LogoBancoAzteca.png') }}"
+                                alt="Logo IDMA"
+                                style="width:60px;">
+                        </td>
+
+                        <!-- TEXTO CENTRAL -->
+                        <td width="35%"
+                            style="vertical-align:middle; padding:25px;">
+                            <div style="width:100%;
+                                        text-align:center;
+                                        font-weight:bold;">
+                                PAGO DE SERVICIO
+                            </div>
+                        </td>
+
+                        <!-- REFERENCIA -->
+                        <td width="50%"
+                            style="text-align:center;
+                                vertical-align:middle;
+                                padding:25px;">
+                            <div style="font-weight:bold; margin-bottom:4px;">
+                                NÚMERO DE REFERENCIA
+                            </div>
+
+                            <div style="font-weight:bold; letter-spacing:1px;">
+                                {{ $referencia }}
+                            </div>
+                        </td>
+                    </tr>
+                </table>
             </td>
 
-            <!-- TEXTO CENTRAL -->
-            <td width="35%"
-                style="vertical-align:middle; padding:25px;">
-
-                <div style="width:100%;
-                            text-align:center;
-                            font-weight:bold;">
-                    PAGO DE SERVICIO
-                </div>
-
-            </td>
-
-            <!-- REFERENCIA -->
-            <td width="50%"
-                style="text-align:center;
-                    vertical-align:middle;
-                    padding:25px;">
-                <div style="font-weight:bold; margin-bottom:4px;">
-                    NÚMERO DE REFERENCIA
-                </div>
-
-                <div style="font-weight:bold; letter-spacing:1px;">
-                    {{ $referencia }}
+            <!-- LÍNEA DEL 25% -->
+            <td width="25%" style="vertical-align:bottom;">
+                <div style="
+                    border-bottom:1px solid #000;
+                    height:1px;
+                    width:100%;">
                 </div>
             </td>
         </tr>
-
-
-
     </table>
+
 
 
     <div class="titulo-copia">

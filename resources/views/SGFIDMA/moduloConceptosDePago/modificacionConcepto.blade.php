@@ -9,77 +9,94 @@
 <body>
     @include('layouts.barraNavegacion')
 
-    <form action="{{ route('concepto.update', $concepto->idConceptoDePago)}}" method="POST" class="formulario">
+    <form action="{{ route('concepto.update', $concepto->idConceptoDePago)}}" method="POST" class="formulario2">
     @csrf
     @method('PUT') 
 
-        <div class="form-group">
+        <h1 class="titulo-form2">Modificación de concepto de pago</h1>
+
+        {{-- NOMBRE DEL CONCEPTO (SOLO LECTURA) --}}
+        <div class="form-group2">
             <label for="nombreConcepto">Nombre del concepto de pago:</label>
-            <input type="text" id="nombreConcepto" name="nombreConcepto" class="input-grande input-bloqueado" value="{{ $concepto->nombreConceptoDePago }}" readonly>
+            <input
+                type="text"
+                id="nombreConcepto"
+                name="nombreConcepto"
+                class="input-grande2 input-bloqueado2"
+                value="{{ old('nombreConcepto', $concepto->nombreConceptoDePago) }}"
+                readonly
+            >
+            <x-error-field field="nombreConcepto" />
         </div>
 
-        <div class="form-group">
+        {{-- COSTO --}}
+        <div class="form-group2">
             <label for="costo">Costo:</label>
-            <input type="text" id="costo" name="costo" class="input-chico" value="{{ $concepto->costo }}" >
+            <input
+                type="text"
+                id="costo"
+                name="costo"
+                class="input-chico2"
+                value="{{ old('costo', $concepto->costo) }}"
+                required
+            >
+            <x-error-field field="costo" />
             <span id="costoError" class="mensajeError"></span>
         </div>
 
-        <div class="form-group">
+        
+        {{-- UNIDAD --}}
+        <div class="form-group2">
             <label for="unidad">Unidad:</label>
-            <select id="unidad" name="unidad" class="select" required>
-                <option value="" disabled>Seleccionar</option>
+            <select
+                id="unidad"
+                name="unidad"
+                class="select2"
+                required
+            >
+                <option value="" disabled {{ old('unidad', $concepto->idUnidad) ? '' : 'selected' }}>
+                    Seleccionar
+                </option>
 
                 @foreach ($unidades as $u)
-                    <option value="{{ $u->idTipoDeUnidad }}"
-                        {{ $concepto->idUnidad == $u->idTipoDeUnidad ? 'selected' : '' }}>
+                    <option
+                        value="{{ $u->idTipoDeUnidad }}"
+                        {{ old('unidad', $concepto->idUnidad) == $u->idTipoDeUnidad ? 'selected' : '' }}
+                    >
                         {{ $u->nombreUnidad }}
                     </option>
                 @endforeach
             </select>
+            <x-error-field field="unidad" />
         </div>
 
 
-        <div class="form-group">
-            <button type="submit" name="accion" value="guardar" class="btn-boton-formulario">Guardar cambios</button>
+        <div class="form-group2">
+            <button type="submit" name="accion" value="guardar" class="btn-boton-formulario2">Guardar cambios</button>
             <button type="submit"
                     name="accion"
                     value="Suspender/Habilitar"
-                    class="btn-boton-formulario">
+                    class="btn-boton-formulario2">
                 {{ $concepto->idEstatus == 1 ? 'Suspender' : 'Habilitar' }}
             </button>
-            <a href="{{ route('consultaConcepto') }}" class="btn-boton-formulario btn-cancelar">Cancelar</a>
+            <a href="{{ route('consultaConcepto') }}" class="btn-boton-formulario2 btn-cancelar2">Cancelar</a>
         </div>
+
+        {{-- BLOQUE DE ERRORES DE VALIDACIÓN --}}
+        @if ($errors->any())
+            <div style="background:#ffdddd; padding:12px; border:1px solid #cc0000; margin:10px 0;">
+                <strong>Corrige los siguientes errores:</strong>
+                <ul style="margin: 8px 0 0 18px;">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
     </form>
 
-    <script>
-        const inputCosto = document.getElementById('costo');
-        const errorCosto = document.getElementById('costoError');
-        const form = document.querySelector('form');
-
-        inputCosto.addEventListener('input', validarCosto);
-        form.addEventListener('submit', function (e) {
-        if (!validarCosto()) {
-            e.preventDefault(); 
-            }
-        });
-
-        function validarCosto() {
-            const valor = inputCosto.value;
-
-            if (valor === "" || isNaN(valor)) {
-                errorCosto.textContent = "Debes ingresar un número válido.";
-                return false;
-            }
-
-            if (valor < 0) {
-                errorCosto.textContent = "El costo debe ser mayor o igual a 0.";
-                return false;
-            }
-
-            errorCosto.textContent = "";
-            return true;
-        }
-    </script>
+    
 
 </body>
 </html>

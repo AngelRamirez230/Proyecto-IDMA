@@ -28,12 +28,33 @@ class EstudianteController extends Controller
      */
     public function create()
     {
-        $mesActual = now()->month;
+
+        $mesActual = now()->month; 
         $añoActual = now()->year;
 
-        $generacionActual = Generacion::where('añoDeInicio', $añoActual)
-            ->where('idMesInicio', $mesActual)
-            ->first();
+        // ===============================
+        // DETERMINAR MES REAL DE GENERACIÓN
+        // ===============================
+        if (in_array($mesActual, [2, 3])) {
+            // Febrero o Marzo → Generación de Marzo
+            $mesGeneracion = 3;
+        } elseif (in_array($mesActual, [8, 9])) {
+            // Agosto o Septiembre → Generación de Septiembre
+            $mesGeneracion = 9;
+        } else {
+            $mesGeneracion = null;
+        }
+
+        // ===============================
+        // OBTENER GENERACIÓN ACTUAL
+        // ===============================
+        $generacionActual = null;
+
+        if ($mesGeneracion) {
+            $generacionActual = Generacion::where('añoDeInicio', $añoActual)
+                ->where('idMesInicio', $mesGeneracion)
+                ->first();
+        }
 
         return view('shared.moduloEstudiantes.altaEstudiante', [
             'sexos'            => Sexo::orderBy('nombreSexo')->get(),
@@ -47,6 +68,7 @@ class EstudianteController extends Controller
             'generacionActual' => $generacionActual
         ]);
     }
+
 
     /**
      * Guardar estudiante

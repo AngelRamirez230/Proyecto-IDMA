@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
 use Carbon\Carbon;
 
 // MODELOS
@@ -162,6 +163,8 @@ class PagoController extends Controller
             'Referencia'             => $referenciaFinal,
             'idConceptoDePago'       => $concepto->idConceptoDePago,
             'fechaGeneracionDePago'  => now(),
+            'fechaLimiteDePago'     => $fechaLimitePago,
+            'aportacion'            => null,
             'idEstatus'              => 3, // Pendiente
             'idEstudiante'           => $estudiante->idEstudiante,
         ]);
@@ -178,9 +181,156 @@ class PagoController extends Controller
                 'nombreCompleto' => $nombreCompleto,
                 'fechaEmision'   => now()->format('d/m/Y'),
                 'fechaLimite'    => $fechaLimitePago->format('d/m/Y'),
+                
             ]
         )->setPaper('letter');
 
         return $pdf->download('Referencia_de_Pago.pdf');
     }
+
+
+    public function descargarRecibo($referencia)
+    {
+        $pago = Pago::with([
+            'estudiante.usuario',
+            'concepto'
+        ])->findOrFail($referencia); // 👈 usa la PK real
+
+        $usuario = $pago->estudiante->usuario;
+
+        $nombreCompleto = trim(
+            $usuario->primerNombre . ' ' .
+            $usuario->segundoNombre . ' ' .
+            $usuario->primerApellido . ' ' .
+            $usuario->segundoApellido
+        );
+
+        $pdf = Pdf::loadView(
+            'SGFIDMA.moduloPagos.formatoReferenciaDePago',
+            [
+                'referencia'     => $pago->Referencia,
+                'estudiante'     => $pago->estudiante,
+                'concepto'       => $pago->concepto,
+                'nombreCompleto' => $nombreCompleto,
+                'fechaEmision'   => $pago->fechaGeneracionDePago->format('d/m/Y'),
+                'fechaLimite'    => $pago->fechaLimiteDePago->format('d/m/Y'),
+                'aportacion'     => $pago->aportacion,
+                'pago'           => $pago, 
+            ]
+        )->setPaper('letter');
+
+        return $pdf->download(
+            'Recibo_Pago_' . $pago->Referencia . '.pdf'
+        );
+    }
+
+
+    // =============================
+    // CONSULTA DE PAGOS
+    // =============================
+    public function index(Request $request)
+    {
+        $orden  = $request->orden;
+        $filtro = $request->filtro;
+        $buscar = $request->buscarPago;
+
+        $query = Pago::with([
+            'estudiante.usuario',
+            'concepto',
+            'estatus'
+        ]);
+
+        $usuario = Auth::user();
+
+        // =============================
+        // RESTRICCIÓN POR ROL
+        // =============================
+        if ($usuario->estudiante) {
+            $query->where('idEstudiante', $usuario->estudiante->idEstudiante);
+        }
+
+        // =============================
+        // BUSCADOR
+        // =============================
+        if ($request->filled('buscarPago')) {
+
+            $buscar = trim($buscar);
+
+            $query->where(function ($q) use ($buscar) {
+
+                // Referencia de pago
+                $q->where('Referencia', 'LIKE', "%{$buscar}%")
+
+                
+                ->orWhereHas('estudiante.usuario', function ($u) use ($buscar) {
+
+                    
+                    $u->where('primerNombre', 'LIKE', "%{$buscar}%")
+                    ->orWhere('segundoNombre', 'LIKE', "%{$buscar}%")
+                    ->orWhere('primerApellido', 'LIKE', "%{$buscar}%")
+                    ->orWhere('segundoApellido', 'LIKE', "%{$buscar}%")
+
+                    
+                    ->orWhereRaw(
+                        "REPLACE(
+                            TRIM(
+                                CONCAT(
+                                    primerNombre, ' ',
+                                    IFNULL(segundoNombre, ''), ' ',
+                                    primerApellido, ' ',
+                                    IFNULL(segundoApellido, '')
+                                )
+                            ),
+                            '  ', ' '
+                        ) LIKE ?",
+                        ["%{$buscar}%"]
+                    );
+                });
+            });
+        }
+
+        // =============================
+        // FILTRO
+        // =============================
+        if ($filtro === 'pendientes') {
+            $query->where('idEstatus', 3);
+        } elseif ($filtro === 'aprobados') {
+            $query->where('idEstatus', 6);
+        }elseif ($filtro === 'rechazados') {
+            $query->where('idEstatus', 7);
+        }
+
+        // =============================
+        // ORDEN
+        // =============================
+        if ($orden === 'alfabetico') {
+            $query->orderBy('idEstudiante');
+        } elseif ($orden === 'porcentaje_mayor') {
+            $query->orderBy('fechaGeneracionDePago', 'desc');
+        } elseif ($orden === 'porcentaje_menor') {
+            $query->orderBy('fechaGeneracionDePago', 'asc');
+        }
+
+        $pagos = $query->paginate(10)->withQueryString();
+
+        return view(
+            'SGFIDMA.moduloPagos.consultaDePagos',
+            compact('pagos', 'orden', 'filtro', 'buscar')
+        );
+    }
+
+    public function show($referencia)
+    {
+        $pago = Pago::with([
+            'estudiante.usuario',
+            'concepto',
+            'estatus'
+        ])->findOrFail($referencia);
+
+        return view('SGFIDMA.moduloPagos.detallesDePago', [
+            'pago' => $pago
+        ]);
+    }
+
+
 }

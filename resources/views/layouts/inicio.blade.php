@@ -9,6 +9,28 @@
 <body>
     @include('layouts.barraNavegacion')
 
+    @foreach($notificaciones as $notificacion)
+        <div class="popup-confirmacion" style="display:flex;">
+            <div class="popup-contenido">
+                <h3>{{ $notificacion->titulo }}</h3>
+                <p>
+                    <strong>Para:</strong> 
+                    {{ $notificacion->usuario->primerNombre ?? '' }} 
+                    {{ $notificacion->usuario->segundoNombre ?? '' }} 
+                    {{ $notificacion->usuario->primerApellido ?? '' }} 
+                    {{ $notificacion->usuario->segundoApellido ?? '' }}
+                    <br>
+                    {{ $notificacion->mensaje }}
+                    
+                </p>
+                <button class="popup-boton" onclick="marcarComoLeida({{ $notificacion->idNotificacion }})">
+                    Entendido
+                </button>
+            </div>
+        </div>
+    @endforeach
+
+
     @if(isset($datosGeneracion) && $datosGeneracion)
         <div id="popupGeneracion" class="popup-confirmacion" style="display:flex;">
             <div class="popup-contenido">
@@ -116,5 +138,18 @@
         
     </div>
 </div>
+
+
+    <script>
+    function marcarComoLeida(id) {
+        fetch(`/notificaciones/${id}/leida`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+            },
+        }).then(() => location.reload());
+    }
+    </script>
 </body>
 </html>

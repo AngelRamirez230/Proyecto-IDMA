@@ -10,26 +10,37 @@ class GeneracionController extends Controller
 {
     public function verificarGeneracion()
     {
-        $mesActual  = now()->month;
+        $mesActual = now()->month;
         $añoActual = now()->year;
 
-        // Solo marzo (3) o septiembre (9)
-        if (!in_array($mesActual, [3, 9])) {
+        // ===============================
+        // MOSTRAR AVISO UN MES ANTES
+        // ===============================
+        if ($mesActual == 2) {
+            $mesInicioReal = 3;
+        } elseif ($mesActual == 8) {
+            $mesInicioReal = 9;
+        } else {
             return null;
         }
 
-        // Verificar si ya existe
+        // ===============================
+        // VERIFICAR SI YA EXISTE
+        // ===============================
         $existe = Generacion::where('añoDeInicio', $añoActual)
-            ->where('idMesInicio', $mesActual)
+            ->where('idMesInicio', $mesInicioReal)
             ->exists();
 
         if ($existe) {
             return null;
         }
 
-        // Retornar datos sugeridos
-        return $this->armarDatosGeneracion($añoActual, $mesActual);
+        // ===============================
+        // RETORNAR DATOS SUGERIDOS
+        // ===============================
+        return $this->armarDatosGeneracion($añoActual, $mesInicioReal);
     }
+
 
     /**
      * Crear generación desde el dashboard (con confirmación implícita)

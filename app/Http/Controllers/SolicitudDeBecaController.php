@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Validator;
 
 use App\Models\Estudiante;
 use App\Models\SolicitudDeBeca;
@@ -72,46 +73,66 @@ class SolicitudDeBecaController extends Controller
     ====================================================== */
     public function store(Request $request)
     {
-        
         DB::beginTransaction();
-
 
         try {
 
-            $request->validate([
-                'idBeca' => 'required|exists:beca,idBeca', 
-                'promedio' => 'required|numeric|min:8.5|max:10',
-                'examenExtraordinario' => 'nullable|string|max:255',
-                'documento_solicitud' => 'required|file|mimes:pdf|max:5120',
-                'documento_adicional' => 'nullable|file|mimes:pdf|max:5120',
-            ]);
+            /* ======================================================
+            VALIDACIONES
+            ====================================================== */
+            $request->validate(
+                [
+                    'idBeca' => 'required|exists:beca,idBeca',
+                    'promedio' => 'required|numeric|between:8.5,10',
+                    'examenExtraordinario' => 'nullable|string|max:255',
+                    'documento_solicitud' => 'required|file|mimes:pdf|max:5120',
+                    'documento_adicional' => 'nullable|file|mimes:pdf|max:5120',
+                ],
+                [
+                    'idBeca.required' => 'No se recibió la información de la beca.',
+                    'idBeca.exists' => 'La beca seleccionada no es válida.',
 
+                    'promedio.required' => 'Debes ingresar tu promedio.',
+                    'promedio.numeric' => 'El promedio debe ser un número.',
+                    'promedio.between' => 'El promedio debe estar entre 8.5 y 10.',
+
+                    'examenExtraordinario.max' => 'El campo de examen extraordinario es demasiado largo.',
+
+                    'documento_solicitud.required' => 'Debes subir el documento de solicitud.',
+                    'documento_solicitud.mimes' => 'El documento de solicitud debe ser un archivo PDF.',
+                    'documento_solicitud.max' => 'El documento de solicitud no debe exceder 5 MB.',
+
+                    'documento_adicional.mimes' => 'El documento adicional debe ser un archivo PDF.',
+                    'documento_adicional.max' => 'El documento adicional no debe exceder 5 MB.',
+                ]
+            );
+
+            /* ======================================================
+            OBTENER ESTUDIANTE
+            ====================================================== */
             $usuario = Auth::user();
             $estudiante = $usuario->estudiante;
 
             if (!$estudiante) {
-                abort(403, 'El usuario no es estudiante');
+                abort(403, 'El usuario no está registrado como estudiante.');
             }
 
             /* ======================================================
-            VALIDAR DUPLICADO (SOLO PENDIENTE)
+            VALIDAR SOLICITUD DUPLICADA (SOLO PENDIENTE)
             ====================================================== */
-            $existeSolicitud = SolicitudDeBeca::delEstudiante($estudiante->idEstudiante)
+            $solicitudPendiente = SolicitudDeBeca::delEstudiante($estudiante->idEstudiante)
                 ->where('idBeca', $request->idBeca)
-                ->where('idEstatus', 5) // SOLO pendiente
+                ->where('idEstatus', 5) // Pendiente
                 ->exists();
-            
-            
-            
-            
-            if ($existeSolicitud) {
+
+            if ($solicitudPendiente) {
                 return back()
-                    ->with('popupError', 'Ya tienes una solicitud pendiente para esta beca')
+                    ->with('popupError', 'Ya tienes una solicitud pendiente para esta beca.')
                     ->withInput();
             }
 
             /* ======================================================
-            CREAR SOLICITUD
+            CREAR SOLICITUD DE BECA
             ====================================================== */
             $solicitud = SolicitudDeBeca::create([
                 'idEstudiante' => $estudiante->idEstudiante,
@@ -127,16 +148,16 @@ class SolicitudDeBecaController extends Controller
             /* ======================================================
             GUARDAR DOCUMENTOS
             ====================================================== */
-            $documentos = [
+            $tiposDocumentos = [
                 'documento_solicitud' => 1,
                 'documento_adicional' => 2,
             ];
 
-            foreach ($documentos as $input => $idTipo) {
+            foreach ($tiposDocumentos as $campo => $idTipo) {
 
-                if ($request->hasFile($input)) {
+                if ($request->hasFile($campo)) {
 
-                    $ruta = $request->file($input)
+                    $ruta = $request->file($campo)
                         ->store('documentos/becas', 'public');
 
                     DocumentacionSolicitudDeBeca::create([
@@ -150,21 +171,24 @@ class SolicitudDeBecaController extends Controller
 
             DB::commit();
 
+            /* ======================================================
+            REDIRECCIÓN FINAL
+            ====================================================== */
             return redirect()
                 ->route('consultaSolicitudBeca')
-                ->with('success', 'Solicitud de beca enviada correctamente');
+                ->with('success', 'Tu solicitud de beca fue enviada correctamente.');
 
         } catch (\Exception $e) {
 
             DB::rollBack();
-
-            throw $e;
+            throw $e; // útil en desarrollo
 
             return back()
-                ->withErrors(['error' => $e->getMessage()])
+                ->with('popupError', 'Ocurrió un error al enviar tu solicitud.')
                 ->withInput();
         }
     }
+
 
 
     /* ======================================================
@@ -397,12 +421,32 @@ class SolicitudDeBecaController extends Controller
                 }
 
 
-                $request->validate([
-                    'promedio' => 'required|numeric|min:8.5|max:10',
-                    'examenExtraordinario' => 'nullable|string|max:255',
-                    'documento_solicitud' => 'nullable|file|mimes:pdf|max:5120',
-                    'documento_adicional' => 'nullable|file|mimes:pdf|max:5120',
-                ]);
+                /* ======================================================
+                VALIDACIONES
+                ====================================================== */
+                $request->validate(
+                    [
+                        'idBeca' => 'required|exists:beca,idBeca',
+                        'promedio' => 'required|numeric|between:8.5,10',
+                        'examenExtraordinario' => 'nullable|string|max:255',
+                    ],
+                    [
+                        'idBeca.required' => 'No se recibió la información de la beca.',
+                        'idBeca.exists' => 'La beca seleccionada no es válida.',
+
+                        'promedio.required' => 'Debes ingresar tu promedio.',
+                        'promedio.numeric' => 'El promedio debe ser un número.',
+                        'promedio.between' => 'El promedio debe estar entre 8.5 y 10.',
+
+                        'examenExtraordinario.max' => 'El campo de examen extraordinario es demasiado largo.',
+
+                        'documento_solicitud.mimes' => 'El documento de solicitud debe ser un archivo PDF.',
+                        'documento_solicitud.max' => 'El documento de solicitud no debe exceder 5 MB.',
+
+                        'documento_adicional.mimes' => 'El documento adicional debe ser un archivo PDF.',
+                        'documento_adicional.max' => 'El documento adicional no debe exceder 5 MB.',
+                    ]
+                );
 
                 $solicitud = SolicitudDeBeca::where('idSolicitudDeBeca', $id)
                     ->where('idEstudiante', $usuario->estudiante->idEstudiante)
@@ -473,9 +517,10 @@ class SolicitudDeBecaController extends Controller
         } catch (\Exception $e) {
 
             DB::rollBack();
+            throw $e; // útil en desarrollo
 
             return back()
-                ->withErrors(['error' => $e->getMessage()])
+                ->with('popupError', 'Ocurrió un error al actualizar tu solicitud.')
                 ->withInput();
         }
     }

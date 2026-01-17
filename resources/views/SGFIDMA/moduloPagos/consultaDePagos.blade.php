@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,38 +7,80 @@
     @vite(['resources/css/app.css'])
 </head>
 <body>
+
     @include('layouts.barraNavegacion')
 
     <main class="consulta">
         <h1 class="consulta-titulo">Lista de pagos</h1>
 
+        <!-- =========================
+            CONTROLES
+        ========================== -->
         <section class="consulta-controles">
-            <!-- Barra de búsqueda -->
-            <div class="consulta-busqueda-group">
-                <img src="{{ asset('imagenes/IconoBusqueda.png') }}" alt="Buscar">
-                <input
-                    type="text"
-                    id="buscarPago"
-                    name="buscarPago"
-                    placeholder="Ingresa referencia de pago o nombre del estudiante"
-                >
-            </div>
 
-            <!-- Filtros del lado derecho -->
+            <!-- BUSCADOR -->
+            <form action="{{ route('consultaPagos') }}" method="GET">
+                <div class="consulta-busqueda-group">
+                    <img src="{{ asset('imagenes/IconoBusqueda.png') }}" alt="Buscar">
+                    <input
+                        type="text"
+                        name="buscarPago"
+                        placeholder="Ingresa número de referencia o estudiante"
+                        value="{{ $buscar ?? '' }}"
+                        onkeydown="if(event.key === 'Enter') this.form.submit();"
+                    >
+                </div>
+            </form>
+
+            <!-- FILTROS -->
             <div class="consulta-selects">
-                <select type="button" class="select select-boton">
-                    <option value="" disabled selected>Filtrar por</option>
-                </select>
+                <form action="{{ route('consultaPagos') }}" method="GET">
 
-                <select type="button" class="select select-boton">
-                    <option value="" disabled selected>Ordenar por</option>
-                </select>
+                    <input type="hidden" name="buscarPago" value="{{ $buscar ?? '' }}">
+
+                    @admin
+                    <select name="filtro" class="select select-boton" onchange="this.form.submit()">
+                        <option value="" disabled {{ empty($filtro) ? 'selected' : '' }}>
+                            Filtrar por
+                        </option>
+                        <option value="pendientes" {{ ($filtro ?? '') == 'pendientes' ? 'selected' : '' }}>
+                            Pendientes
+                        </option>
+                        <option value="aprobados" {{ ($filtro ?? '') == 'aprobados' ? 'selected' : '' }}>
+                            Aprobados
+                        </option>
+                        <option value="rechazados" {{ ($filtro ?? '') == 'rechazados' ? 'selected' : '' }}>
+                            Rechazados
+                        </option>
+                    </select>
+                    @endadmin
+
+                    <select name="orden" class="select select-boton" onchange="this.form.submit()">
+                        <option value="" disabled {{ empty($orden) ? 'selected' : '' }}>
+                            Ordenar por
+                        </option>
+                        <option value="alfabetico" {{ ($orden ?? '') == 'alfabetico' ? 'selected' : '' }}>
+                            Alfabéticamente (A-Z)
+                        </option>
+                        <option value="porcentaje_mayor" {{ ($orden ?? '') == 'porcentaje_mayor' ? 'selected' : '' }}>
+                            Más reciente
+                        </option>
+                        <option value="porcentaje_menor" {{ ($orden ?? '') == 'porcentaje_menor' ? 'selected' : '' }}>
+                            Más antiguo
+                        </option>
+                    </select>
+
+                </form>
             </div>
+
         </section>
 
-        <!-- Tabla de resultados -->
+        <!-- =========================
+            TABLA
+        ========================== -->
         <section class="consulta-tabla-contenedor">
             <table class="tabla">
+
                 <thead>
                     <tr class="tabla-encabezado">
                         <th>Nombre estudiante</th>
@@ -49,36 +91,68 @@
                         <th>Acciones</th>
                     </tr>
                 </thead>
+
                 <tbody class="tabla-cuerpo">
-                    {{-- Aquí se iterarán las becas registradas --}}
-                    {{--
-                    @foreach($pago as $pago)
-                        <tr class="tabla-fila">
-                            <td>{{ $pago->nombreEstudiante }}</td>
-                            <td>{{ $pago->referencia }}</td>
-                            <td>{{ $pago->conceptoDePago }}</td>
-                            <td>{{ $pago->fechaDePago }}</td>
-                            <td>{{ $pago->estatus }}</td>
-                            <td>
-                                <div class="tabla-acciones">
-                                    <button type="button" class="accion-boton" title="Ver detalles">
-                                        <img src="{{ asset('imagenes/IconoInicioUsuarios.png') }}" alt="Ver">
-                                    </button>
-                                    <button type="button" class="accion-boton" title="Editar">
-                                        <img src="{{ asset('imagenes/IconoInicioUsuarios.png') }}" alt="Editar">
-                                    </button>
-                                    <button type="button" class="accion-boton" title="Suspender">
-                                        <img src="{{ asset('imagenes/IconoInicioUsuarios.png') }}" alt="Desactivar">
-                                    </button>
-                                </div>
+
+                    @if ($pagos->isEmpty())
+                        <tr>
+                            <td colspan="6" class="tablaVacia">
+                                No existen pagos registrados.
                             </td>
                         </tr>
-                    @endforeach
-                    --}}
+                    @else
+                        @foreach ($pagos as $pago)
+                            <tr class="{{ $pago->idEstatus == 2 ? 'fila-suspendida' : '' }}">
+
+                                <td>
+                                    {{ $pago->estudiante->usuario->primerNombre }}
+                                    {{ $pago->estudiante->usuario->segundoNombre }}
+                                    {{ $pago->estudiante->usuario->primerApellido }}
+                                    {{ $pago->estudiante->usuario->segundoApellido }}
+                                </td>
+
+                                <td>{{ $pago->Referencia }}</td>
+
+                                <td>{{ $pago->concepto->nombreConceptoDePago }}</td>
+
+                                <td>
+                                    {{ $pago->concepto->fechaDePago ?? '-' }}
+                                </td>
+
+                                <td>{{ $pago->estatus->nombreTipoDeEstatus ?? 'Sin estatus' }}</td>
+
+                                <td>
+                                    <div class="tabla-acciones">
+                                        <a href="{{ route('pagos.show', $pago->Referencia) }}"
+                                            title="Ver detalles"
+                                            class="btn-boton-formulario2 btn-accion">
+                                                Ver detalles
+                                        </a>
+
+                                        <a href="{{ route('pagos.recibo', $pago->Referencia) }}"
+                                            class="btn-boton-formulario2 btn-accion"
+                                            title="Descargar recibo">
+                                                Descargar recibo
+                                        </a>
+
+
+                                    </div>
+                                </td>
+
+                            </tr>
+                        @endforeach
+                    @endif
+
                 </tbody>
             </table>
+
         </section>
+        <!-- PAGINACIÓN -->
+        <div class="paginacion">
+            {{ $pagos->links() }}
+        </div>
+
     </main>
-    
+
 </body>
 </html>
