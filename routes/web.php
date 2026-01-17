@@ -196,9 +196,8 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
     })->name('apartadoPagos');
 
     Route::get('/consultaPagos',[PagoController::class, 'index'])->name('consultaPagos');
-    //Route::get('/pagos/{idPago}',[PagoController::class, 'show'])->name('pagos.show');
+    Route::get('/pagos/{referencia}',[PagoController::class, 'show'])->name('pagos.show');
     Route::get('/pagos/{referencia}/recibo',[PagoController::class, 'descargarRecibo'])->name('pagos.recibo');
-    Route::get('pagos/duplicados', [PagoEstudianteController::class, 'verDuplicados'])->name('pagos.duplicados');
 
 
 
@@ -207,6 +206,7 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
 
     Route::get('/admin/pagos/asignar',[PagoEstudianteController::class, 'create'])->name('admin.pagos.create');
     Route::post('/admin/pagos/asignar',[PagoEstudianteController::class, 'store'])->name('admin.pagos.store');
+    Route::get('/admin/pagos/detalles-referencias',[PagoEstudianteController::class, 'detallesReferencias'])->name('pagos.detalles-referencias');
 
     /*----------- NOTIFICACIONES -----------*/
 

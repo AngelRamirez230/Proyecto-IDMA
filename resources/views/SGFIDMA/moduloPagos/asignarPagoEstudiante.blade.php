@@ -8,25 +8,6 @@
 </head>
 <body>
     @include('layouts.barraNavegacion')
-
-
-    @if(session('successPagos'))
-        <div class="popup-confirmacion" style="display:flex;">
-            <div class="popup-contenido">
-                <h3>Notificación</h3>
-                <p>{{ session('success') }}</p>
-
-                @if(session('duplicados') && count(session('duplicados')) > 0)
-                    <form action="{{ route('pagos.duplicados') }}" method="get" style="margin-top: 10px;">
-                        <button type="submit" class="popup-boton">Ver detalles</button>
-                    </form>
-                @endif
-
-                <button class="popup-boton" onclick="this.parentElement.parentElement.style.display='none';">Cerrar</button>
-            </div>
-        </div>
-    @endif
-
     
     <form method="POST" action="{{ route('admin.pagos.store') }}" class="formulario2">
         @csrf

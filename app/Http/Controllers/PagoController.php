@@ -319,10 +319,18 @@ class PagoController extends Controller
         );
     }
 
+    public function show($referencia)
+    {
+        $pago = Pago::with([
+            'estudiante.usuario',
+            'concepto',
+            'estatus'
+        ])->findOrFail($referencia);
 
-    
-
-
+        return view('SGFIDMA.moduloPagos.detallesDePago', [
+            'pago' => $pago
+        ]);
+    }
 
 
 }

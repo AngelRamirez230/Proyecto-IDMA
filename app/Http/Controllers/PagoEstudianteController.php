@@ -141,6 +141,7 @@ class PagoEstudianteController extends Controller
     $fechaLimitePago = Carbon::parse($request->fechaLimiteDePago);
 
     $contadorReferencias = 0;
+    $referenciasCreadas = [];
     $referenciasDuplicadas = [];
 
     foreach ($request->estudiantes as $idEstudiante) {
@@ -222,6 +223,13 @@ class PagoEstudianteController extends Controller
                 'idEstatus'             => 3,
             ]);
 
+            $referenciasCreadas[] = [
+                'estudiante' => $estudiante->usuario->primerNombre . ' ' . $estudiante->usuario->primerApellido,
+                'referencia' => $referenciaFinal,
+                'concepto'   => $concepto->nombreConceptoDePago,
+                'fecha'      => $fechaLimitePago->format('Y-m-d'),
+            ];
+
             $contadorReferencias++;
 
             // =============================
@@ -239,7 +247,9 @@ class PagoEstudianteController extends Controller
         } else {
             $referenciasDuplicadas[] = [
                 'estudiante' => $estudiante->usuario->primerNombre . ' ' . $estudiante->usuario->primerApellido,
-                'referencia' => $referenciaFinal
+                'referencia' => $referenciaFinal,
+                'concepto'   => $concepto->nombreConceptoDePago,
+                'fecha'      => $fechaLimitePago->format('Y-m-d'),
             ];
         }
     }
@@ -251,22 +261,20 @@ class PagoEstudianteController extends Controller
                     count($referenciasDuplicadas) . " referencias ya existían.";
 
     return redirect()
-        ->route('admin.pagos.create')
-        ->with('successPagos', $mensajePopup)
-        ->with('duplicados', $referenciasDuplicadas)
-        ->with('creados', $contadorReferencias);
+        ->route('pagos.detalles-referencias')
+        ->with('successPagos', true)
+        ->with('creados', $referenciasCreadas)
+        ->with('duplicados', $referenciasDuplicadas);
 
     }
 
 
-    public function verDuplicados()
+    public function detallesReferencias()
     {
-        $duplicados = session('duplicados', []);
-        $creados = session('creados', 0);
-
         return view('SGFIDMA.moduloPagos.detallesGeneracionDeReferencias', [
-            'duplicados' => $duplicados,
-            'creados' => $creados
+            'creados'    => session('creados', []),
+            'duplicados' => session('duplicados', [])
         ]);
     }
+
 }
