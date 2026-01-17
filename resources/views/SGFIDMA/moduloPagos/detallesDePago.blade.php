@@ -9,5 +9,6 @@
 <body>
     @include('layouts.barraNavegacion')
     
+    
 </body>
-</html>
+</html> 
