@@ -90,10 +90,17 @@
             <span class="card-btn-title">Asignaturas</span>
         </a>
 
-        <a href="#" class="card-btn">
-            <img src="/imagenes/IconoInicioGrupos.png" alt="">
-            <span class="card-btn-title">Grupos</span>
-        </a>
+        @php
+            $puedeVerGrupos = auth()->check()
+                && in_array((int) auth()->user()->idtipoDeUsuario, [1, 2], true);
+        @endphp
+
+        @if($puedeVerGrupos)
+            <a href="{{ route('apartadoGrupos') }}" class="card-btn">
+                <img src="/imagenes/IconoInicioGrupos.png" alt="">
+                <span class="card-btn-title">Grupos</span>
+            </a>
+        @endif
 
         <a href="#" class="card-btn">
             <img src="/imagenes/IconoInicioHorarios.png" alt="">
