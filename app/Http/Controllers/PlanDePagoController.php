@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+
 use App\Models\PlanDePago;
 use App\Models\PlanConcepto;
 use App\Models\ConceptoDePago;
@@ -17,13 +19,48 @@ class PlanDePagoController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'nombrePlan' => 'required|string|max:150',
-            'cantidades' => 'required|array',
-        ]);
+        $validator = Validator::make(
+            $request->all(),
+            [
+                // ======================
+                // PLAN DE PAGO
+                // ======================
+                'nombrePlan' => 'required|string|max:150',
+                'cantidades' => 'required|array',
+            ],
+            [
+                // ======================
+                // MENSAJES GENERALES
+                // ======================
+                'required' => 'El campo :attribute es obligatorio.',
+                'string'   => 'El campo :attribute debe ser texto.',
+                'max'      => 'El campo :attribute no debe exceder :max caracteres.',
+                'array'    => 'El campo :attribute no tiene un formato válido.',
+            ],
+            [
+                // ======================
+                // NOMBRES AMIGABLES
+                // ======================
+                'nombrePlan' => 'nombre del plan de pago',
+                'cantidades' => 'conceptos del plan de pago',
+            ]
+        );
 
-        $existe = PlanDePago::whereRaw('LOWER(nombrePlanDePago) = ?', [mb_strtolower($request->nombrePlan)])
-                        ->exists();
+        // ⛔ Si falla la validación
+        if ($validator->fails()) {
+            return back()
+                ->with('popupError', 'No se pudo crear el plan de pago. Verifica los datos ingresados.')
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        // ======================
+        // VALIDAR DUPLICADOS
+        // ======================
+        $existe = PlanDePago::whereRaw(
+            'LOWER(nombrePlanDePago) = ?',
+            [mb_strtolower(trim($request->nombrePlan))]
+        )->exists();
 
         if ($existe) {
             return back()
@@ -31,49 +68,48 @@ class PlanDePagoController extends Controller
                 ->withInput();
         }
 
-
+        // Formatear nombre
         $nombre = $this->mbUcwords($request->nombrePlan);
 
-        if ($request->cantidades) {
-            // Verificar si todos los inputs son 0
-            $todasCero = collect($request->cantidades)->every(function($cantidad) {
-                return intval($cantidad) <= 0;
-            });
+        // ======================
+        // VALIDAR QUE HAYA CONCEPTOS
+        // ======================
+        $todasCero = collect($request->cantidades)->every(function ($cantidad) {
+            return intval($cantidad) <= 0;
+        });
 
-            if ($todasCero) {
-                return back()
-                    ->with('popupError', 'El plan de pago debe tener conceptos seleccionados.')
-                    ->withInput();
-            }
+        if ($todasCero) {
+            return back()
+                ->with('popupError', 'El plan de pago debe tener conceptos seleccionados.')
+                ->withInput();
+        }
 
+        // ======================
+        // CREAR PLAN DE PAGO
+        // ======================
+        $plan = PlanDePago::create([
+            'nombrePlanDePago' => $nombre,
+            'idEstatus' => 1
+        ]);
 
-        
+        // ======================
+        // GUARDAR CONCEPTOS
+        // ======================
+        foreach ($request->cantidades as $idConcepto => $cantidad) {
+            $cantidad = intval($cantidad);
 
-            // Crear el plan de pago
-            $plan = PlanDePago::create([
-                'nombrePlanDePago' =>$nombre,
-                'idEstatus' => 1
-            ]);
-
-
-
-            // Recorrer los inputs de cantidades
-            if ($request->cantidades) {
-                foreach ($request->cantidades as $idConcepto => $cantidad) {
-                    $cantidad = intval($cantidad);
-
-                    if ($cantidad > 0) {
-                        PlanConcepto::create([
-                            'idPlanDePago' => $plan->idPlanDePago,
-                            'idConceptoDePago' => $idConcepto,
-                            'cantidad' => $cantidad
-                        ]);
-                    }
-                }
+            if ($cantidad > 0) {
+                PlanConcepto::create([
+                    'idPlanDePago' => $plan->idPlanDePago,
+                    'idConceptoDePago' => $idConcepto,
+                    'cantidad' => $cantidad
+                ]);
             }
         }
 
-        return redirect()->route('altaPlan')->with('success', 'Plan de pago creado correctamente.');
+        return redirect()
+            ->route('altaPlan')
+            ->with('success', 'Plan de pagos creado correctamente.');
     }
 
     private function mbUcwords($string, $encoding = 'UTF-8')
@@ -201,7 +237,7 @@ class PlanDePagoController extends Controller
             }
         }
 
-        return redirect()->route('consultaPlan')->with('success', 'Plan de pago actualizado correctamente.');
+        return redirect()->route('consultaPlan')->with('success', 'Plan de pagos actualizado correctamente.');
     }
 
 

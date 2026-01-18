@@ -45,17 +45,19 @@
         </div>
 
         {{-- ================= DATOS DE LA BECA ================= --}}
-        <input type="hidden" name="idBeca" value="{{ $beca->idBeca ?? '' }}">
+        <input type="hidden" name="idBeca" value="{{ old('idBeca', $beca->idBeca ?? '') }}">
 
         <div class="form-group2">
             <label for="nombreBeca">Nombre de Beca:</label>
             <input
                 type="text"
                 id="nombreBeca"
+                name="nombreBeca"
                 class="input-grande2 input-bloqueado2"
-                value="{{ $beca->nombreDeBeca ?? '' }}"
+                value="{{ old('nombreBeca', $beca->nombreDeBeca ?? '') }}"
                 readonly
             >
+            <x-error-field field="nombreBeca" />
         </div>
 
         <div class="form-group2">
@@ -64,12 +66,18 @@
                 <input
                     type="text"
                     id="porcentajeBeca"
+                    name="porcentajeBeca"
                     class="input-chico2 input-bloqueado2"
-                    value="{{ $beca->porcentajeDeDescuento ?? '' }}"
+                    value="{{ old('porcentajeBeca', $beca->porcentajeDeDescuento ?? '') }}"
                     readonly
                 >
-                <img src="{{ asset('imagenes/IconoPorcentaje.png') }}" class="icono-input-img2" alt="icono">
+                <img
+                    src="{{ asset('imagenes/IconoPorcentaje.png') }}"
+                    class="icono-input-img2"
+                    alt="icono"
+                >
             </div>
+            <x-error-field field="porcentajeBeca" />
         </div>
 
         {{-- ================= DATOS DEL ESTUDIANTE ================= --}}
@@ -86,8 +94,10 @@
                 name="promedio"
                 placeholder="Ejemplo: 9.5"
                 class="input-chico2"
+                value="{{ old('promedio') }}"
                 required
             >
+            <x-error-field field="promedio" />
         </div>
 
         <div class="form-group2">
@@ -100,7 +110,9 @@
                 name="examenExtraordinario"
                 class="input-grande2"
                 placeholder="Especifica o deja vacío"
+                value="{{ old('examenExtraordinario') }}"
             >
+            <x-error-field field="examenExtraordinario" />
         </div>
 
         {{-- ================= TEXTO INFORMATIVO ================= --}}
@@ -240,6 +252,18 @@
                 Cancelar
             </a>
         </div>
+
+        {{-- BLOQUE DE ERRORES DE VALIDACIÓN --}}
+        @if ($errors->any())
+            <div style="background:#ffdddd; padding:12px; border:1px solid #cc0000; margin:10px 0;">
+                <strong>Corrige los siguientes errores:</strong>
+                <ul style="margin: 8px 0 0 18px;">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
     </form>
 

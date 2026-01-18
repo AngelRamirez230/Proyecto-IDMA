@@ -19,11 +19,37 @@ class ConceptoController extends Controller
     // Guardar concepto
     public function store(Request $request)
     {
-         $validator = Validator::make($request->all(), [
-            'nombreConcepto' => 'required|string|max:150',
-            'costo' => 'required|numeric|min:0|max:9999999.99',
-            'unidad' => 'required|exists:tipo_de_unidad,idTipoDeUnidad',
-        ]);
+        
+        $validator = Validator::make(
+            $request->all(),
+            [
+                // ======================
+                // CONCEPTO DE PAGO
+                // ======================
+                'nombreConcepto' => 'required|string|max:150',
+                'costo'          => 'required|numeric|min:0|max:9999999.99',
+                'unidad'         => 'required|exists:tipo_de_unidad,idTipoDeUnidad',
+            ],
+            [
+                // ======================
+                // MENSAJES GENERALES
+                // ======================
+                'required' => 'El campo :attribute es obligatorio.',
+                'string'   => 'El campo :attribute debe ser texto.',
+                'numeric'  => 'El campo :attribute debe ser un número válido.',
+                'min'      => 'El campo :attribute debe ser mayor o igual a :min.',
+                'max'      => 'El campo :attribute no debe exceder :max.',
+                'exists'   => 'La opción seleccionada en :attribute no es válida.',
+            ],
+            [
+                // ======================
+                // NOMBRES AMIGABLES
+                // ======================
+                'nombreConcepto' => 'nombre del concepto de pago',
+                'costo'          => 'costo',
+                'unidad'         => 'unidad',
+            ]
+        );
 
         if ($validator->fails()) {
             return back()
@@ -138,18 +164,51 @@ class ConceptoController extends Controller
 
         if ($request->accion === 'guardar') {
 
-            // Validar cambios
-            $request->validate([
-                'costo' => 'required|numeric|min:1|max:9999999.99',
-                'unidad' => 'required|exists:tipo_de_unidad,idTipoDeUnidad',
-            ]);
+            $validator = Validator::make(
+                $request->all(),
+                [
+                    // ======================
+                    // CONCEPTO DE PAGO
+                    // ======================
+                    'costo'          => 'required|numeric|min:0|max:9999999.99',
+                    'unidad'         => 'required|exists:tipo_de_unidad,idTipoDeUnidad',
+                ],
+                [
+                    // ======================
+                    // MENSAJES GENERALES
+                    // ======================
+                    'required' => 'El campo :attribute es obligatorio.',
+                    'string'   => 'El campo :attribute debe ser texto.',
+                    'numeric'  => 'El campo :attribute debe ser un número válido.',
+                    'min'      => 'El campo :attribute debe ser mayor o igual a :min.',
+                    'max'      => 'El campo :attribute no debe exceder :max.',
+                    'exists'   => 'La opción seleccionada en :attribute no es válida.',
+                ],
+                [
+                    // ======================
+                    // NOMBRES AMIGABLES
+                    // ======================
+                    'costo'          => 'costo',
+                    'unidad'         => 'unidad',
+                ]
+            );
+
+            if ($validator->fails()) {
+                return back()
+                    ->with('popupError', 'No se pudo actualizar el concepto de pago. Verifica los datos ingresados.')
+                    ->withErrors($validator)
+                    ->withInput();
+            }
+
+
+
 
             // Guardar cambios
             $concepto->costo = $request->costo;
             $concepto->idUnidad = $request->unidad; 
             $concepto->save();
 
-            return redirect()->route('consultaConcepto')->with('success', 'Concepto actualizado correctamente.');
+            return redirect()->route('consultaConcepto')->with('success', 'Concepto de pago actualizado correctamente.');
         }
 
         elseif ($request->accion === 'Suspender/Habilitar') {

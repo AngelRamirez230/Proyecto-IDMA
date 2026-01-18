@@ -15,6 +15,8 @@ use App\Http\Controllers\AsignaturaController;
 use App\Http\Controllers\GrupoController;
 use App\Models\Empleado;
 use App\Http\Controllers\PagoController;
+use App\Http\Controllers\PagoEstudianteController;
+use App\Http\Controllers\NotificacionController;
 
 
 
@@ -43,6 +45,7 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
     Route::get('/prueba-middleware', function () {
         return 'Acceso autorizado: sesión activa';
     });
+
 
     /*----------- USUARIOS -----------*/
     Route::get('/apartadoUsuarios', function () {
@@ -193,13 +196,23 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
         return view('SGFIDMA.moduloPagos.apartadoPago');
     })->name('apartadoPagos');
 
-    Route::get('/consultaPagos', function () {
-        return view('SGFIDMA.moduloPagos.consultaDePagos');
-    })->name('consultaPagos');
+    Route::get('/consultaPagos',[PagoController::class, 'index'])->name('consultaPagos');
+    Route::get('/pagos/{referencia}',[PagoController::class, 'show'])->name('pagos.show');
+    Route::get('/pagos/{referencia}/recibo',[PagoController::class, 'descargarRecibo'])->name('pagos.recibo');
 
-    Route::get('/detallesPago', function () {
-        return view('SGFIDMA.moduloPagos.detallesDePago');
-    })->name('detallesPago');
+
+
+
+    /*----------- GENERACION DE PAGOS DESDE ADMINISTRADOR -----------*/
+
+    Route::get('/admin/pagos/asignar',[PagoEstudianteController::class, 'create'])->name('admin.pagos.create');
+    Route::post('/admin/pagos/asignar',[PagoEstudianteController::class, 'store'])->name('admin.pagos.store');
+    Route::get('/admin/pagos/detalles-referencias',[PagoEstudianteController::class, 'detallesReferencias'])->name('pagos.detalles-referencias');
+
+    /*----------- NOTIFICACIONES -----------*/
+
+    Route::post('/notificaciones/{id}/leida', [NotificacionController::class, 'marcarComoLeida'])->name('notificaciones.leida');
+
 
     /*----------- REPORTES FINANZAS -----------*/
     Route::get('/apartadoReporteFinanzas', function () {

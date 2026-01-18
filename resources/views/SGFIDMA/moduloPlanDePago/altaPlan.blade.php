@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alta de Plan de Pago</title>
-    @vite(['resources/css/app.css', 'resources/css/plan.css']) <!-- CSS general + CSS de plan -->
+    @vite(['resources/css/app.css'])
 </head>
 <body>
 
@@ -15,10 +15,19 @@
         @csrf
         <h1 class="titulo-form2">Alta de plan de pago</h1>
 
-        <!-- Nombre del plan -->
+        {{-- NOMBRE DEL PLAN DE PAGO --}}
         <div class="form-group2">
             <label for="nombrePlan">Nombre del plan de pago:</label>
-            <input type="text" id="nombrePlan" name="nombrePlan" class="input-grande2" placeholder="Ingresa el nombre del plan de pago" required>
+            <input
+                type="text"
+                id="nombrePlan"
+                name="nombrePlan"
+                class="input-grande2"
+                placeholder="Ingresa el nombre del plan de pago"
+                value="{{ old('nombrePlan') }}"
+                required
+            >
+            <x-error-field field="nombrePlan" />
         </div>
 
         <h1 class="selecciona-conceptos">Seleciona los conceptos:</h1>
@@ -70,6 +79,20 @@
             <button type="submit" class="btn-boton-formulario2">Guardar</button>
             <a href="{{ route('apartadoPlanDePago') }}" class="btn-boton-formulario2 btn-cancelar2">Cancelar</a>
         </div>
+
+
+        {{-- BLOQUE DE ERRORES DE VALIDACIÓN --}}
+        @if ($errors->any())
+            <div style="background:#ffdddd; padding:12px; border:1px solid #cc0000; margin:10px 0;">
+                <strong>Corrige los siguientes errores:</strong>
+                <ul style="margin: 8px 0 0 18px;">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
     </form>
 
     <!-- Script para sumar/restar -->
