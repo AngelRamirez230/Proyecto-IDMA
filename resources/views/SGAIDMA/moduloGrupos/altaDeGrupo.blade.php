@@ -17,31 +17,31 @@
             <h1 class="titulo-form">Alta de grupo</h1>
 
             <div class="form-group">
-                <label for="nombreGrupo">Nombre del grupo:</label>
-                <input
-                    type="text"
-                    id="nombreGrupo"
-                    name="nombreGrupo"
-                    class="input-grande"
-                    placeholder="Ingresa el nombre del grupo"
-                    value="{{ old('nombreGrupo') }}"
-                    required
-                >
-                <x-error-field field="nombreGrupo" />
+                <label for="idCicloEscolar">Ciclo escolar:</label>
+                <select id="idCicloEscolar" name="idCicloEscolar" class="select" required>
+                    <option value="" disabled {{ old('idCicloEscolar') ? '' : 'selected' }}>
+                        Seleccionar
+                    </option>
+                    @foreach($ciclos as $ciclo)
+                        <option
+                            value="{{ $ciclo->idCicloEscolar }}"
+                            {{ old('idCicloEscolar') == $ciclo->idCicloEscolar ? 'selected' : '' }}
+                        >
+                            {{ $ciclo->nombreCicloEscolar }}
+                        </option>
+                    @endforeach
+                </select>
+                <x-error-field field="idCicloEscolar" />
             </div>
 
             <div class="form-group">
-                <label for="claveGrupo">Clave del grupo:</label>
-                <input
-                    type="text"
-                    id="claveGrupo"
-                    name="claveGrupo"
-                    class="input-mediano"
-                    placeholder="Ingresa la clave del grupo"
-                    value="{{ old('claveGrupo') }}"
-                    required
-                >
-                <x-error-field field="claveGrupo" />
+                <label for="idCicloModalidad">Modalidad:</label>
+                <select id="idCicloModalidad" name="idCicloModalidad" class="select" required disabled>
+                    <option value="" disabled selected>
+                        Seleccionar
+                    </option>
+                </select>
+                <x-error-field field="idCicloModalidad" />
             </div>
 
             <div class="form-group">
@@ -63,7 +63,7 @@
             </div>
 
             <div class="form-group">
-                <label for="semestre">Semestre:</label>
+                <label for="semestre">Semestre a cursar:</label>
                 <input
                     type="number"
                     id="semestre"
@@ -78,37 +78,17 @@
                 <x-error-field field="semestre" />
             </div>
 
-
             <div class="form-group">
-                <label for="idModalidad">Modalidad:</label>
-                <select id="idModalidad" name="idModalidad" class="select" required>
-                    <option value="" disabled {{ old('idModalidad') ? '' : 'selected' }}>
-                        Seleccionar
-                    </option>
-                    @foreach($modalidades as $modalidad)
-                        <option
-                            value="{{ $modalidad->idModalidad }}"
-                            {{ old('idModalidad') == $modalidad->idModalidad ? 'selected' : '' }}
-                        >
-                            {{ $modalidad->nombreModalidad }}
-                        </option>
-                    @endforeach
-                </select>
-                <x-error-field field="idModalidad" />
-            </div>
-
-            <div class="form-group">
-                <label for="periodoAcademico">Periodo academico:</label>
+                <label for="claveGrupo">Clave del grupo:</label>
                 <input
                     type="text"
-                    id="periodoAcademico"
-                    name="periodoAcademico"
+                    id="claveGrupo"
+                    name="claveGrupo"
                     class="input-mediano"
-                    placeholder="Ej. 2024-2025"
-                    value="{{ old('periodoAcademico') }}"
-                    required
+                    placeholder="Dejar en blanco para generar en automático"
+                    value="{{ old('claveGrupo') }}"
                 >
-                <x-error-field field="periodoAcademico" />
+                <x-error-field field="claveGrupo" />
             </div>
 
             <div class="form-group">
@@ -130,5 +110,51 @@
             </ul>
         </div>
     @endif
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const cicloSelect = document.getElementById('idCicloEscolar');
+            const modalidadSelect = document.getElementById('idCicloModalidad');
+
+            const modalidades = @json($cicloModalidades);
+            const oldModalidad = "{{ old('idCicloModalidad') }}";
+            const oldCiclo = "{{ old('idCicloEscolar') }}";
+
+            const resetModalidades = (placeholder, disabled = true) => {
+                modalidadSelect.innerHTML = `<option value="">${placeholder}</option>`;
+                modalidadSelect.disabled = disabled;
+            };
+
+            const cargarModalidades = (idCiclo) => {
+                const opciones = modalidades.filter(m => String(m.idCicloEscolar) === String(idCiclo));
+                resetModalidades('Seleccionar', opciones.length === 0);
+
+                opciones.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.idCicloModalidad;
+                    option.textContent = item.nombreModalidad;
+                    if (oldModalidad && String(oldModalidad) === String(item.idCicloModalidad)) {
+                        option.selected = true;
+                    }
+                    modalidadSelect.appendChild(option);
+                });
+            };
+
+            if (oldCiclo) {
+                cicloSelect.value = oldCiclo;
+                cargarModalidades(oldCiclo);
+            } else {
+                resetModalidades('Seleccionar', true);
+            }
+
+            cicloSelect.addEventListener('change', function () {
+                if (!this.value) {
+                    resetModalidades('Seleccionar', true);
+                    return;
+                }
+                cargarModalidades(this.value);
+            });
+        });
+    </script>
 </body>
 </html>

@@ -11,12 +11,10 @@ class Grupo extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'nombreGrupo',
         'claveGrupo',
         'semestre',
-        'periodoAcademico',
-        'idModalidad',
         'idLicenciatura',
+        'idCicloModalidad',
         'idEstatus',
     ];
 }

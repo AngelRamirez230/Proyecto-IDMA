@@ -12,7 +12,7 @@
 
     <main class="apartado-general">
         <a href="{{ route('altaGrupo') }}" class="btn-boton btn-alta-usuario">Alta de grupo</a>
-        <a href="" class="btn-boton btn-consulta-usuario">Consulta de grupo</a>
+        <a href="{{ route('consultaGrupo') }}" class="btn-boton btn-consulta-usuario">Consulta de grupo</a>
     </main>
 </body>
 </html>

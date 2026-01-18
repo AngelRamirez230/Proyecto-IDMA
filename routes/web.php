@@ -227,5 +227,10 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
 
     Route::get('/altaGrupo', [GrupoController::class, 'create'])->name('altaGrupo');
     Route::post('/grupos', [GrupoController::class, 'store'])->name('grupos.store');
+    Route::get('/consultaGrupo', [GrupoController::class, 'index'])->name('consultaGrupo');
+    Route::get('/grupos/{id}', [GrupoController::class, 'show'])->name('grupos.show');
+    Route::get('/grupos/{id}/edit', [GrupoController::class, 'edit'])->name('grupos.edit');
+    Route::put('/grupos/{id}', [GrupoController::class, 'update'])->name('grupos.update');
+    Route::delete('/grupos/{id}', [GrupoController::class, 'destroy'])->name('grupos.destroy');
 
 });
