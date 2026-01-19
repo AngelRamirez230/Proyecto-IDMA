@@ -74,6 +74,15 @@
 
         {{-- HORARIOS --}}
         @admin
+        <li class="subnav-item"><a href="{{ route('apartadoAsignaturas') }}">Asignaturas</a></li>
+        @php
+            $puedeVerGrupos = auth()->check()
+                && in_array((int) auth()->user()->idtipoDeUsuario, [1, 2], true);
+        @endphp
+
+        @if($puedeVerGrupos)
+            <li class="subnav-item"><a href="{{ route('apartadoGrupos') }}">Grupos</a></li>
+        @endif
         <li class="subnav-item"><a href="#">Horarios</a></li>
         @endadmin
 
