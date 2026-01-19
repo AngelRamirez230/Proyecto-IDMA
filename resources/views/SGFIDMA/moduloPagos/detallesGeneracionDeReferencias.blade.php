@@ -73,7 +73,11 @@
                         <td>{{ $pago['estudiante'] }}</td>
                         <td>{{ $pago['referencia'] }}</td>
                         <td>{{ $pago['concepto'] }}</td>
-                        <td>{{ $pago['fecha'] }}</td>
+                        <td>
+                            {{ $pago['fecha'] 
+                                ? \Carbon\Carbon::parse($pago['fecha'])->format('d/m/Y') 
+                                : '-' }}
+                        </td>
                         <td><span class="estatus-activo">Creado</span></td>
                     </tr>
                 @endforeach
@@ -84,7 +88,11 @@
                         <td>{{ $pago['estudiante'] }}</td>
                         <td>{{ $pago['referencia'] }}</td>
                         <td>{{ $pago['concepto'] }}</td>
-                        <td>{{ $pago['fecha'] }}</td>
+                        <td>
+                            {{ $pago['fecha'] 
+                                ? \Carbon\Carbon::parse($pago['fecha'])->format('d/m/Y') 
+                                : '-' }}
+                        </td>
                         <td><span class="estatus-suspendido">Existente</span></td>
                     </tr>
                 @endforeach

@@ -13,11 +13,11 @@
 
     <main class="apartado-general">
 
-        @admin
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
             <a href="{{ route('altaBeca')}}" class="btn-boton btn-alta-beca">Alta de beca</a>
             <a href="{{ route('consultaBeca')}}" class="btn-boton btn-consulta-beca">Consultar beca</a>
             <a href="{{ route('consultaSolicitudBeca')}}" class="btn-boton btn-consulta-solicitud">Consultar solicitudes</a>
-        @endadmin
+        @endif
 
         @estudiante
             <a href="{{ route('consultaBeca')}}" class="btn-boton btn-consulta-beca">Consultar beca</a>

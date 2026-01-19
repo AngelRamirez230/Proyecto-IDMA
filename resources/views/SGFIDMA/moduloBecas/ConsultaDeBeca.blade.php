@@ -27,14 +27,14 @@
                     <input type="hidden" name="buscarBeca" value="{{ $buscar ?? '' }}">
 
                     
-                    @admin
+                    @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
                         <select name="filtro" class="select select-boton" onchange="this.form.submit()">
                             <option value="" disabled selected>Filtrar por</option>
                             <option value="todas" {{ ($filtro ?? '') == 'todas' ? 'selected' : '' }}>Ver todas</option>
                             <option value="activas" {{ ($filtro ?? '') == 'activas' ? 'selected' : '' }}>Activo(a)</option>
                             <option value="suspendidas" {{ ($filtro ?? '') == 'suspendidas' ? 'selected' : '' }}>Suspendido(a)</option>
                         </select>
-                    @endadmin
+                    @endif
 
                     <select name="orden" class="select select-boton" onchange="this.form.submit()">
                         
@@ -81,7 +81,7 @@
                                 <td>
                                     <div class="tabla-acciones">
 
-                                    @admin
+                                    @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
                                         <!-- BOTÓN EDITAR -->
                                         <a href="{{ route('becas.edit', $beca->idBeca) }}" class="accion-boton" title="Editar">
                                             <img 
@@ -108,22 +108,24 @@
                                             </button>
                                         </form>
 
-                                        <!-- BOTÓN ELIMINAR -->
-                                        <form action="{{ route('becas.destroy', $beca->idBeca) }}" method="POST" style="display:inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="button" class="accion-boton" title="Eliminar"
-                                                onclick="mostrarPopupConfirmacion('{{ $beca->nombreDeBeca }}', this)">
-                                                <img 
-                                                    src="{{ $beca->idEstatus == 2 
-                                                        ? asset('imagenes/IconoEliminarGris.png') 
-                                                        : asset('imagenes/IconoEliminar.png') }}" 
-                                                    alt="Eliminar"
-                                                >
-                                            </button>
-                                        </form>
+                                        @admin
+                                            <!-- BOTÓN ELIMINAR -->
+                                            <form action="{{ route('becas.destroy', $beca->idBeca) }}" method="POST" style="display:inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="button" class="accion-boton" title="Eliminar"
+                                                    onclick="mostrarPopupConfirmacion('{{ $beca->nombreDeBeca }}', this)">
+                                                    <img 
+                                                        src="{{ $beca->idEstatus == 2 
+                                                            ? asset('imagenes/IconoEliminarGris.png') 
+                                                            : asset('imagenes/IconoEliminar.png') }}" 
+                                                        alt="Eliminar"
+                                                    >
+                                                </button>
+                                            </form>
+                                        @endadmin
 
-                                    @endadmin
+                                    @endif
 
                                     @estudiante
                                         <!-- BOTÓN SOLICITAR BECA -->

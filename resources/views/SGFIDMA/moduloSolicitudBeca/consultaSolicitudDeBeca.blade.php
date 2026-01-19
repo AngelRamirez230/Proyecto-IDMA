@@ -84,13 +84,13 @@
                             <td>
                                 <div class="tabla-acciones">
                             
-                                    @admin
-                                        {{-- ADMIN: siempre puede --}}
+                                    @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+                                        
                                         <a href="{{ route('solicitud-beca.edit', $solicitud->idSolicitudDeBeca) }}"
                                         class="btn-boton-formulario2 btn-accion">
                                             Ver solicitud
                                         </a>
-                                    @endadmin
+                                    @endif
 
                                     @estudiante
                                         @if(!in_array($solicitud->idEstatus, [6, 9]))
