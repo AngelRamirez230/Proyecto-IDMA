@@ -9,11 +9,12 @@
 <body>
     @include('layouts.barraNavegacion')
     
+    
     <main class="apartado-general">
-        @admin
-        <a href="{{ route('altaConcepto')}}" class="btn-boton btn-alta-conceptos">Añadir un nuevo concepto de pago</a>
-        <a href="{{ route('consultaConcepto')}}" class="btn-boton btn-consulta-conceptos">Consultar conceptos de pago</a>
-        @endadmin
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+            <a href="{{ route('altaConcepto')}}" class="btn-boton btn-alta-conceptos">Añadir un nuevo concepto de pago</a>
+            <a href="{{ route('consultaConcepto')}}" class="btn-boton btn-consulta-conceptos">Consultar conceptos de pago</a>
+        @endif
 
         @estudiante
         <a href="{{ route('consultaConcepto')}}" class="btn-boton btn-consulta-conceptos">Consultar conceptos de pago</a>

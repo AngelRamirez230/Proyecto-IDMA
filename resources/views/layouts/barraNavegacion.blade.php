@@ -35,22 +35,99 @@
 
 <div class="subnav">
     <ul class="subnav-list">
-        <li class="subnav-item"><a href="{{ route('inicio') }}">Inicio</a></li>
-        <li class="subnav-item"><a href="{{ route('apartadoUsuarios') }}">Usuarios</a></li>
-        <li class="subnav-item"><a href="{{ route('apartadoEstudiantes') }}">Estudiantes</a></li>
+
+        {{-- TODOS --}}
+        <li class="subnav-item">
+            <a href="{{ route('inicio') }}">Inicio</a>
+        </li>
+
+        {{-- USUARIOS --}}
+        @admin
+        <li class="subnav-item">
+            <a href="{{ route('apartadoUsuarios') }}">Usuarios</a>
+        </li>
+        @endadmin
+
+        {{-- ESTUDIANTES --}}
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+        <li class="subnav-item">
+            <a href="{{ route('apartadoEstudiantes') }}">Estudiantes</a>
+        </li>
+        @endif
+
+        {{-- DOCENTES --}}
+        @admin
         <li class="subnav-item"><a href="#">Docentes</a></li>
-        <li class="subnav-item"><a href="#">Asignaturas</a></li>
+        @endadmin
+
+        {{-- ASIGNATURAS --}}
+        @admin
+        <li class="subnav-item">
+            <a href="{{ route('apartadoAsignaturas') }}">Asignaturas</a>
+        </li>
+        @endadmin
+
+        {{-- GRUPOS --}}
+        @admin
         <li class="subnav-item"><a href="#">Grupos</a></li>
+        @endadmin
+
+        {{-- HORARIOS --}}
+        @admin
         <li class="subnav-item"><a href="#">Horarios</a></li>
+        @endadmin
+
+        {{-- CALIFICACIONES --}}
+        @admin
         <li class="subnav-item"><a href="#">Calificaciones</a></li>
-        <li class="subnav-item"><a href="{{ route('apartadoPlanDePago') }}">Planes de pago</a></li>
-        <li class="subnav-item"><a href="{{ route('apartadoBecas') }}">Becas</a></li>
-        <li class="subnav-item"><a href="{{ route('apartadoPagos') }}">Pagos</a></li>
-        <li class="subnav-item"><a href="{{ route('apartadoReportes') }}">Reportes</a></li>
-        <li class="subnav-item"><a href="{{ route('apartadoConceptos') }}">Conceptos de pago</a></li>
-        <li class="subnav-item"><a href="{{ route('apartadoBitacoras') }}">Bítacoras del sistema</a></li>
+        @endadmin
+
+        {{-- BECAS --}}
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11) || Auth::user()->estudiante)
+        <li class="subnav-item">
+            <a href="{{ route('apartadoBecas') }}">Becas</a>
+        </li>
+        @endif
+
+        {{-- PAGOS --}}
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11) || Auth::user()->estudiante)
+        <li class="subnav-item">
+            <a href="{{ route('apartadoPagos') }}">Pagos</a>
+        </li>
+        @endif
+
+        {{-- CONCEPTOS DE PAGO --}}
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11) || Auth::user()->estudiante)
+        <li class="subnav-item">
+            <a href="{{ route('apartadoConceptos') }}">Conceptos de pago</a>
+        </li>
+        @endif
+
+        {{-- PLANES DE PAGO --}}
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+        <li class="subnav-item">
+            <a href="{{ route('apartadoPlanDePago') }}">Planes de pago</a>
+        </li>
+        @endif
+
+        {{-- REPORTES --}}
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+        <li class="subnav-item">
+            <a href="{{ route('apartadoReportes') }}">Reportes</a>
+        </li>
+        @endif
+
+        {{-- BITÁCORAS --}}
+        @admin
+        <li class="subnav-item">
+            <a href="{{ route('apartadoBitacoras') }}">Bítacoras del sistema</a>
+        </li>
+        @endadmin
+
     </ul>
 </div>
+
+
 
 <img src="{{ asset('imagenes/ImagenDeFondo.png') }}" class="fondoInferior" alt="imagenInferior">
 

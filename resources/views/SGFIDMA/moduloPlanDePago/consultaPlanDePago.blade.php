@@ -63,45 +63,49 @@
                                 <td>
                                     <div class="tabla-acciones">
 
-                                        <!-- BOTÓN EDITAR -->
-                                        <a href="{{ route('planes.edit', $plan->idPlanDePago) }}" class="accion-boton" title="Editar">
-                                            <img 
-                                                src="{{ $plan->idEstatus == 2 
-                                                    ? asset('imagenes/IconoEditarGris.png') 
-                                                    : asset('imagenes/IconoEditar.png') }}" 
-                                                alt="Editar">
-                                        </a>
-
-                                        <!-- BOTÓN SUSPENDER/HABILITAR -->
-                                        <form action="{{ route('planes.update', $plan->idPlanDePago) }}" method="POST" style="display:inline">
-                                            @csrf
-                                            @method('PUT')
-                                            <button type="submit" title="Suspender/Habilitar" class="accion-boton" name="accion" value="Suspender/Habilitar">
-
+                                        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+                                            <!-- BOTÓN EDITAR -->
+                                            <a href="{{ route('planes.edit', $plan->idPlanDePago) }}" class="accion-boton" title="Editar">
                                                 <img 
                                                     src="{{ $plan->idEstatus == 2 
-                                                        ? asset('imagenes/IconoHabilitar.png') 
-                                                        : asset('imagenes/IconoSuspender.png') }}" 
-                                                    alt="Suspender/Habilitar"
-                                                >
+                                                        ? asset('imagenes/IconoEditarGris.png') 
+                                                        : asset('imagenes/IconoEditar.png') }}" 
+                                                    alt="Editar">
+                                            </a>
 
-                                            </button>
-                                        </form>
+                                            <!-- BOTÓN SUSPENDER/HABILITAR -->
+                                            <form action="{{ route('planes.update', $plan->idPlanDePago) }}" method="POST" style="display:inline">
+                                                @csrf
+                                                @method('PUT')
+                                                <button type="submit" title="Suspender/Habilitar" class="accion-boton" name="accion" value="Suspender/Habilitar">
 
-                                        <!-- BOTÓN ELIMINAR -->
-                                        <form action="{{ route('planes.destroy', $plan->idPlanDePago) }}" method="POST" style="display:inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="button" class="accion-boton" title="Eliminar"
-                                                onclick="mostrarPopupConfirmacion('{{ $plan->nombrePlanDePago }}', this)">
-                                                <img 
-                                                    src="{{ $plan->idEstatus == 2 
-                                                        ? asset('imagenes/IconoEliminarGris.png') 
-                                                        : asset('imagenes/IconoEliminar.png') }}" 
-                                                    alt="Eliminar"
-                                                >
-                                            </button>
-                                        </form>
+                                                    <img 
+                                                        src="{{ $plan->idEstatus == 2 
+                                                            ? asset('imagenes/IconoHabilitar.png') 
+                                                            : asset('imagenes/IconoSuspender.png') }}" 
+                                                        alt="Suspender/Habilitar"
+                                                    >
+
+                                                </button>
+                                            </form>
+
+                                            @admin
+                                                <!-- BOTÓN ELIMINAR -->
+                                                <form action="{{ route('planes.destroy', $plan->idPlanDePago) }}" method="POST" style="display:inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="button" class="accion-boton" title="Eliminar"
+                                                        onclick="mostrarPopupConfirmacion('{{ $plan->nombrePlanDePago }}', this)">
+                                                        <img 
+                                                            src="{{ $plan->idEstatus == 2 
+                                                                ? asset('imagenes/IconoEliminarGris.png') 
+                                                                : asset('imagenes/IconoEliminar.png') }}" 
+                                                            alt="Eliminar"
+                                                        >
+                                                    </button>
+                                                </form>
+                                            @endadmin
+                                        @endif
 
                                     </div>
                                 </td>

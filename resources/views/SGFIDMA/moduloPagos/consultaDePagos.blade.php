@@ -38,7 +38,7 @@
 
                     <input type="hidden" name="buscarPago" value="{{ $buscar ?? '' }}">
 
-                    @admin
+                    
                     <select name="filtro" class="select select-boton" onchange="this.form.submit()">
                         <option value="" disabled {{ empty($filtro) ? 'selected' : '' }}>
                             Filtrar por
@@ -53,7 +53,7 @@
                             Rechazados
                         </option>
                     </select>
-                    @endadmin
+                    
 
                     <select name="orden" class="select select-boton" onchange="this.form.submit()">
                         <option value="" disabled {{ empty($orden) ? 'selected' : '' }}>
@@ -86,6 +86,7 @@
                         <th>Nombre estudiante</th>
                         <th>Referencia de pago</th>
                         <th>Concepto de pago</th>
+                        <th>Fecha límite de pago</th>
                         <th>Fecha de pago</th>
                         <th>Estatus</th>
                         <th>Acciones</th>
@@ -96,7 +97,7 @@
 
                     @if ($pagos->isEmpty())
                         <tr>
-                            <td colspan="6" class="tablaVacia">
+                            <td colspan="7" class="tablaVacia">
                                 No existen pagos registrados.
                             </td>
                         </tr>
@@ -116,7 +117,11 @@
                                 <td>{{ $pago->concepto->nombreConceptoDePago }}</td>
 
                                 <td>
-                                    {{ $pago->concepto->fechaDePago ?? '-' }}
+                                    {{ $pago->fechaLimiteDePago ?? '-' }}
+                                </td>
+
+                                <td>
+                                    {{ $pago->fechaDePago ?? '-' }}
                                 </td>
 
                                 <td>{{ $pago->estatus->nombreTipoDeEstatus ?? 'Sin estatus' }}</td>
@@ -129,11 +134,13 @@
                                                 Ver detalles
                                         </a>
 
-                                        <a href="{{ route('pagos.recibo', $pago->Referencia) }}"
-                                            class="btn-boton-formulario2 btn-accion"
-                                            title="Descargar recibo">
-                                                Descargar recibo
-                                        </a>
+                                        @if($pago->idEstatus == 3)
+                                            <a href="{{ route('pagos.recibo', $pago->Referencia) }}"
+                                                class="btn-boton-formulario2 btn-accion"
+                                                title="Descargar recibo">
+                                                    Descargar recibo
+                                            </a>
+                                        @endif
 
 
                                     </div>

@@ -242,7 +242,7 @@
         </section>
 
 
-        @admin
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
         <div class="form-group2">
             <label for="observaciones">Observaciones:</label>
             <textarea
@@ -253,7 +253,7 @@
                 placeholder="Escribe las observaciones aquí..."
             >{{ old('observaciones', $solicitud->observacion) }}</textarea>
         </div>
-        @endadmin
+        @endif
 
 
         @estudiante
@@ -281,7 +281,7 @@
         @endestudiante
 
 
-        @admin
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
             <button type="submit" name="accion" value="aprobar" class="btn-boton-formulario2"
             {{ $solicitud->idEstatus == 6 ? 'disabled' : '' }}
             >
@@ -293,7 +293,7 @@
             >
                 Rechazar
             </button>
-        @endadmin
+        @endif
 
             <a
                 href="{{ route('consultaSolicitudBeca') }}"
