@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+
 class Usuario extends Authenticatable
 {
     use Notifiable;
@@ -133,6 +134,51 @@ class Usuario extends Authenticatable
             DocumentacionDeUsuario::class,
             'idUsuario',
             'idUsuario'
+        );
+    }
+
+    public function empleado()
+    {
+        return $this->hasOne(
+            Empleado::class,
+            'idUsuario',   // FK en Empleado
+            'idUsuario'    // PK en Usuario
+        );
+    }
+
+    /*
+    |----------------------------------------------------------------------
+    | HELPERS DE ROLES Y DEPARTAMENTOS
+    |----------------------------------------------------------------------
+    */
+
+    // ¿Es administrador?
+    public function esAdmin()
+    {
+        return $this->idtipoDeUsuario == 1;
+    }
+
+    // ¿Es empleado?
+    public function esEmpleado()
+    {
+        return $this->empleado !== null;
+    }
+
+    /**
+     * Verifica si el usuario es empleado de uno o varios departamentos
+     *
+     * @param int|array $departamentos
+     * @return bool
+     */
+    public function esEmpleadoDe($departamentos)
+    {
+        if (!$this->esEmpleado()) {
+            return false;
+        }
+
+        return in_array(
+            $this->empleado->idDepartamento,
+            (array) $departamentos
         );
     }
 }

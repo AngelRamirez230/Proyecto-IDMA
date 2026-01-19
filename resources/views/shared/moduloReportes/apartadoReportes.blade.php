@@ -10,8 +10,15 @@
     @include('layouts.barraNavegacion')
 
     <main class="apartado-general">
-        <a href="{{ route('apartadoReportesFinanzas') }}" class="btn-boton btn-reportes-financieros">Reportes financieros</a>
-        <a href="#" class="btn-boton btn-reportes-academicos">Reportes académicos</a>
+        
+        @admin
+            <a href="{{ route('apartadoReportesFinanzas') }}" class="btn-boton btn-reportes-financieros">Reportes financieros</a>
+            <a href="#" class="btn-boton btn-reportes-academicos">Reportes académicos</a>
+        @endadmin
+
+        @if(Auth::user()->esEmpleadoDe(11))
+            <a href="{{ route('apartadoReportesFinanzas') }}" class="btn-boton btn-reportes-financieros">Reportes financieros</a>
+        @endif
 
     </main>
 
