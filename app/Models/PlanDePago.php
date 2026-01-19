@@ -19,7 +19,8 @@ class PlanDePago extends Model
     // Relación con los conceptos asignados
     public function conceptos()
     {
-        return $this->hasMany(PlanConcepto::class, 'idPlanDePago', 'idPlanDePago');
+        return $this->hasMany(PlanConcepto::class, 'idPlanDePago', 'idPlanDePago')
+            ->with('concepto');
     }
 
     public function estatus()

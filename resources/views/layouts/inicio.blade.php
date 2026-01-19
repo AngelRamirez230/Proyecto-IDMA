@@ -184,7 +184,66 @@
         @endadmin
 
     </div>
+
+    @if($planAsignado)
+
+        <section class="consulta">
+            
+            {{-- TÍTULO DEL PLAN --}}
+            <h2 class="consulta-titulo">
+                {{ $planAsignado->planDePago->nombrePlanDePago }}
+            </h2>
+
+            {{-- TABLA DE CONCEPTOS DEL PLAN --}}
+            <section class="consulta-tabla-contenedor">
+                <table class="tabla">
+
+                    <thead>
+                        <tr class="tabla-encabezado">
+                            <th>Concepto de pago</th>
+                            <th>Cantidad</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="tabla-cuerpo">
+
+                        @forelse($planAsignado->planDePago->conceptos as $pc)
+                            <tr>
+                                <td>{{ $pc->concepto->nombreConceptoDePago }}</td>
+                                <td>{{ $pc->cantidad }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="2" class="tablaVacia">
+                                    Este plan no tiene conceptos asignados.
+                                </td>
+                            </tr>
+                        @endforelse
+
+                    </tbody>
+
+                </table>
+            </section>
+
+            {{-- INFO EXTRA DEL PLAN --}}
+            <p style="margin-top: 10px;">
+                <strong>Estatus del plan:</strong>
+                {{ $planAsignado->estatus->nombreTipoDeEstatus ?? 'Sin estatus' }}
+            </p>
+
+            <p>
+                <strong>Vigencia:</strong>
+                {{ $planAsignado->fechaDeAsignacion?->format('d/m/Y') }}
+                –
+                {{ $planAsignado->fechaDeFinalizacion?->format('d/m/Y') }}
+            </p>
+
+        </section>
+
+    @endif
 </div>
+
+
 
 
     <script>

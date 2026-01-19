@@ -58,4 +58,5 @@ class EstudiantePlan extends Model
             'idTipoDeEstatus'
         );
     }
+
 }

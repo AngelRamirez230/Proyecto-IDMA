@@ -5,28 +5,50 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Controllers\GeneracionController;
 use App\Models\Notificacion;
+use App\Models\EstudiantePlan;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class InicioController extends Controller
 {
     public function index()
     {
-        // Notificaciones de pagos u otras
-        $usuarioId = auth()->user()->idUsuario;
+        $usuario = Auth::user();
 
-        $notificaciones = Notificacion::where('idUsuario', $usuarioId)
-            ->where('fechaDeInicio', '<=', Carbon::today())   // inicio ya pasado
-            ->where('fechaFin', '>=', Carbon::today())       // fin aún no pasado
-            ->where('leida', 0)                              // no leída
+        // =========================
+        // NOTIFICACIONES
+        // =========================
+        $notificaciones = Notificacion::where('idUsuario', $usuario->idUsuario)
+            ->where('fechaDeInicio', '<=', Carbon::today())
+            ->where('fechaFin', '>=', Carbon::today())
+            ->where('leida', 0)
             ->orderBy('fechaDeInicio', 'desc')
             ->get();
 
-        // Datos de generacion (lo que ya tenías)
+        // =========================
+        // DATOS DE GENERACIÓN (ADMIN)
+        // =========================
         $datosGeneracion = app(GeneracionController::class)->verificarGeneracion();
+
+        // =========================
+        // PLAN DE PAGO DEL ESTUDIANTE
+        // =========================
+        $planAsignado = null;
+
+        if ($usuario->estudiante) {
+            $planAsignado = EstudiantePlan::with([
+                    'planDePago.conceptos.concepto',
+                    'estatus'
+                ])
+                ->where('idEstudiante', $usuario->estudiante->idEstudiante)
+                ->where('idEstatus', 1) // Plan activo
+                ->first();
+        }
 
         return view('layouts.inicio', [
             'datosGeneracion' => $datosGeneracion,
-            'notificaciones'  => $notificaciones
+            'notificaciones'  => $notificaciones,
+            'planAsignado'    => $planAsignado
         ]);
     }
 }
