@@ -20,24 +20,33 @@
         {{-- ================= DATOS DE LA BECA ================= --}}
         <input type="hidden" name="idBeca" value="{{ $solicitud->beca->idBeca }}">
 
-        <section class="consulta-tabla-contenedor">
-            <table class="tabla" style="margin-bottom: 18px;">
+        <section class="consulta-tabla-contenedor detalle-usuario">
+            <table class="tabla">
+                <thead>
+                    <tr class="tabla-encabezado">
+                        <th>Dato</th>
+                        <th>Descripción</th>
+                    </tr>
+                </thead>
+
                 <tbody class="tabla-cuerpo">
 
-                    <tr class="tabla-fila">
-                        <td><strong>Nombre del estudiante</strong></td>
+                    <tr>
+                        <td>Nombre del estudiante</td>
                         <td>
-                            {{ 
+                            {{
                                 trim(
                                     ($solicitud->estudiante->usuario->primerNombre ?? '') . ' ' .
                                     ($solicitud->estudiante->usuario->segundoNombre ?? '')
                                 ) ?: 'N/D'
                             }}
                         </td>
+                    </tr>
 
-                        <td><strong>Apellidos</strong></td>
+                    <tr>
+                        <td>Apellidos</td>
                         <td>
-                            {{ 
+                            {{
                                 trim(
                                     ($solicitud->estudiante->usuario->primerApellido ?? '') . ' ' .
                                     ($solicitud->estudiante->usuario->segundoApellido ?? '')
@@ -46,35 +55,49 @@
                         </td>
                     </tr>
 
-                    <tr class="tabla-fila">
-                        <td><strong>Correo electrónico</strong></td>
-                        <td>{{ $solicitud->estudiante->usuario->correoElectronico ?? 'Sin correo electrónico' }}</td>
-
-                        <td><strong>Generación</strong></td>
-                        <td>{{ $solicitud->estudiante->generacion->nombreGeneracion ?? 'Sin generación definida' }}</td>
+                    <tr>
+                        <td>Correo electrónico</td>
+                        <td>
+                            {{ $solicitud->estudiante->usuario->correoElectronico ?? 'Sin correo electrónico' }}
+                        </td>
                     </tr>
 
-                    <tr class="tabla-fila">
-                        <td><strong>Ciclo escolar</strong></td>
-                        <td>{{ 'Sin ciclo escolar definido' }}</td>
+                    <tr>
+                        <td>Generación</td>
+                        <td>
+                            {{ $solicitud->estudiante->generacion->nombreGeneracion ?? 'Sin generación definida' }}
+                        </td>
+                    </tr>
 
-                        <td><strong>Semestre al que ingresará</strong></td>
+                    <tr>
+                        <td>Ciclo escolar</td>
+                        <td>Sin ciclo escolar definido</td>
+                    </tr>
+
+                    <tr>
+                        <td>Semestre al que ingresará</td>
                         <td>{{ ($solicitud->estudiante->grado ?? 0) + 1 }}</td>
                     </tr>
 
-                    <tr class="tabla-fila">
-                        <td><strong>Nombre de la beca</strong></td>
+                    <tr>
+                        <td>Nombre de la beca</td>
                         <td>{{ $solicitud->beca->nombreDeBeca ?? 'N/D' }}</td>
-
-                        <td><strong>Porcentaje de descuento</strong></td>
-                        <td>{{ $solicitud->beca->porcentajeDeDescuento ?? '—' }}%</td>
                     </tr>
 
-                    <tr class="tabla-fila">
-                        <td><strong>Promedio anterior</strong></td>
-                        <td>{{ $solicitud->promedioAnterior ?? 'No registrado' }}</td>
+                    <tr>
+                        <td>Porcentaje de descuento</td>
+                        <td>
+                            {{ $solicitud->beca->porcentajeDeDescuento ?? '—' }}%
+                        </td>
+                    </tr>
 
-                        <td><strong>Examen extraordinario</strong></td>
+                    <tr>
+                        <td>Promedio anterior</td>
+                        <td>{{ $solicitud->promedioAnterior ?? 'No registrado' }}</td>
+                    </tr>
+
+                    <tr>
+                        <td>Examen extraordinario</td>
                         <td>{{ $solicitud->examenExtraordinario ?: 'Ninguno' }}</td>
                     </tr>
 
@@ -82,7 +105,10 @@
             </table>
         </section>
 
+
         @estudiante
+
+        <h1 class="titulo-form">Datos que puedes editar</h1>
         <div class="form-group2"> 
             <label>Promedio anterior:</label> 
             <input type="number" 

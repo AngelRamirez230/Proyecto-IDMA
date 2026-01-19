@@ -21,6 +21,7 @@ class Pago extends Model
         'Referencia',
         'fechaDePago',
         'idConceptoDePago',
+        'montoAPagar',
         'numeroDeOperaciónBAZ',
         'numeroDeSucursal',
         'comisión',

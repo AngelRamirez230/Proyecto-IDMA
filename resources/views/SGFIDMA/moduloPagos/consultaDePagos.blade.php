@@ -117,11 +117,11 @@
                                 <td>{{ $pago->concepto->nombreConceptoDePago }}</td>
 
                                 <td>
-                                    {{ $pago->fechaLimiteDePago ?? '-' }}
+                                    {{ $pago->fechaLimiteDePago?->format('d/m/Y') ?? '-' }}
                                 </td>
 
                                 <td>
-                                    {{ $pago->fechaDePago ?? '-' }}
+                                    {{ $pago->fechaDePago?->format('d/m/Y') ?? '-' }}
                                 </td>
 
                                 <td>{{ $pago->estatus->nombreTipoDeEstatus ?? 'Sin estatus' }}</td>

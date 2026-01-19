@@ -31,6 +31,34 @@ class PagoController extends Controller
         $concepto = ConceptoDePago::findOrFail($idConcepto);
 
         // =============================
+        // VALIDAR SI ES COLEGIATURA
+        // =============================
+        $esMensualidad = ($concepto->idConceptoDePago == 2);
+
+        // =============================
+        // BUSCAR BECA APROBADA
+        // =============================
+        $solicitudBeca = $estudiante->solicitudesDeBeca()
+            ->where('idEstatus', 6) // Aprobada
+            ->with('beca')
+            ->first();
+
+        // =============================
+        // CALCULAR COSTO FINAL
+        // =============================
+        $costoFinal = $concepto->costo;
+
+        if ($esMensualidad && $solicitudBeca && $solicitudBeca->beca) {
+
+            $porcentaje = $solicitudBeca->beca->porcentajeDeDescuento;
+
+            $descuento = ($concepto->costo * $porcentaje) / 100;
+
+            $costoFinal = $concepto->costo - $descuento;
+        }
+
+
+        // =============================
         // NOMBRE COMPLETO
         // =============================
         $nombreCompleto = trim(
@@ -79,7 +107,7 @@ class PagoController extends Controller
         // =============================
 
         // 1. Obtener costo y dejarlo en 10 dígitos sin punto decimal
-        $monto = number_format($concepto->costo, 2, '', ''); // ej. 1130.00 → 113000
+        $monto = number_format($costoFinal, 2, '', ''); // ej. 1130.00 → 113000
         $monto = str_pad($monto, 10, '0', STR_PAD_LEFT);
 
         // 2. Ponderadores (se asignan desde la derecha)
@@ -162,6 +190,7 @@ class PagoController extends Controller
         Pago::create([
             'Referencia'             => $referenciaFinal,
             'idConceptoDePago'       => $concepto->idConceptoDePago,
+            'montoAPagar'            => $costoFinal,
             'fechaGeneracionDePago'  => now(),
             'fechaLimiteDePago'     => $fechaLimitePago,
             'aportacion'            => null,
@@ -181,6 +210,7 @@ class PagoController extends Controller
                 'nombreCompleto' => $nombreCompleto,
                 'fechaEmision'   => now()->format('d/m/Y'),
                 'fechaLimite'    => $fechaLimitePago->format('d/m/Y'),
+                'montoAPagar' => $costoFinal,
                 
             ]
         )->setPaper('letter');
@@ -212,10 +242,10 @@ class PagoController extends Controller
                 'estudiante'     => $pago->estudiante,
                 'concepto'       => $pago->concepto,
                 'nombreCompleto' => $nombreCompleto,
-                'fechaEmision'   => $pago->fechaGeneracionDePago->format('d/m/Y'),
-                'fechaLimite'    => $pago->fechaLimiteDePago->format('d/m/Y'),
-                'aportacion'     => $pago->aportacion,
-                'pago'           => $pago, 
+                'fechaEmision'   => $pago->fechaGeneracionDePago?->format('d/m/Y'),
+                'fechaLimite'    => $pago->fechaLimiteDePago?->format('d/m/Y'),
+                'montoAPagar'    => $pago->montoAPagar,
+                'pago'           => $pago,
             ]
         )->setPaper('letter');
 
