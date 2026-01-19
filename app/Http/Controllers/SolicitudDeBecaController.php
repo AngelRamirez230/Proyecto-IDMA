@@ -363,7 +363,7 @@ class SolicitudDeBecaController extends Controller
             ====================================================== */
             if ($request->accion === 'aprobar') {
 
-                if ($usuario->idtipoDeUsuario != 1) {
+                if (!Auth::user()->esAdmin() && !Auth::user()->esEmpleadoDe(11)) {
                     abort(403, 'No autorizado');
                 }
 
@@ -391,7 +391,7 @@ class SolicitudDeBecaController extends Controller
             ====================================================== */
             if ($request->accion === 'rechazar') {
 
-                if ($usuario->idtipoDeUsuario != 1) {
+                if (!Auth::user()->esAdmin() && !Auth::user()->esEmpleadoDe(11)) {
                     abort(403, 'No autorizado');
                 }
 

@@ -99,172 +99,172 @@ class PagoEstudianteController extends Controller
     // GUARDAR PAGOS
     // =============================
     public function store(Request $request)
-{
-    $validator = Validator::make(
-        $request->all(),
-        [
-            // ======================
-            // PAGO
-            // ======================
-            'idConceptoDePago'   => 'required|exists:concepto_de_pago,idConceptoDePago',
-            'fechaLimiteDePago'  => 'required|date|after_or_equal:today',
-            'estudiantes'        => 'required|array|min:1',
-            'estudiantes.*'      => 'exists:estudiante,idEstudiante',
-            'aportacion'         => 'required|string|max:100',
-        ],
-        [
-            'required' => 'El campo :attribute es obligatorio.',
-            'string'   => 'El campo :attribute debe ser texto.',
-            'date'     => 'El campo :attribute debe ser una fecha válida.',
-            'array'    => 'Debe seleccionar al menos un estudiante.',
-            'min'      => 'Debe seleccionar al menos :min estudiante.',
-            'max'      => 'El campo :attribute no debe exceder :max caracteres.',
-            'exists'   => 'El :attribute seleccionado no es válido.',
-            'after_or_equal'  => 'La :attribute no puede ser menor a la fecha actual.',
-        ],
-        [
-            'idConceptoDePago'  => 'concepto de pago',
-            'fechaLimiteDePago' => 'fecha límite de pago',
-            'estudiantes'       => 'estudiantes',
-            'aportacion'        => 'aportación',
-        ]
-    );
-
-    if ($validator->fails()) {
-        return back()
-            ->with('popupError', 'No se pudieron generar los pagos. Verifica la información.')
-            ->withErrors($validator)
-            ->withInput();
-    }
-
-    $concepto = ConceptoDePago::findOrFail($request->idConceptoDePago);
-    $fechaLimitePago = Carbon::parse($request->fechaLimiteDePago);
-
-    $contadorReferencias = 0;
-    $referenciasCreadas = [];
-    $referenciasDuplicadas = [];
-
-    foreach ($request->estudiantes as $idEstudiante) {
-
-        $estudiante = Estudiante::with('usuario')->findOrFail($idEstudiante);
-
-        // =============================
-        // GENERAR REFERENCIA
-        // =============================
-        $anioBase = 2013;
-        $anioCond = ($fechaLimitePago->year - $anioBase) * 372;
-        $mesCond  = ($fechaLimitePago->month - 1) * 31;
-        $diaCond  = ($fechaLimitePago->day - 1);
-        $fechaCondensada = $anioCond + $mesCond + $diaCond;
-
-        $prefijo = '0007777';
-        $matricula = $estudiante->matriculaNumerica;
-
-        $conceptoFormateado = str_pad(
-            $concepto->idConceptoDePago,
-            2,
-            '0',
-            STR_PAD_LEFT
+    {
+        $validator = Validator::make(
+            $request->all(),
+            [
+                // ======================
+                // PAGO
+                // ======================
+                'idConceptoDePago'   => 'required|exists:concepto_de_pago,idConceptoDePago',
+                'fechaLimiteDePago'  => 'required|date|after_or_equal:today',
+                'estudiantes'        => 'required|array|min:1',
+                'estudiantes.*'      => 'exists:estudiante,idEstudiante',
+                'aportacion'         => 'required|string|max:100',
+            ],
+            [
+                'required' => 'El campo :attribute es obligatorio.',
+                'string'   => 'El campo :attribute debe ser texto.',
+                'date'     => 'El campo :attribute debe ser una fecha válida.',
+                'array'    => 'Debe seleccionar al menos un estudiante.',
+                'min'      => 'Debe seleccionar al menos :min estudiante.',
+                'max'      => 'El campo :attribute no debe exceder :max caracteres.',
+                'exists'   => 'El :attribute seleccionado no es válido.',
+                'after_or_equal'  => 'La :attribute no puede ser menor a la fecha actual.',
+            ],
+            [
+                'idConceptoDePago'  => 'concepto de pago',
+                'fechaLimiteDePago' => 'fecha límite de pago',
+                'estudiantes'       => 'estudiantes',
+                'aportacion'        => 'aportación',
+            ]
         );
 
-        $monto = number_format($concepto->costo, 2, '', '');
-        $monto = str_pad($monto, 10, '0', STR_PAD_LEFT);
-
-        $ponderadores = [7, 3, 1];
-        $digitos = str_split($monto);
-        $suma = 0;
-
-        foreach ($digitos as $i => $digito) {
-            $indice = (count($digitos) - 1 - $i) % 3;
-            $suma += ((int)$digito) * $ponderadores[$indice];
+        if ($validator->fails()) {
+            return back()
+                ->with('popupError', 'No se pudieron generar los pagos. Verifica la información.')
+                ->withErrors($validator)
+                ->withInput();
         }
 
-        $importeCondensado = $suma % 10;
-        $constante = '2';
+        $concepto = ConceptoDePago::findOrFail($request->idConceptoDePago);
+        $fechaLimitePago = Carbon::parse($request->fechaLimiteDePago);
 
-        $referenciaInicial =
-            $prefijo .
-            $matricula .
-            $conceptoFormateado .
-            $fechaCondensada .
-            $importeCondensado .
-            $constante;
+        $contadorReferencias = 0;
+        $referenciasCreadas = [];
+        $referenciasDuplicadas = [];
 
-        $ponderadores97 = [11, 13, 17, 19, 23];
-        $digitosRef = str_split($referenciaInicial);
-        $suma = 0;
+        foreach ($request->estudiantes as $idEstudiante) {
 
-        foreach ($digitosRef as $i => $digito) {
-            $pos = (count($digitosRef) - 1 - $i) % count($ponderadores97);
-            $suma += ((int)$digito) * $ponderadores97[$pos];
+            $estudiante = Estudiante::with('usuario')->findOrFail($idEstudiante);
+
+            // =============================
+            // GENERAR REFERENCIA
+            // =============================
+            $anioBase = 2013;
+            $anioCond = ($fechaLimitePago->year - $anioBase) * 372;
+            $mesCond  = ($fechaLimitePago->month - 1) * 31;
+            $diaCond  = ($fechaLimitePago->day - 1);
+            $fechaCondensada = $anioCond + $mesCond + $diaCond;
+
+            $prefijo = '0007777';
+            $matricula = $estudiante->matriculaNumerica;
+
+            $conceptoFormateado = str_pad(
+                $concepto->idConceptoDePago,
+                2,
+                '0',
+                STR_PAD_LEFT
+            );
+
+            $monto = number_format($concepto->costo, 2, '', '');
+            $monto = str_pad($monto, 10, '0', STR_PAD_LEFT);
+
+            $ponderadores = [7, 3, 1];
+            $digitos = str_split($monto);
+            $suma = 0;
+
+            foreach ($digitos as $i => $digito) {
+                $indice = (count($digitos) - 1 - $i) % 3;
+                $suma += ((int)$digito) * $ponderadores[$indice];
+            }
+
+            $importeCondensado = $suma % 10;
+            $constante = '2';
+
+            $referenciaInicial =
+                $prefijo .
+                $matricula .
+                $conceptoFormateado .
+                $fechaCondensada .
+                $importeCondensado .
+                $constante;
+
+            $ponderadores97 = [11, 13, 17, 19, 23];
+            $digitosRef = str_split($referenciaInicial);
+            $suma = 0;
+
+            foreach ($digitosRef as $i => $digito) {
+                $pos = (count($digitosRef) - 1 - $i) % count($ponderadores97);
+                $suma += ((int)$digito) * $ponderadores97[$pos];
+            }
+
+            $remanente = str_pad(($suma % 97) + 1, 2, '0', STR_PAD_LEFT);
+            $referenciaFinal = $referenciaInicial . $remanente;
+
+            // =============================
+            // VERIFICAR DUPLICADO
+            // =============================
+            $pagoExistente = Pago::where('Referencia', $referenciaFinal)
+                                ->where('idEstudiante', $estudiante->idEstudiante)
+                                ->first();
+
+            if (!$pagoExistente) {
+                // =============================
+                // GUARDAR PAGO
+                // =============================
+                Pago::create([
+                    'Referencia'            => $referenciaFinal,
+                    'idEstudiante'          => $estudiante->idEstudiante,
+                    'idConceptoDePago'      => $concepto->idConceptoDePago,
+                    'fechaGeneracionDePago' => now(),
+                    'fechaLimiteDePago'     => $fechaLimitePago,
+                    'aportacion'            => $request->aportacion,
+                    'idEstatus'             => 3,
+                ]);
+
+                $referenciasCreadas[] = [
+                    'estudiante' => $estudiante->usuario->primerNombre . ' ' . $estudiante->usuario->primerApellido,
+                    'referencia' => $referenciaFinal,
+                    'concepto'   => $concepto->nombreConceptoDePago,
+                    'fecha'      => $fechaLimitePago->format('Y-m-d'),
+                ];
+
+                $contadorReferencias++;
+
+                // =============================
+                // CREAR NOTIFICACIÓN PARA EL ESTUDIANTE
+                // =============================
+                Notificacion::create([
+                    'idUsuario'         => $estudiante->idUsuario,
+                    'titulo'            => 'Nuevo pago asignado',
+                    'mensaje'           => "Se te ha asignado el concepto de pago: {$concepto->nombreConceptoDePago}. Revisa tus pagos.",
+                    'tipoDeNotificacion'=> 1, // Informativo
+                    'fechaDeInicio'     => now()->toDateString(),
+                    'fechaFin'          => now()->addDays(3)->toDateString(),
+                    'leida'             => 0,
+                ]);
+            } else {
+                $referenciasDuplicadas[] = [
+                    'estudiante' => $estudiante->usuario->primerNombre . ' ' . $estudiante->usuario->primerApellido,
+                    'referencia' => $referenciaFinal,
+                    'concepto'   => $concepto->nombreConceptoDePago,
+                    'fecha'      => $fechaLimitePago->format('Y-m-d'),
+                ];
+            }
         }
-
-        $remanente = str_pad(($suma % 97) + 1, 2, '0', STR_PAD_LEFT);
-        $referenciaFinal = $referenciaInicial . $remanente;
 
         // =============================
-        // VERIFICAR DUPLICADO
+        // MENSAJE FINAL
         // =============================
-        $pagoExistente = Pago::where('Referencia', $referenciaFinal)
-                             ->where('idEstudiante', $estudiante->idEstudiante)
-                             ->first();
+        $mensajePopup = "{$contadorReferencias} referencias generadas. " .
+                        count($referenciasDuplicadas) . " referencias ya existían.";
 
-        if (!$pagoExistente) {
-            // =============================
-            // GUARDAR PAGO
-            // =============================
-            Pago::create([
-                'Referencia'            => $referenciaFinal,
-                'idEstudiante'          => $estudiante->idEstudiante,
-                'idConceptoDePago'      => $concepto->idConceptoDePago,
-                'fechaGeneracionDePago' => now(),
-                'fechaLimiteDePago'     => $fechaLimitePago,
-                'aportacion'            => $request->aportacion,
-                'idEstatus'             => 3,
-            ]);
-
-            $referenciasCreadas[] = [
-                'estudiante' => $estudiante->usuario->primerNombre . ' ' . $estudiante->usuario->primerApellido,
-                'referencia' => $referenciaFinal,
-                'concepto'   => $concepto->nombreConceptoDePago,
-                'fecha'      => $fechaLimitePago->format('Y-m-d'),
-            ];
-
-            $contadorReferencias++;
-
-            // =============================
-            // CREAR NOTIFICACIÓN PARA EL ESTUDIANTE
-            // =============================
-            Notificacion::create([
-                'idUsuario'         => $estudiante->idUsuario,
-                'titulo'            => 'Nuevo pago asignado',
-                'mensaje'           => "Se te ha asignado el concepto de pago: {$concepto->nombreConceptoDePago}. Revisa tus pagos.",
-                'tipoDeNotificacion'=> 1, // Informativo
-                'fechaDeInicio'     => now()->toDateString(),
-                'fechaFin'          => now()->addDays(3)->toDateString(),
-                'leida'             => 0,
-            ]);
-        } else {
-            $referenciasDuplicadas[] = [
-                'estudiante' => $estudiante->usuario->primerNombre . ' ' . $estudiante->usuario->primerApellido,
-                'referencia' => $referenciaFinal,
-                'concepto'   => $concepto->nombreConceptoDePago,
-                'fecha'      => $fechaLimitePago->format('Y-m-d'),
-            ];
-        }
-    }
-
-    // =============================
-    // MENSAJE FINAL
-    // =============================
-    $mensajePopup = "{$contadorReferencias} referencias generadas. " .
-                    count($referenciasDuplicadas) . " referencias ya existían.";
-
-    return redirect()
-        ->route('pagos.detalles-referencias')
-        ->with('successPagos', true)
-        ->with('creados', $referenciasCreadas)
-        ->with('duplicados', $referenciasDuplicadas);
+        return redirect()
+            ->route('pagos.detalles-referencias')
+            ->with('successPagos', true)
+            ->with('creados', $referenciasCreadas)
+            ->with('duplicados', $referenciasDuplicadas);
 
     }
 

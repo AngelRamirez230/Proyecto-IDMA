@@ -4,10 +4,15 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
 
 use App\Models\PlanDePago;
 use App\Models\PlanConcepto;
 use App\Models\ConceptoDePago;
+use App\Models\Estudiante;
+use App\Models\EstudiantePlan;
+use App\Models\Notificacion;
+
 
 class PlanDePagoController extends Controller
 {
@@ -255,6 +260,180 @@ class PlanDePagoController extends Controller
 
         return back()->with('success', 'Plan eliminado correctamente.');
     }
+
+
+    public function asignarCreate(Request $request)
+    {
+        $buscar = $request->buscar;
+        $filtro = $request->filtro;
+        $orden  = $request->orden;
+
+        // =============================
+        // PLANES DE PAGO ACTIVOS
+        // =============================
+        $planes = PlanDePago::where('idEstatus', 1)->get();
+
+        // =============================
+        // QUERY BASE DE ESTUDIANTES
+        // =============================
+        $query = Estudiante::with([
+            'usuario',
+            'planDeEstudios.licenciatura'
+        ]);
+
+        // =============================
+        // BUSCADOR (nombre completo o matrícula)
+        // =============================
+        if ($request->filled('buscar')) {
+
+            $buscar = trim($buscar);
+
+            $query->where(function ($q) use ($buscar) {
+
+                // Buscar por matrícula
+                $q->where('matriculaAlfanumerica', 'LIKE', "%{$buscar}%");
+
+                // Buscar por nombre completo
+                $q->orWhereHas('usuario', function ($u) use ($buscar) {
+                    $u->where('primerNombre', 'LIKE', "%{$buscar}%")
+                    ->orWhere('segundoNombre', 'LIKE', "%{$buscar}%")
+                    ->orWhere('primerApellido', 'LIKE', "%{$buscar}%")
+                    ->orWhere('segundoApellido', 'LIKE', "%{$buscar}%")
+                    ->orWhereRaw(
+                        "REPLACE(
+                            TRIM(
+                                CONCAT(
+                                    primerNombre, ' ',
+                                    IFNULL(segundoNombre, ''), ' ',
+                                    primerApellido, ' ',
+                                    IFNULL(segundoApellido, '')
+                                )
+                            ),
+                            '  ', ' '
+                        ) LIKE ?",
+                        ["%{$buscar}%"]
+                    );
+                });
+            });
+        }
+
+        // =============================
+        // FILTRO POR ESTATUS ACADÉMICO
+        // =============================
+        if ($filtro === 'nuevoIngreso') {
+            $query->where('grado', 1);
+        }
+
+        if ($filtro === 'inscritos') {
+            $query->where('grado', '>', 1);
+        }
+
+        // =============================
+        // ORDENAMIENTO
+        // =============================
+        if ($orden === 'alfabetico') {
+            $query->join('usuario', 'usuario.idUsuario', '=', 'estudiante.idUsuario')
+                ->orderBy('usuario.primerNombre')
+                ->orderBy('usuario.primerApellido')
+                ->orderBy('usuario.segundoApellido')
+                ->select('estudiante.*');
+        }
+
+        // =============================
+        // PAGINACIÓN
+        // =============================
+        $estudiantes = $query
+            ->paginate(10)
+            ->withQueryString();
+
+        return view(
+            'SGFIDMA.moduloPlanDePago.asignacionDePlanDePago',
+            compact('planes', 'estudiantes', 'buscar', 'filtro', 'orden')
+        );
+    }
+
+
+
+    public function asignarStore(Request $request)
+    {
+        // =============================
+        // VALIDACIÓN
+        // =============================
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'idPlanDePago'        => 'required|exists:Plan_de_pago,idPlanDePago',
+                'fechaDeFinalizacion' => 'required|date|after_or_equal:today',
+                'estudiantes'         => 'required|array|min:1',
+                'estudiantes.*'       => 'exists:Estudiante,idEstudiante',
+            ],
+            [
+                'required'        => 'El campo :attribute es obligatorio.',
+                'exists'          => 'El :attribute seleccionado no es válido.',
+                'array'           => 'Debe seleccionar al menos un estudiante.',
+                'min'             => 'Debe seleccionar al menos :min estudiante.',
+                'date'            => 'El campo :attribute debe ser una fecha válida.',
+                'after_or_equal'  => 'La :attribute no puede ser menor a la fecha actual.',
+            ],
+            [
+                'idPlanDePago'        => 'plan de pago',
+                'fechaDeFinalizacion' => 'fecha de finalización',
+                'estudiantes'         => 'estudiantes',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return back()
+                ->with('popupError', 'No se pudo asignar el plan. Verifica la información.')
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+
+        foreach ($request->estudiantes as $idEstudiante) {
+
+            // Evitar duplicados activos
+            $existe = EstudiantePlan::where('idEstudiante', $idEstudiante)
+                ->where('idEstatus', 1)
+                ->exists();
+
+            if ($existe) {
+                continue; // salta este estudiante
+            }
+
+            // =============================
+            // GUARDAR PLAN ASIGNADO
+            // =============================
+            $estudiantePlan = EstudiantePlan::create([
+                'idEstudiante'        => $idEstudiante,
+                'idPlanDePago'        => $request->idPlanDePago,
+                'idEstatus'           => 1, // Activo
+                'fechaDeAsignacion'   => Carbon::now()->toDateString(),
+                'fechaDeFinalizacion' => $request->fechaDeFinalizacion,
+            ]);
+
+            // =============================
+            // CREAR NOTIFICACIÓN PARA EL ESTUDIANTE
+            // =============================
+            $estudiante = $estudiantePlan->estudiante()->with('usuario')->first();
+
+            Notificacion::create([
+                'idUsuario'          => $estudiante->idUsuario,
+                'titulo'             => 'Nuevo plan de pago asignado',
+                'mensaje'            => "Se te ha asignado el plan de pago: {$estudiantePlan->planDePago->nombrePlanDePago}. Revisa tu información de pagos.",
+                'tipoDeNotificacion' => 1, // Informativo
+                'fechaDeInicio'      => now()->toDateString(),
+                'fechaFin'           => now()->addDays(3)->toDateString(),
+                'leida'              => 0,
+            ]);
+        }
+
+        return redirect()
+            ->route('consultaPlan')
+            ->with('success', 'Plan de pago asignado correctamente.');
+    }
+
+
 
 
 

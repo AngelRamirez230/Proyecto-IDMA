@@ -26,4 +26,14 @@ class PlanDePago extends Model
     {
         return $this->belongsTo(TipoDeEstatus::class, 'idEstatus', 'idTipoDeEstatus');
     }
+
+
+    public function estudiantes()
+    {
+        return $this->hasMany(
+            EstudiantePlan::class,
+            'idPlanDePago',
+            'idPlanDePago'
+        );
+    }
 }

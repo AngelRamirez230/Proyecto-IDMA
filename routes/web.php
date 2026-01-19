@@ -170,6 +170,9 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
     Route::put('/planes/{id}', [PlanDePagoController::class, 'update'])->name('planes.update');
     Route::delete('/planes/{id}', [PlanDePagoController::class, 'destroy'])->name('planes.destroy');
 
+    Route::get('/admin/plan-pago/asignar',[PlanDePagoController::class, 'asignarCreate'])->name('admin.planPago.asignar.create');
+    Route::post('/admin/plan-pago/asignar',[PlanDePagoController::class, 'asignarStore'])->name('admin.planPago.asignar.store');
+
     /*----------- SOLICITUD DE BECA -----------*/
 
     Route::get('/consulta-solicitudes-beca',[SolicitudDeBecaController::class, 'index'])->name('consultaSolicitudBeca');

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\Generacion;
 use App\Models\Mes;
@@ -10,6 +11,9 @@ class GeneracionController extends Controller
 {
     public function verificarGeneracion()
     {
+        if (!Auth::user()->esAdmin()) {
+            return null;
+        }
         $mesActual = now()->month;
         $añoActual = now()->year;
 
