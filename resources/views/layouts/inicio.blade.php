@@ -177,64 +177,87 @@
         @endadmin
 
     </div>
+</div>
 
-    @if($planAsignado)
+    @if($pagos->count())
 
         <section class="consulta">
-            
-            {{-- TÍTULO DEL PLAN --}}
-            <h2 class="consulta-titulo">
+
+            <h2 class="consulta-titulo titulo-centrado">
                 {{ $planAsignado->planDePago->nombrePlanDePago }}
             </h2>
 
-            {{-- TABLA DE CONCEPTOS DEL PLAN --}}
             <section class="consulta-tabla-contenedor">
                 <table class="tabla">
 
                     <thead>
-                        <tr class="tabla-encabezado">
-                            <th>Concepto de pago</th>
-                            <th>Cantidad</th>
+                        <tr>
+                            <th>Concepto</th>
+                            <th>Aportación</th>
+                            <th>Fecha limite de pago</th>
+                            <th>Estatus</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
 
-                    <tbody class="tabla-cuerpo">
+                    <tbody>
 
-                        @forelse($planAsignado->planDePago->conceptos as $pc)
+                        @foreach($pagos as $pago)
+
+                            @php
+                                $yaGenerado = now()->gte($pago->fechaGeneracionDePago);
+                            @endphp
+
                             <tr>
-                                <td>{{ $pc->concepto->nombreConceptoDePago }}</td>
-                                <td>{{ $pc->cantidad }}</td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="2" class="tablaVacia">
-                                    Este plan no tiene conceptos asignados.
+                                <td>{{ $pago->concepto->nombreConceptoDePago }}</td>
+
+                                <td>{{ $pago->aportacion }}</td>
+
+                                <td>{{ $pago->fechaLimiteDePago->format('d/m/Y') }}</td>
+
+                                <td>
+                                    <span class="estatus estatus-{{ strtolower($pago->estatus->nombreTipoDeEstatus) }}">
+                                        {{ $pago->estatus->nombreTipoDeEstatus }}
+                                    </span>
                                 </td>
+
+                                <td>
+                                    <div class="tabla-acciones">
+
+                                        @php
+                                            $yaGenerado = now()->gte($pago->fechaGeneracionDePago);
+                                        @endphp
+
+                                        {{-- VER DETALLES --}}
+                                        <a href="{{ $yaGenerado ? route('pagos.show', $pago->Referencia) : '#' }}"
+                                        class="btn-boton-formulario2 btn-accion {{ $yaGenerado ? '' : 'btn-desabilitado' }}"
+                                        title="{{ $yaGenerado ? 'Ver detalles' : 'Disponible próximamente' }}">
+                                            Ver detalles
+                                        </a>
+
+                                        {{-- DESCARGAR RECIBO --}}
+                                        <a href="{{ ($yaGenerado) ? route('pagos.recibo', $pago->Referencia) : '#' }}"
+                                        class="btn-boton-formulario2 btn-accion {{ ($yaGenerado) ? '' : 'btn-desabilitado' }}"
+                                        title="{{ ($yaGenerado) ? 'Descargar recibo' : 'No disponible aún' }}">
+                                            Descargar recibo
+                                        </a>
+
+                                    </div>
+                                </td>
+
                             </tr>
-                        @endforelse
+
+                        @endforeach
 
                     </tbody>
 
                 </table>
             </section>
 
-            {{-- INFO EXTRA DEL PLAN --}}
-            <p style="margin-top: 10px;">
-                <strong>Estatus del plan:</strong>
-                {{ $planAsignado->estatus->nombreTipoDeEstatus ?? 'Sin estatus' }}
-            </p>
-
-            <p>
-                <strong>Vigencia:</strong>
-                {{ $planAsignado->fechaDeAsignacion?->format('d/m/Y') }}
-                –
-                {{ $planAsignado->fechaDeFinalizacion?->format('d/m/Y') }}
-            </p>
-
         </section>
 
     @endif
-</div>
+
 
 
 

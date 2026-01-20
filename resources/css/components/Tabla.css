@@ -318,6 +318,11 @@ font-size: 18px;
     to { transform: scale(1); opacity: 1; }
 }
 
+.btn-disabled {
+    pointer-events: none;
+    opacity: 0.5;
+    cursor: not-allowed;
+}
 
 @media (max-width: 1024px) {
     .consulta-selects form {

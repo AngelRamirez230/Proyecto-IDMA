@@ -12,6 +12,7 @@ use App\Models\ConceptoDePago;
 use App\Models\Estudiante;
 use App\Models\EstudiantePlan;
 use App\Models\Notificacion;
+use App\Models\Pago;
 
 
 class PlanDePagoController extends Controller
@@ -262,6 +263,9 @@ class PlanDePagoController extends Controller
     }
 
 
+
+
+
     public function asignarCreate(Request $request)
     {
         $buscar = $request->buscar;
@@ -353,9 +357,93 @@ class PlanDePagoController extends Controller
     }
 
 
+    private function obtenerMesesDelPlan(Carbon $inicio): array
+    {
+        $meses = [];
+
+        for ($i = 0; $i < 6; $i++) {
+            $meses[] = $inicio->copy()->addMonths($i);
+        }
+
+        return $meses;
+    }
+
+    private function generarReferenciaBancaria(
+        Estudiante $estudiante,
+        ConceptoDePago $concepto,
+        float $monto,
+        Carbon $fechaLimite
+    ) {
+        $anioBase = 2013;
+        $anioCond = ($fechaLimite->year - $anioBase) * 372;
+        $mesCond  = ($fechaLimite->month - 1) * 31;
+        $diaCond  = ($fechaLimite->day - 1);
+        $fechaCondensada = $anioCond + $mesCond + $diaCond;
+
+        $prefijo   = '0007777';
+        $matricula = $estudiante->matriculaNumerica;
+
+        $conceptoFormateado = str_pad(
+            $concepto->idConceptoDePago,
+            2,
+            '0',
+            STR_PAD_LEFT
+        );
+
+        $monto = number_format($monto, 2, '', '');
+        $monto = str_pad($monto, 10, '0', STR_PAD_LEFT);
+
+        $ponderadores = [7, 3, 1];
+        $digitos = str_split($monto);
+        $suma = 0;
+
+        foreach ($digitos as $i => $digito) {
+            $indice = (count($digitos) - 1 - $i) % 3;
+            $suma += ((int)$digito) * $ponderadores[$indice];
+        }
+
+        $importeCondensado = $suma % 10;
+        $constante = '2';
+
+        $referenciaInicial =
+            $prefijo .
+            $matricula .
+            $conceptoFormateado .
+            $fechaCondensada .
+            $importeCondensado .
+            $constante;
+
+        $ponderadores97 = [11, 13, 17, 19, 23];
+        $digitosRef = str_split($referenciaInicial);
+        $suma = 0;
+
+        foreach ($digitosRef as $i => $digito) {
+            $pos = (count($digitosRef) - 1 - $i) % count($ponderadores97);
+            $suma += ((int)$digito) * $ponderadores97[$pos];
+        }
+
+        $remanente = str_pad(($suma % 97) + 1, 2, '0', STR_PAD_LEFT);
+
+        return $referenciaInicial . $remanente;
+    }
+
+
+
 
     public function asignarStore(Request $request)
     {
+        $hoy = Carbon::now();
+        $mesActual = $hoy->month;
+
+        // =============================
+        // RESTRICCIÓN DE MESES
+        // =============================
+        if (!in_array($mesActual, [3, 9])) {
+            return back()
+                ->with('popupError', 'Los planes de pago solo se pueden asignar en los meses de MARZO y SEPTIEMBRE.')
+                ->withInput();
+        }
+
         // =============================
         // VALIDACIÓN
         // =============================
@@ -390,27 +478,227 @@ class PlanDePagoController extends Controller
         }
 
 
+        $creados = [];
+        $duplicados = [];
+
+
         foreach ($request->estudiantes as $idEstudiante) {
 
-            // Evitar duplicados activos
-            $existe = EstudiantePlan::where('idEstudiante', $idEstudiante)
+            $estudiantePlan = EstudiantePlan::where('idEstudiante', $idEstudiante)
                 ->where('idEstatus', 1)
-                ->exists();
+                ->first();
 
-            if ($existe) {
-                continue; // salta este estudiante
+            if (!$estudiantePlan) {
+                $estudiantePlan = EstudiantePlan::create([
+                    'idEstudiante'        => $idEstudiante,
+                    'idPlanDePago'        => $request->idPlanDePago,
+                    'idEstatus'           => 1,
+                    'fechaDeAsignacion'   => now()->toDateString(),
+                    'fechaDeFinalizacion' => $request->fechaDeFinalizacion,
+                ]);
             }
 
-            // =============================
-            // GUARDAR PLAN ASIGNADO
-            // =============================
-            $estudiantePlan = EstudiantePlan::create([
-                'idEstudiante'        => $idEstudiante,
-                'idPlanDePago'        => $request->idPlanDePago,
-                'idEstatus'           => 1, // Activo
-                'fechaDeAsignacion'   => Carbon::now()->toDateString(),
-                'fechaDeFinalizacion' => $request->fechaDeFinalizacion,
-            ]);
+
+
+            $plan = PlanDePago::with('conceptos.concepto')->findOrFail($request->idPlanDePago);
+            // Determinar mes inicial
+            $hoy = Carbon::now();
+            $inicioPlan = $hoy->month <= 6
+                ? Carbon::create($hoy->year, 3, 1)
+                : Carbon::create($hoy->year, 9, 1);
+
+            $meses = $this->obtenerMesesDelPlan($inicioPlan);
+
+            foreach ($plan->conceptos as $pc) {
+
+                $concepto = $pc->concepto;
+
+                // =====================
+                // INSCRIPCIÓN o REINSCRIPCION (1 VEZ)
+                // =====================
+                if ($concepto->idConceptoDePago == 1) {
+
+                    $primerMes = $meses[0];
+
+
+
+                    $referencia = $this->generarReferenciaBancaria(
+                        $estudiantePlan->estudiante,
+                        $concepto,
+                        $concepto->costo,
+                        $primerMes->copy()->day(15)
+                    );
+
+                    $pagoExistente = Pago::where('Referencia', $referencia)
+                        ->where('idEstudiante', $idEstudiante)
+                        ->first();
+
+
+                    if (!$pagoExistente) {
+
+                        $fechaLimite = $primerMes->copy()->day(15);
+
+                        Pago::create([
+                            'Referencia'            => $referencia,
+                            'idEstudiante'          => $idEstudiante,
+                            'idConceptoDePago'      => $concepto->idConceptoDePago,
+                            'montoAPagar'           => $concepto->costo,
+                            'fechaGeneracionDePago' => $primerMes->copy()->day(1),
+                            'fechaLimiteDePago'     => $fechaLimite,
+                            'aportacion'            => 'INSCRIPCIÓN',
+                            'idEstatus'             => 3
+                        ]);
+
+                        $usuario = $estudiantePlan->estudiante->usuario;
+
+                        $duplicados[$idEstudiante]['estudiante'] = trim(
+                            collect([
+                                $usuario->primerNombre,
+                                $usuario->segundoNombre,
+                                $usuario->primerApellido,
+                                $usuario->segundoApellido,
+                            ])->filter()->implode(' ')
+                        );
+
+
+                        $creados[$idEstudiante]['pagos'][] = [
+                            'referencia' => $referencia,
+                            'concepto'   => 'INSCRIPCION',
+                            'fecha'      => $fechaLimite,
+                        ];
+
+                    } else {
+                        $usuario = $estudiantePlan->estudiante->usuario;
+
+                        $duplicados[$idEstudiante]['estudiante'] = trim(
+                            collect([
+                                $usuario->primerNombre,
+                                $usuario->segundoNombre,
+                                $usuario->primerApellido,
+                                $usuario->segundoApellido,
+                            ])->filter()->implode(' ')
+                        );
+
+                        $duplicados[$idEstudiante]['pagos'][] = [
+                            'referencia' => $pagoExistente->Referencia,
+                            'concepto'   => $pagoExistente->aportacion ?? 'INSCRIPCION',
+                            'fecha'      => $pagoExistente->fechaLimiteDePago,
+                        ];
+                    }
+                }
+
+
+                // =====================
+                // MENSUALIDADES
+                // =====================
+                if ($concepto->idConceptoDePago == 2) {
+
+                    $contadorMes = 1;
+
+                    foreach ($meses as $mes) {
+
+                        $fechaGeneracion = $mes->copy()->day(1);
+                        $fechaLimite     = $mes->copy()->day(15);
+
+                        // =============================
+                        // MONTO (BECAS SOLO DE 2ª A 6ª)
+                        // =============================
+                        $montoFinal = $concepto->costo;
+
+                        if ($contadorMes > 1) {
+
+                            $solicitudBeca = $estudiantePlan->estudiante
+                                ->solicitudesDeBeca()
+                                ->where('idEstatus', 6)
+                                ->with('beca')
+                                ->first();
+
+                            if ($solicitudBeca && $solicitudBeca->beca) {
+                                $porcentaje = $solicitudBeca->beca->porcentajeDeDescuento;
+                                $montoFinal -= ($concepto->costo * $porcentaje) / 100;
+                            }
+                        }
+
+                        // =============================
+                        // REFERENCIA
+                        // =============================
+                        $referencia = $this->generarReferenciaBancaria(
+                            $estudiantePlan->estudiante,
+                            $concepto,
+                            $montoFinal,
+                            $fechaLimite
+                        );
+
+                        // =============================
+                        // VALIDAR DUPLICADO (IGUAL QUE INSCRIPCIÓN)
+                        // =============================
+                        $pagoExistente = Pago::where('Referencia', $referencia)
+                            ->where('idEstudiante', $idEstudiante)
+                            ->first();
+
+                        if (!$pagoExistente) {
+
+                            Pago::create([
+                                'Referencia'            => $referencia,
+                                'idEstudiante'          => $idEstudiante,
+                                'idConceptoDePago'      => $concepto->idConceptoDePago,
+                                'montoAPagar'           => $montoFinal,
+                                'fechaGeneracionDePago' => $fechaGeneracion,
+                                'fechaLimiteDePago'     => $fechaLimite,
+                                'aportacion'            => 'MES DE ' . strtoupper(
+                                    $mes->locale('es')->translatedFormat('F')
+                                ),
+                                'idEstatus'             => 3
+                            ]);
+
+                            $usuario = $estudiantePlan->estudiante->usuario;
+
+                            $creados[$idEstudiante]['estudiante'] = trim(
+                                collect([
+                                    $usuario->primerNombre,
+                                    $usuario->segundoNombre,
+                                    $usuario->primerApellido,
+                                    $usuario->segundoApellido,
+                                ])->filter()->implode(' ')
+                            );
+
+                            $creados[$idEstudiante]['pagos'][] = [
+                                'referencia' => $referencia,
+                                'concepto'   => 'MES DE ' . strtoupper(
+                                    $mes->locale('es')->translatedFormat('F')
+                                ),
+                                'fecha'      => $fechaLimite,
+                            ];
+
+                        } else {
+
+                            $usuario = $estudiantePlan->estudiante->usuario;
+
+                            $duplicados[$idEstudiante]['estudiante'] = trim(
+                                collect([
+                                    $usuario->primerNombre,
+                                    $usuario->segundoNombre,
+                                    $usuario->primerApellido,
+                                    $usuario->segundoApellido,
+                                ])->filter()->implode(' ')
+                            );
+
+                            $duplicados[$idEstudiante]['pagos'][] = [
+                                'referencia' => $pagoExistente->Referencia,
+                                'concepto'   => $pagoExistente->aportacion ?? $pagoExistente->concepto->nombreConceptoDePago,
+                                'fecha'      => $pagoExistente->fechaLimiteDePago,
+                            ];
+                        }
+
+                        $contadorMes++;
+                    }
+                }
+
+
+            }
+
+
+
 
             // =============================
             // CREAR NOTIFICACIÓN PARA EL ESTUDIANTE
@@ -429,10 +717,21 @@ class PlanDePagoController extends Controller
         }
 
         return redirect()
-            ->route('consultaPlan')
-            ->with('success', 'Plan de pago asignado correctamente.');
+            ->route('planPago.detallesAsignacion')
+            ->with('successAsignacion', true)
+            ->with('creados', $creados)
+            ->with('duplicados', $duplicados);
     }
 
+
+
+    public function detallesAsignacionDePlan()
+    {
+        return view('SGFIDMA.moduloPlanDePago.detallesAsignacionDePlan', [
+            'creados'    => session('creados', []),
+            'duplicados' => session('duplicados', []),
+        ]);
+    }
 
 
 

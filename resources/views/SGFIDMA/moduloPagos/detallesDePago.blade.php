@@ -75,7 +75,7 @@
                     <tr>
                         <td>Costo</td>
                         <td>
-                            ${{ $pago->concepto->costo ?? 'Sin costo'}}
+                            ${{ $pago->montoAPagar ?? 'Sin costo'}}
                         </td>
                     </tr>
 

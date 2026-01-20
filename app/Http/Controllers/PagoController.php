@@ -276,7 +276,8 @@ class PagoController extends Controller
         // RESTRICCIÓN POR ROL
         // =============================
         if ($usuario->estudiante) {
-            $query->where('idEstudiante', $usuario->estudiante->idEstudiante);
+            $query->where('idEstudiante', $usuario->estudiante->idEstudiante)
+                ->whereDate('fechaGeneracionDePago', '<=', Carbon::today());
         }
 
         // =============================

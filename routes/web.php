@@ -172,6 +172,7 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
 
     Route::get('/admin/plan-pago/asignar',[PlanDePagoController::class, 'asignarCreate'])->name('admin.planPago.asignar.create');
     Route::post('/admin/plan-pago/asignar',[PlanDePagoController::class, 'asignarStore'])->name('admin.planPago.asignar.store');
+    Route::get('/admin/plan-pago/detalles-asignacion',[PlanDePagoController::class, 'detallesAsignacionDePlan'])->name('planPago.detallesAsignacion');
 
     /*----------- SOLICITUD DE BECA -----------*/
 
