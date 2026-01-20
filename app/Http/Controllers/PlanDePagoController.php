@@ -484,6 +484,28 @@ class PlanDePagoController extends Controller
 
         foreach ($request->estudiantes as $idEstudiante) {
 
+            $usuario = Estudiante::with('usuario')
+                ->find($idEstudiante)
+                ->usuario;
+
+            $nombreCompleto = trim(
+                collect([
+                    $usuario->primerNombre,
+                    $usuario->segundoNombre,
+                    $usuario->primerApellido,
+                    $usuario->segundoApellido,
+                ])->filter()->implode(' ')
+            );
+
+            // 🔹 Inicializar SIEMPRE
+            $creados[$idEstudiante]['estudiante']    = $nombreCompleto;
+            $duplicados[$idEstudiante]['estudiante'] = $nombreCompleto;
+
+            $creados[$idEstudiante]['pagos']    = [];
+            $duplicados[$idEstudiante]['pagos'] = [];
+
+            $seCrearonPagos = false;
+
             $estudiantePlan = EstudiantePlan::where('idEstudiante', $idEstudiante)
                 ->where('idEstatus', 1)
                 ->first();
@@ -535,6 +557,8 @@ class PlanDePagoController extends Controller
 
 
                     if (!$pagoExistente) {
+                        
+                        $seCrearonPagos = true;
 
                         $fechaLimite = $primerMes->copy()->day(15);
 
@@ -551,37 +575,18 @@ class PlanDePagoController extends Controller
 
                         $usuario = $estudiantePlan->estudiante->usuario;
 
-                        $duplicados[$idEstudiante]['estudiante'] = trim(
-                            collect([
-                                $usuario->primerNombre,
-                                $usuario->segundoNombre,
-                                $usuario->primerApellido,
-                                $usuario->segundoApellido,
-                            ])->filter()->implode(' ')
-                        );
-
-
                         $creados[$idEstudiante]['pagos'][] = [
                             'referencia' => $referencia,
-                            'concepto'   => 'INSCRIPCION',
+                            'concepto'   => 'INSCRIPCIÓN',
                             'fecha'      => $fechaLimite,
                         ];
 
                     } else {
                         $usuario = $estudiantePlan->estudiante->usuario;
 
-                        $duplicados[$idEstudiante]['estudiante'] = trim(
-                            collect([
-                                $usuario->primerNombre,
-                                $usuario->segundoNombre,
-                                $usuario->primerApellido,
-                                $usuario->segundoApellido,
-                            ])->filter()->implode(' ')
-                        );
-
                         $duplicados[$idEstudiante]['pagos'][] = [
                             'referencia' => $pagoExistente->Referencia,
-                            'concepto'   => $pagoExistente->aportacion ?? 'INSCRIPCION',
+                            'concepto'   => $pagoExistente->aportacion ?? 'INSCRIPCIÓN',
                             'fecha'      => $pagoExistente->fechaLimiteDePago,
                         ];
                     }
@@ -638,6 +643,8 @@ class PlanDePagoController extends Controller
 
                         if (!$pagoExistente) {
 
+                            $seCrearonPagos = true;
+
                             Pago::create([
                                 'Referencia'            => $referencia,
                                 'idEstudiante'          => $idEstudiante,
@@ -653,15 +660,6 @@ class PlanDePagoController extends Controller
 
                             $usuario = $estudiantePlan->estudiante->usuario;
 
-                            $creados[$idEstudiante]['estudiante'] = trim(
-                                collect([
-                                    $usuario->primerNombre,
-                                    $usuario->segundoNombre,
-                                    $usuario->primerApellido,
-                                    $usuario->segundoApellido,
-                                ])->filter()->implode(' ')
-                            );
-
                             $creados[$idEstudiante]['pagos'][] = [
                                 'referencia' => $referencia,
                                 'concepto'   => 'MES DE ' . strtoupper(
@@ -673,15 +671,6 @@ class PlanDePagoController extends Controller
                         } else {
 
                             $usuario = $estudiantePlan->estudiante->usuario;
-
-                            $duplicados[$idEstudiante]['estudiante'] = trim(
-                                collect([
-                                    $usuario->primerNombre,
-                                    $usuario->segundoNombre,
-                                    $usuario->primerApellido,
-                                    $usuario->segundoApellido,
-                                ])->filter()->implode(' ')
-                            );
 
                             $duplicados[$idEstudiante]['pagos'][] = [
                                 'referencia' => $pagoExistente->Referencia,
@@ -701,19 +690,42 @@ class PlanDePagoController extends Controller
 
 
             // =============================
-            // CREAR NOTIFICACIÓN PARA EL ESTUDIANTE
+            // NOTIFICACIÓN AL ESTUDIANTE
             // =============================
-            $estudiante = $estudiantePlan->estudiante()->with('usuario')->first();
+            if ($seCrearonPagos) {
 
-            Notificacion::create([
-                'idUsuario'          => $estudiante->idUsuario,
-                'titulo'             => 'Nuevo plan de pago asignado',
-                'mensaje'            => "Se te ha asignado el plan de pago: {$estudiantePlan->planDePago->nombrePlanDePago}. Revisa tu información de pagos.",
-                'tipoDeNotificacion' => 1, // Informativo
-                'fechaDeInicio'      => now()->toDateString(),
-                'fechaFin'           => now()->addDays(3)->toDateString(),
-                'leida'              => 0,
-            ]);
+                $estudiante = $estudiantePlan->estudiante()->with('usuario')->first();
+
+                Notificacion::create([
+                    'idUsuario'          => $estudiante->idUsuario,
+                    'titulo'             => 'Nuevo plan de pago asignado',
+                    'mensaje'            => "Se te ha asignado el plan de pago: {$estudiantePlan->planDePago->nombrePlanDePago}. Revisa tu información en inicio.",
+                    'tipoDeNotificacion' => 1,
+                    'fechaDeInicio'      => now()->toDateString(),
+                    'fechaFin'           => now()->addDays(3)->toDateString(),
+                    'leida'              => 0,
+                ]);
+            }
+
+
+
+            // =============================
+            // ORDENAR PAGOS POR FECHA
+            // =============================
+            if (!empty($creados[$idEstudiante]['pagos'])) {
+                usort(
+                    $creados[$idEstudiante]['pagos'],
+                    fn ($a, $b) => strtotime($a['fecha']) <=> strtotime($b['fecha'])
+                );
+            }
+
+            if (!empty($duplicados[$idEstudiante]['pagos'])) {
+                usort(
+                    $duplicados[$idEstudiante]['pagos'],
+                    fn ($a, $b) => strtotime($a['fecha']) <=> strtotime($b['fecha'])
+                );
+            }
+
         }
 
         return redirect()

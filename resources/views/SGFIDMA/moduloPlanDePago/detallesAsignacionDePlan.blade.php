@@ -10,31 +10,54 @@
 @include('layouts.barraNavegacion')
 
 @php
-    /*
-    ==================================================
-    UNIFICAR PAGOS CREADOS Y EXISTENTES POR ESTUDIANTE
-    ==================================================
-    */
-    $estudiantes = [];
+/*
+==================================================
+UNIFICAR PAGOS CREADOS Y EXISTENTES POR ESTUDIANTE
+==================================================
+*/
+$estudiantes = [];
 
-    foreach ($creados as $id => $grupo) {
-        $estudiantes[$id]['estudiante'] = $grupo['estudiante'];
-        foreach ($grupo['pagos'] as $pago) {
-            $estudiantes[$id]['pagos'][] = array_merge($pago, [
-                'tipo' => 'creado'
-            ]);
-        }
+/* ===== PAGOS CREADOS ===== */
+foreach ($creados as $id => $grupo) {
+
+    if (!isset($estudiantes[$id])) {
+        $estudiantes[$id] = [
+            'estudiante' => $grupo['estudiante'] ?? 'Estudiante sin nombre',
+            'pagos'      => []
+        ];
     }
 
-    foreach ($duplicados as $id => $grupo) {
-        $estudiantes[$id]['estudiante'] = $grupo['estudiante'];
-        foreach ($grupo['pagos'] as $pago) {
-            $estudiantes[$id]['pagos'][] = array_merge($pago, [
-                'tipo' => 'existente'
-            ]);
-        }
+    foreach ($grupo['pagos'] ?? [] as $pago) {
+        $estudiantes[$id]['pagos'][] = [
+            'referencia' => $pago['referencia'],
+            'concepto'   => $pago['concepto'],
+            'fecha'      => $pago['fecha'],
+            'tipo'       => 'creado',
+        ];
     }
+}
+
+/* ===== PAGOS EXISTENTES ===== */
+foreach ($duplicados as $id => $grupo) {
+
+    if (!isset($estudiantes[$id])) {
+        $estudiantes[$id] = [
+            'estudiante' => $grupo['estudiante'] ?? 'Estudiante sin nombre',
+            'pagos'      => []
+        ];
+    }
+
+    foreach ($grupo['pagos'] ?? [] as $pago) {
+        $estudiantes[$id]['pagos'][] = [
+            'referencia' => $pago['referencia'],
+            'concepto'   => $pago['concepto'],
+            'fecha'      => $pago['fecha'],
+            'tipo'       => 'existente',
+        ];
+    }
+}
 @endphp
+
 
 <main class="consulta">
 

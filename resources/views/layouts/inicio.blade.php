@@ -77,7 +77,7 @@
         @endadmin
 
         {{-- 2. ESTUDIANTES --}}
-        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+        @if(Auth::user()->esAdmin())
         <a href="{{ route('apartadoEstudiantes') }}" class="card-btn">
             <img src="/imagenes/IconoInicioEstudiantes.png" alt="">
             <span class="card-btn-title">Estudiantes</span>

@@ -49,7 +49,7 @@
         @endadmin
 
         {{-- ESTUDIANTES --}}
-        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+        @if(Auth::user()->esAdmin())
         <li class="subnav-item">
             <a href="{{ route('apartadoEstudiantes') }}">Estudiantes</a>
         </li>

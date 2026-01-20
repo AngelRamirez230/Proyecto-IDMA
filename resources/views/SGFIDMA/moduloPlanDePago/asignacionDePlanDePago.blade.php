@@ -147,7 +147,7 @@
             <button type="submit" class="btn-boton-formulario2">
                 Asignar plan
             </button>
-            <a href="{{ route('consultaPlan') }}" class="btn-boton-formulario2 btn-cancelar2">
+            <a href="{{ route('apartadoPlanDePago') }}" class="btn-boton-formulario2 btn-cancelar2">
                 Cancelar
             </a>
         </div>
