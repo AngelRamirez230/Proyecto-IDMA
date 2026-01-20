@@ -35,11 +35,13 @@
                 <form action="{{ route('consultaGrupo') }}" method="GET" id="formFiltroGrupos">
                     <input type="hidden" name="buscarGrupo" value="{{ $buscar ?? '' }}">
 
-                    <select name="filtro" class="select select-boton" onchange="this.form.submit()">
-                        <option value="" disabled {{ empty($filtro) ? 'selected' : '' }}>Filtrar por</option>
-                        <option value="activos" {{ ($filtro ?? '') === 'activos' ? 'selected' : '' }}>Activos</option>
-                        <option value="suspendidos" {{ ($filtro ?? '') === 'suspendidos' ? 'selected' : '' }}>Suspendidos</option>
-                    </select>
+                    @if(auth()->check() && (int)auth()->user()->idtipoDeUsuario === 1)
+                        <select name="filtro" class="select select-boton" onchange="this.form.submit()">
+                            <option value="" disabled {{ empty($filtro) ? 'selected' : '' }}>Filtrar por</option>
+                            <option value="activos" {{ ($filtro ?? '') === 'activos' ? 'selected' : '' }}>Activos</option>
+                            <option value="suspendidos" {{ ($filtro ?? '') === 'suspendidos' ? 'selected' : '' }}>Suspendidos</option>
+                        </select>
+                    @endif
 
                     <select name="orden" class="select select-boton" onchange="this.form.submit()">
                         <option value="" disabled {{ empty($orden) ? 'selected' : '' }}>Ordenar por</option>
@@ -60,6 +62,7 @@
                         <th>Licenciatura</th>
                         <th>Semestre</th>
                         <th>Modalidad</th>
+                        <th>Inscritos</th>
                         <th>Estatus</th>
                         <th>Acciones</th>
                     </tr>
@@ -67,7 +70,7 @@
                 <tbody class="tabla-cuerpo">
                     @if ($grupos->isEmpty())
                         <tr>
-                            <td colspan="6" class="tablaVacia">
+                            <td colspan="7" class="tablaVacia">
                                 @if(!empty($buscar))
                                     No se encontraron coincidencias con la busqueda realizada.
                                 @else
@@ -77,28 +80,58 @@
                         </tr>
                     @else
                         @foreach ($grupos as $grupo)
-                            <tr class="tabla-fila">
+                            @php
+                                $esSuspendido = ((int)($grupo->idEstatus ?? 0) === 2);
+                            @endphp
+                            <tr class="tabla-fila {{ $esSuspendido ? 'fila-suspendida' : '' }}">
                                 <td>{{ $grupo->claveGrupo ?? 'Sin clave' }}</td>
                                 <td>{{ $grupo->nombreLicenciatura ?? 'Sin licenciatura' }}</td>
                                 <td>{{ $grupo->semestre ?? '-' }}</td>
                                 <td>{{ $grupo->nombreModalidad ?? 'Sin modalidad' }}</td>
+                                <td>{{ $grupo->inscritos ?? 0 }}</td>
                                 <td>
-                                    {{ ((int)($grupo->idEstatus ?? 0) === 2) ? 'Suspendido' : 'Activo' }}
+                                    {{ $esSuspendido ? 'Suspendido' : 'Activo' }}
                                 </td>
                                 <td>
                                     <div class="tabla-acciones">
                                         <a href="{{ route('grupos.show', $grupo->idGrupo) }}"
                                             class="accion-boton"
                                             title="Ver detalles">
-                                            <img src="{{ asset('imagenes/IconoInicioUsuarios.png') }}" alt="Ver">
+                                            <img
+                                                src="{{ $esSuspendido
+                                                    ? asset('imagenes/IconoDetallesAsignaturaGris.png')
+                                                    : asset('imagenes/IconoDetallesAsignatura.png') }}"
+                                                alt="Ver"
+                                            >
                                         </a>
 
                                         @if(auth()->check() && (int)auth()->user()->idtipoDeUsuario === 1)
                                             <a href="{{ route('grupos.edit', $grupo->idGrupo) }}"
                                                 class="accion-boton"
                                                 title="Editar">
-                                                <img src="{{ asset('imagenes/IconoEditar.png') }}" alt="Editar">
+                                                <img
+                                                    src="{{ $esSuspendido
+                                                        ? asset('imagenes/IconoEditarGris.png')
+                                                        : asset('imagenes/IconoEditar.png') }}"
+                                                    alt="Editar"
+                                                >
                                             </a>
+
+                                            <form action="{{ route('grupos.toggleEstatus', $grupo->idGrupo) }}" method="POST" style="display:inline">
+                                                @csrf
+                                                @method('PUT')
+
+                                                <button type="submit"
+                                                    class="accion-boton"
+                                                    title="Suspender/Habilitar">
+                                                    <img
+                                                        src="{{ $esSuspendido
+                                                            ? asset('imagenes/IconoHabilitar.png')
+                                                            : asset('imagenes/IconoSuspender.png') }}"
+                                                        alt="Suspender/Habilitar"
+                                                    >
+                                                </button>
+                                            </form>
 
                                             <form action="{{ route('grupos.destroy', $grupo->idGrupo) }}" method="POST" style="display:inline">
                                                 @csrf
@@ -109,7 +142,12 @@
                                                     title="Eliminar"
                                                     onclick="mostrarPopupConfirmacionGrupo('{{ $grupo->claveGrupo ?? 'grupo' }}', this)"
                                                 >
-                                                    <img src="{{ asset('imagenes/IconoEliminar.png') }}" alt="Eliminar" />
+                                                    <img
+                                                        src="{{ $esSuspendido
+                                                            ? asset('imagenes/IconoEliminarGris.png')
+                                                            : asset('imagenes/IconoEliminar.png') }}"
+                                                        alt="Eliminar"
+                                                    />
                                                 </button>
                                             </form>
                                         @endif
