@@ -22,9 +22,18 @@ class GrupoController extends Controller
         }
     }
 
+    private function validarAccesoAlta()
+    {
+        $usuario = Auth::user();
+
+        if (!$usuario || (int) $usuario->idtipoDeUsuario !== 1) {
+            abort(403, 'No autorizado');
+        }
+    }
+
     public function create()
     {
-        $this->validarAcceso();
+        $this->validarAccesoAlta();
 
         $licenciaturas = Licenciatura::orderBy('nombreLicenciatura')->get();
         $ciclos = CicloEscolar::orderBy('idCicloEscolar', 'desc')->get();
@@ -50,7 +59,7 @@ class GrupoController extends Controller
 
     public function store(Request $request)
     {
-        $this->validarAcceso();
+        $this->validarAccesoAlta();
 
         $request->validate([
             'idCicloEscolar' => 'required|exists:Ciclo_escolar,idCicloEscolar',
@@ -162,11 +171,21 @@ class GrupoController extends Controller
         $orden = $request->orden;
         $filtro = $request->filtro ?: 'activos';
 
+        if ((int) Auth::user()->idtipoDeUsuario !== 1) {
+            $filtro = 'activos';
+        }
+
         $query = DB::table('Grupo as g')
             ->join('Licenciatura as l', 'g.idLicenciatura', '=', 'l.idLicenciatura')
             ->join('Ciclo_modalidad as cm', 'g.idCicloModalidad', '=', 'cm.idCicloModalidad')
             ->join('Modalidad as m', 'cm.idModalidad', '=', 'm.idModalidad')
             ->join('Ciclo_escolar as ce', 'cm.idCicloEscolar', '=', 'ce.idCicloEscolar')
+            ->leftJoin(
+                DB::raw('(select idGrupo, count(*) as inscritos from Grupo_estudiante group by idGrupo) ge'),
+                'g.idGrupo',
+                '=',
+                'ge.idGrupo'
+            )
             ->select(
                 'g.idGrupo',
                 'g.claveGrupo',
@@ -175,7 +194,8 @@ class GrupoController extends Controller
                 'l.nombreLicenciatura',
                 'm.nombreModalidad',
                 'ce.nombreCicloEscolar',
-                'ce.idCicloEscolar'
+                'ce.idCicloEscolar',
+                DB::raw('COALESCE(ge.inscritos, 0) as inscritos')
             );
 
         if ($request->filled('buscarGrupo')) {
@@ -243,6 +263,7 @@ class GrupoController extends Controller
             ->join('Estudiante as e', 'ge.idEstudiante', '=', 'e.idEstudiante')
             ->join('Usuario as u', 'e.idUsuario', '=', 'u.idUsuario')
             ->select(
+                'e.idEstudiante',
                 'e.matriculaAlfanumerica',
                 'e.idGeneracion',
                 'u.primerNombre',
@@ -254,10 +275,11 @@ class GrupoController extends Controller
             ->orderBy('u.primerApellido')
             ->orderBy('u.primerNombre')
             ->get();
+        $inscritos = $estudiantes->count();
 
         return view(
             'SGAIDMA.moduloGrupos.detalleDeGrupo',
-            compact('grupo', 'estudiantes')
+            compact('grupo', 'estudiantes', 'inscritos')
         );
     }
 
@@ -302,9 +324,46 @@ class GrupoController extends Controller
             ->orderBy('m.nombreModalidad')
             ->get();
 
+        $estudiantes = DB::table('Grupo_estudiante as ge')
+            ->join('Estudiante as e', 'ge.idEstudiante', '=', 'e.idEstudiante')
+            ->join('Usuario as u', 'e.idUsuario', '=', 'u.idUsuario')
+            ->select(
+                'e.idEstudiante',
+                'e.matriculaAlfanumerica',
+                'e.idGeneracion',
+                'u.primerNombre',
+                'u.segundoNombre',
+                'u.primerApellido',
+                'u.segundoApellido'
+            )
+            ->where('ge.idGrupo', $id)
+            ->orderBy('u.primerApellido')
+            ->orderBy('u.primerNombre')
+            ->get();
+
+        $disponibles = DB::table('Estudiante as e')
+            ->join('Usuario as u', 'e.idUsuario', '=', 'u.idUsuario')
+            ->leftJoin('Grupo_estudiante as ge', 'e.idEstudiante', '=', 'ge.idEstudiante')
+            ->select(
+                'e.idEstudiante',
+                'e.matriculaAlfanumerica',
+                'e.idGeneracion',
+                'e.grado',
+                'u.primerNombre',
+                'u.segundoNombre',
+                'u.primerApellido',
+                'u.segundoApellido'
+            )
+            ->whereIn('e.idEstatus', [1, 4])
+            ->where('u.idtipoDeUsuario', 4)
+            ->whereNull('ge.idGrupo')
+            ->orderBy('u.primerApellido')
+            ->orderBy('u.primerNombre')
+            ->get();
+
         return view(
             'SGAIDMA.moduloGrupos.editarDeGrupo',
-            compact('grupo', 'licenciaturas', 'ciclos', 'cicloModalidades')
+            compact('grupo', 'licenciaturas', 'ciclos', 'cicloModalidades', 'estudiantes', 'disponibles')
         );
     }
 
@@ -419,5 +478,102 @@ class GrupoController extends Controller
             DB::rollBack();
             throw $e;
         }
+    }
+
+    public function asignarEstudiantes(Request $request, $id)
+    {
+        $this->validarAcceso();
+
+        if ((int) Auth::user()->idtipoDeUsuario !== 1) {
+            abort(403, 'No autorizado');
+        }
+
+        $request->validate([
+            'estudiantes' => 'required|array',
+            'estudiantes.*' => 'integer',
+        ]);
+
+        $grupo = Grupo::findOrFail($id);
+        $ids = $request->estudiantes;
+
+        $validos = DB::table('Estudiante as e')
+            ->leftJoin('Grupo_estudiante as ge', 'e.idEstudiante', '=', 'ge.idEstudiante')
+            ->whereIn('e.idEstatus', [1, 4])
+            ->whereNull('ge.idGrupo')
+            ->whereIn('e.idEstudiante', $ids)
+            ->pluck('e.idEstudiante')
+            ->toArray();
+
+        if (empty($validos)) {
+            return back()
+                ->with('popupError', 'No hay estudiantes disponibles para asignar.')
+                ->withInput();
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $payload = array_map(function ($idEstudiante) use ($grupo) {
+                return [
+                    'idGrupo' => $grupo->idGrupo,
+                    'idEstudiante' => $idEstudiante,
+                ];
+            }, $validos);
+
+            DB::table('Grupo_estudiante')->insert($payload);
+
+            DB::commit();
+
+            return redirect()
+                ->route('grupos.edit', $grupo->idGrupo)
+                ->with('success', 'Estudiantes asignados correctamente.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    public function desasignarEstudiantes(Request $request, $id)
+    {
+        $this->validarAcceso();
+
+        if ((int) Auth::user()->idtipoDeUsuario !== 1) {
+            abort(403, 'No autorizado');
+        }
+
+        $request->validate([
+            'estudiantes' => 'required|array',
+            'estudiantes.*' => 'integer',
+        ]);
+
+        $ids = $request->estudiantes;
+
+        DB::table('Grupo_estudiante')
+            ->where('idGrupo', $id)
+            ->whereIn('idEstudiante', $ids)
+            ->delete();
+
+        return redirect()
+            ->route('grupos.edit', $id)
+            ->with('success', 'Estudiantes desasignados correctamente.');
+    }
+    public function toggleEstatus($id)
+    {
+        $this->validarAcceso();
+
+        if ((int) Auth::user()->idtipoDeUsuario !== 1) {
+            abort(403, 'No autorizado');
+        }
+
+        $grupo = Grupo::findOrFail($id);
+        $nuevo = ((int) $grupo->idEstatus === 2) ? 1 : 2;
+
+        $grupo->update([
+            'idEstatus' => $nuevo,
+        ]);
+
+        return redirect()
+            ->route('consultaGrupo')
+            ->with('success', 'Estatus actualizado correctamente.');
     }
 }

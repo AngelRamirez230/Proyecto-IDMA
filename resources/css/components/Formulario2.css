@@ -89,6 +89,36 @@
     margin-left: 20px;          
 }
 
+.btn-boton-formulario2-1 {
+    display: inline-block;
+    width: 180px;
+    height: 49px;
+    padding: 6.5px 44.5px;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    text-decoration: none;
+
+    padding: 12px 20px;
+
+    
+    background-color: #B0B0B0;
+    color: #ffffff;
+
+    border: none;
+    border-radius: 0px;
+
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s;
+    margin-left: 20px;          
+}
+
+.btn-boton-formulario2--auto {
+    width: auto;
+    white-space: nowrap;
+}
+
 .btn-boton-formulario2:first-child {
     margin-left: 0 !important;
 }
@@ -104,6 +134,60 @@
 
 .btn-cancelar2:hover {
     background-color: #7a7a7a;
+}
+
+.acciones-encabezado {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.acciones-encabezado .contador-seleccion {
+    font-weight: 600;
+    color: #79272C;
+}
+
+.acciones-encabezado--tabla {
+    justify-content: flex-end;
+    gap: 12px;
+    margin: 8px 0 12px;
+}
+
+.consulta-subtitulo {
+    font-size: 24px;
+    margin-top: 30px;
+}
+
+.popup-contenido--ancho {
+    max-width: 900px;
+    width: 100%;
+}
+
+.busqueda-popup {
+    margin: 12px auto 18px;
+    width: max-content;
+}
+
+.popup-tabla-wrap {
+    max-height: 320px;
+    overflow: auto;
+}
+
+.popup-botones--separado {
+    margin-top: 16px;
+}
+
+.bloque-errores {
+    background: #ffdddd;
+    padding: 12px;
+    border: 1px solid #cc0000;
+    margin: 10px 0;
+}
+
+.bloque-errores-lista {
+    margin: 8px 0 0 18px;
 }
 
 
@@ -227,7 +311,3 @@
     }
 
 }
-
-
-
-
