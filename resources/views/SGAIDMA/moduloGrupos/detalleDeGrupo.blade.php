@@ -66,19 +66,23 @@
                         <td>Estatus</td>
                         <td>{{ ((int)($grupo->idEstatus ?? 0) === 2) ? 'Suspendido' : 'Activo' }}</td>
                     </tr>
+                    <tr>
+                        <td>Inscritos</td>
+                        <td>{{ $inscritos ?? 0 }}</td>
+                    </tr>
                 </tbody>
             </table>
         </section>
 
         <section class="consulta-tabla-contenedor">
-            <h2 class="consulta-titulo" style="font-size: 24px; margin-top: 30px;">Estudiantes del grupo</h2>
+            <h2 class="consulta-titulo consulta-subtitulo">Estudiantes del grupo</h2>
 
             <table class="tabla">
                 <thead>
                     <tr class="tabla-encabezado">
-                        <th>Matricula</th>
+                        <th>Matrícula</th>
                         <th>Nombre completo</th>
-                        <th>Generacion</th>
+                        <th>Generación</th>
                     </tr>
                 </thead>
                 <tbody class="tabla-cuerpo">

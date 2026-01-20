@@ -101,17 +101,10 @@
         @endadmin
 
         {{-- 5. GRUPOS --}}
-        @admin
-        <a href="#" class="card-btn">
-            <img src="/imagenes/IconoInicioGrupos.png" alt="">
-            <span class="card-btn-title">Grupos</span>
-        </a>
-        @endadmin
         @php
             $puedeVerGrupos = auth()->check()
                 && in_array((int) auth()->user()->idtipoDeUsuario, [1, 2], true);
         @endphp
-
         @if($puedeVerGrupos)
             <a href="{{ route('apartadoGrupos') }}" class="card-btn">
                 <img src="/imagenes/IconoInicioGrupos.png" alt="">
