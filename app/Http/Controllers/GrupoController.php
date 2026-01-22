@@ -279,10 +279,11 @@ class GrupoController extends Controller
         $estudiantes = DB::table('Grupo_estudiante as ge')
             ->join('Estudiante as e', 'ge.idEstudiante', '=', 'e.idEstudiante')
             ->join('Usuario as u', 'e.idUsuario', '=', 'u.idUsuario')
+            ->leftJoin('Generacion as g', 'e.idGeneracion', '=', 'g.idGeneracion')
             ->select(
                 'e.idEstudiante',
                 'e.matriculaAlfanumerica',
-                'e.idGeneracion',
+                'g.claveGeneracion',
                 'u.primerNombre',
                 'u.segundoNombre',
                 'u.primerApellido',
@@ -347,10 +348,11 @@ class GrupoController extends Controller
         $estudiantes = DB::table('Grupo_estudiante as ge')
             ->join('Estudiante as e', 'ge.idEstudiante', '=', 'e.idEstudiante')
             ->join('Usuario as u', 'e.idUsuario', '=', 'u.idUsuario')
+            ->leftJoin('Generacion as g', 'e.idGeneracion', '=', 'g.idGeneracion')
             ->select(
                 'e.idEstudiante',
                 'e.matriculaAlfanumerica',
-                'e.idGeneracion',
+                'g.claveGeneracion',
                 'u.primerNombre',
                 'u.segundoNombre',
                 'u.primerApellido',
@@ -364,10 +366,11 @@ class GrupoController extends Controller
         $disponibles = DB::table('Estudiante as e')
             ->join('Usuario as u', 'e.idUsuario', '=', 'u.idUsuario')
             ->leftJoin('Grupo_estudiante as ge', 'e.idEstudiante', '=', 'ge.idEstudiante')
+            ->leftJoin('Generacion as g', 'e.idGeneracion', '=', 'g.idGeneracion')
             ->select(
                 'e.idEstudiante',
                 'e.matriculaAlfanumerica',
-                'e.idGeneracion',
+                'g.claveGeneracion',
                 'e.grado',
                 'u.primerNombre',
                 'u.segundoNombre',
