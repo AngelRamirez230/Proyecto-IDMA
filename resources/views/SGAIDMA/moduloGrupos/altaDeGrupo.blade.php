@@ -45,6 +45,24 @@
             </div>
 
             <div class="form-group">
+                <label for="idGeneracion">Generación (opcional):</label>
+                <select id="idGeneracion" name="idGeneracion" class="select">
+                    <option value="" {{ old('idGeneracion') ? '' : 'selected' }}>
+                        Seleccionar
+                    </option>
+                    @foreach($generaciones as $generacion)
+                        <option
+                            value="{{ $generacion->idGeneracion }}"
+                            {{ old('idGeneracion') == $generacion->idGeneracion ? 'selected' : '' }}
+                        >
+                            {{ $generacion->claveGeneracion ?? $generacion->nombreGeneracion ?? $generacion->idGeneracion }}
+                        </option>
+                    @endforeach
+                </select>
+                <x-error-field field="idGeneracion" />
+            </div>
+
+            <div class="form-group">
                 <label for="idLicenciatura">Carrera:</label>
                 <select id="idLicenciatura" name="idLicenciatura" class="select" required>
                     <option value="" disabled {{ old('idLicenciatura') ? '' : 'selected' }}>
@@ -85,7 +103,7 @@
                     id="claveGrupo"
                     name="claveGrupo"
                     class="input-mediano"
-                    placeholder="Dejar en blanco para generar en automático"
+                    placeholder="Obligatorio en caso de no elegir generación"
                     value="{{ old('claveGrupo') }}"
                 >
                 <x-error-field field="claveGrupo" />
@@ -158,3 +176,4 @@
     </script>
 </body>
 </html>
+

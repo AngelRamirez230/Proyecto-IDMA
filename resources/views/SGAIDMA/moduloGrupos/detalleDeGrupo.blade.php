@@ -51,6 +51,10 @@
                         <td>{{ $grupo->nombreLicenciatura ?? 'Sin licenciatura' }}</td>
                     </tr>
                     <tr>
+                        <td>Generación</td>
+                        <td>{{ $grupo->claveGeneracion ?? 'Sin generación' }}</td>
+                    </tr>
+                    <tr>
                         <td>Semestre</td>
                         <td>{{ $grupo->semestre ?? '-' }}</td>
                     </tr>

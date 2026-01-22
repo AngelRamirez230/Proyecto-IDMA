@@ -46,6 +46,24 @@
             </div>
 
             <div class="form-group">
+                <label for="idGeneracion">Generación (opcional):</label>
+                <select id="idGeneracion" name="idGeneracion" class="select">
+                    <option value="" {{ old('idGeneracion', $grupo->idGeneracion ?? '') ? '' : 'selected' }}>
+                        Seleccionar
+                    </option>
+                    @foreach($generaciones as $generacion)
+                        <option
+                            value="{{ $generacion->idGeneracion }}"
+                            {{ old('idGeneracion', $grupo->idGeneracion ?? '') == $generacion->idGeneracion ? 'selected' : '' }}
+                        >
+                            {{ $generacion->claveGeneracion ?? $generacion->nombreGeneracion ?? $generacion->idGeneracion }}
+                        </option>
+                    @endforeach
+                </select>
+                <x-error-field field="idGeneracion" />
+            </div>
+
+            <div class="form-group">
                 <label for="idLicenciatura">Carrera:</label>
                 <select id="idLicenciatura" name="idLicenciatura" class="select" required>
                     <option value="" disabled {{ old('idLicenciatura', $grupo->idLicenciatura ?? '') ? '' : 'selected' }}>
@@ -86,7 +104,7 @@
                     id="claveGrupo"
                     name="claveGrupo"
                     class="input-mediano"
-                    placeholder="Si lo dejas en blanco, se genera automaticamente"
+                    placeholder="Obligatorio en caso de no elegir generación"
                     value="{{ old('claveGrupo', $grupo->claveGrupo ?? '') }}"
                 >
                 <x-error-field field="claveGrupo" />
@@ -176,7 +194,7 @@
                     <input
                         type="text"
                         id="buscarEstudianteAsignacion"
-                        placeholder="Buscar por matricula, generacion o nombre"
+                        placeholder="Buscar por matrícula, generación o nombre"
                         oninput="filtrarEstudiantesAsignacion()"
                     >
                 </div>

@@ -60,6 +60,7 @@
                     <tr class="tabla-encabezado">
                         <th>Clave</th>
                         <th>Licenciatura</th>
+                        <th>Generación</th>
                         <th>Semestre</th>
                         <th>Modalidad</th>
                         <th>Inscritos</th>
@@ -70,7 +71,7 @@
                 <tbody class="tabla-cuerpo">
                     @if ($grupos->isEmpty())
                         <tr>
-                            <td colspan="7" class="tablaVacia">
+                            <td colspan="8" class="tablaVacia">
                                 @if(!empty($buscar))
                                     No se encontraron coincidencias con la busqueda realizada.
                                 @else
@@ -86,6 +87,7 @@
                             <tr class="tabla-fila {{ $esSuspendido ? 'fila-suspendida' : '' }}">
                                 <td>{{ $grupo->claveGrupo ?? 'Sin clave' }}</td>
                                 <td>{{ $grupo->nombreLicenciatura ?? 'Sin licenciatura' }}</td>
+                                <td>{{ $grupo->claveGeneracion ?? 'Sin generación' }}</td>
                                 <td>{{ $grupo->semestre ?? '-' }}</td>
                                 <td>{{ $grupo->nombreModalidad ?? 'Sin modalidad' }}</td>
                                 <td>{{ $grupo->inscritos ?? 0 }}</td>
