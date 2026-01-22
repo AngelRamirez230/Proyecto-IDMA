@@ -53,7 +53,9 @@
                         <th>Concepto de pago</th>
                         <th>Costo</th>
                         <th>Unidad</th>
-                        <th>Estatus</th>
+                        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+                            <th>Estatus</th>
+                        @endif
                         <th>Acciones</th>
 
                     </tr>
@@ -69,7 +71,9 @@
                                 <td>{{ $concepto->nombreConceptoDePago }}</td>
                                 <td>${{ $concepto->costo }}</td>
                                 <td>{{ $concepto->unidad->nombreUnidad ?? 'Sin unidad' }}</td>
-                                <td>{{ $concepto->estatus->nombreTipoDeEstatus ?? 'Sin estatus' }}</td>
+                                @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+                                    <td>{{ $concepto->estatus->nombreTipoDeEstatus ?? 'Sin estatus' }}</td>
+                                @endif
                                 <td>
                                     <div class="tabla-acciones">
 

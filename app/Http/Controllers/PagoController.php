@@ -69,13 +69,20 @@ class PagoController extends Controller
         );
 
         // =============================
-        // FECHA LÍMITE DE PAGO (DÍA 15)
+        // FECHA LÍMITE DE PAGO
+        // Regla: +8 días sin pasar de mes
         // =============================
-        $fechaLimitePago = Carbon::now()->day(15);
 
-        if (Carbon::now()->day > 15) {
-            $fechaLimitePago->addMonth();
+        $fechaGeneracion = Carbon::today(); 
+
+        $fechaLimitePago = $fechaGeneracion->copy()->addDays(8);
+
+        // Si se pasó al siguiente mes → último día del mes original
+        if ($fechaLimitePago->month !== $fechaGeneracion->month) {
+            $fechaLimitePago = $fechaGeneracion->copy()->endOfMonth();
         }
+
+
 
         // =============================
         // FECHA CONDENSADA
@@ -183,6 +190,18 @@ class PagoController extends Controller
             . $importeCondensado
             . $constante
             . $remanente;
+
+        // =============================
+        // VALIDAR SI LA REFERENCIA YA EXISTE
+        // =============================
+        $existeReferencia = Pago::where('Referencia', $referenciaFinal)->exists();
+
+        if ($existeReferencia) {
+            return redirect()
+                ->back()
+                ->with('popupError', 'La referencia de pago ya existe. Revisa tu apartado de pagos.');
+        }
+
 
         // =============================
         // GUARDAR PAGO

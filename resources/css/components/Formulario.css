@@ -196,6 +196,11 @@
     width: 100%;
 }
 
+.titulo-chico {
+    font-size: 1.1rem !important;
+    text-align: center !important;
+}
+
 /* =======================
    INPUT CON ICONO
 ======================= */

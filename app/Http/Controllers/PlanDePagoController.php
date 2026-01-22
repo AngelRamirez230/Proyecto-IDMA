@@ -19,7 +19,9 @@ class PlanDePagoController extends Controller
 {
     public function create()
     {
-        $conceptos = ConceptoDePago::all();
+        $conceptos = ConceptoDePago::whereIn('idConceptoDePago', [1, 2, 30])
+        ->where('idEstatus', 1)
+        ->get();
         return view('SGFIDMA.moduloPlanDePago.altaPlan', compact('conceptos'));
     }
 
@@ -89,6 +91,41 @@ class PlanDePagoController extends Controller
                 ->with('popupError', 'El plan de pago debe tener conceptos seleccionados.')
                 ->withInput();
         }
+
+
+        // ======================
+        // VALIDACIÓN DE REGLA DE NEGOCIO
+        // ======================
+
+        // Cantidades seleccionadas
+        $cantidades = collect($request->cantidades);
+
+        // IDs clave
+        $inscripcion     = intval($cantidades->get(1, 0));   // INSCRIPCIÓN
+        $reinscripcion   = intval($cantidades->get(30, 0));  // REINSCRIPCIÓN
+        $colegiaturas    = intval($cantidades->get(2, 0));   // COLEGIATURA
+
+        
+        if (
+            ($inscripcion > 0 && $reinscripcion > 0) ||
+            ($inscripcion === 0 && $reinscripcion === 0)
+        ) {
+            return back()
+                ->withErrors([
+                    'cantidades' => 'El plan debe incluir INSCRIPCIÓN o REINSCRIPCIÓN (solo uno de ellos).'
+                ])
+                ->withInput();
+        }
+
+        // 2️⃣ Debe haber exactamente 6 colegiaturas
+        if ($colegiaturas !== 6) {
+            return back()
+                ->withErrors([
+                    'cantidades' => 'El plan debe incluir exactamente 6 colegiaturas.'
+                ])
+                ->withInput();
+        }
+
 
         // ======================
         // CREAR PLAN DE PAGO
@@ -172,7 +209,9 @@ class PlanDePagoController extends Controller
         $plan = PlanDePago::with('conceptos')->findOrFail($id);
 
         // Obtener todos los conceptos activos
-        $conceptos = ConceptoDePago::where('idEstatus', 1)->get();
+        $conceptos = ConceptoDePago::whereIn('idConceptoDePago', [1, 2, 30])
+        ->where('idEstatus', 1)
+        ->get();
 
         // Convertir cantidades actuales en un arreglo [idConcepto => cantidad]
         $cantidadesActuales = $plan->conceptos->pluck('cantidad', 'idConceptoDePago')->toArray();
@@ -480,6 +519,7 @@ class PlanDePagoController extends Controller
 
         $creados = [];
         $duplicados = [];
+        $noAplicados = [];
 
 
         foreach ($request->estudiantes as $idEstudiante) {
@@ -497,6 +537,9 @@ class PlanDePagoController extends Controller
                 ])->filter()->implode(' ')
             );
 
+            $estudiante = Estudiante::with(['usuario'])
+                ->findOrFail($idEstudiante);
+
             // 🔹 Inicializar SIEMPRE
             $creados[$idEstudiante]['estudiante']    = $nombreCompleto;
             $duplicados[$idEstudiante]['estudiante'] = $nombreCompleto;
@@ -508,7 +551,56 @@ class PlanDePagoController extends Controller
 
             $estudiantePlan = EstudiantePlan::where('idEstudiante', $idEstudiante)
                 ->where('idEstatus', 1)
+                ->with('planDePago')
                 ->first();
+
+            // =============================
+            // VALIDAR PLAN ACTIVO EXISTENTE
+            // =============================
+            if ($estudiantePlan) {
+
+                $noAplicados[] = [
+                    'estudiante' => $nombreCompleto,
+                    'motivo'     => 'El estudiante ya cuenta con un plan de pago activo: ' .
+                                    $estudiantePlan->planDePago->nombrePlanDePago
+                ];
+
+                continue; 
+            }
+
+
+            
+            $plan = PlanDePago::with('conceptos.concepto')->findOrFail($request->idPlanDePago);
+
+            $contieneInscripcion   = $plan->conceptos->contains(fn ($pc) => $pc->concepto->idConceptoDePago == 1);
+            $contieneReinscripcion = $plan->conceptos->contains(fn ($pc) => $pc->concepto->idConceptoDePago == 30);
+
+            $grado = $estudiante->grado;
+
+
+            if ($grado == 1 && $contieneReinscripcion) {
+
+                $noAplicados[] = [
+                    'estudiante' => $nombreCompleto,
+                    'motivo'     => 'No se aplicó el plan porque el estudiante es de nuevo ingreso y el plan contiene reinscripción.'
+                ];
+
+                continue;
+            }
+
+            if ($grado >= 2 && $contieneInscripcion) {
+
+                $noAplicados[] = [
+                    'estudiante' => $nombreCompleto,
+                    'motivo'     => 'No se aplicó el plan porque el estudiante no es de nuevo ingreso y el plan contiene inscripción.'
+                ];
+
+                continue; 
+            }
+
+
+
+
 
             if (!$estudiantePlan) {
                 $estudiantePlan = EstudiantePlan::create([
@@ -538,29 +630,29 @@ class PlanDePagoController extends Controller
                 // =====================
                 // INSCRIPCIÓN o REINSCRIPCION (1 VEZ)
                 // =====================
-                if ($concepto->idConceptoDePago == 1) {
+                if (in_array($concepto->idConceptoDePago, [1, 30])) {
 
                     $primerMes = $meses[0];
+                    $fechaLimite = $primerMes->copy()->day(15);
 
-
+                    $aportacionTexto = $concepto->idConceptoDePago == 1
+                        ? 'INSCRIPCIÓN'
+                        : 'REINSCRIPCIÓN';
 
                     $referencia = $this->generarReferenciaBancaria(
                         $estudiantePlan->estudiante,
                         $concepto,
                         $concepto->costo,
-                        $primerMes->copy()->day(15)
+                        $fechaLimite
                     );
 
                     $pagoExistente = Pago::where('Referencia', $referencia)
                         ->where('idEstudiante', $idEstudiante)
                         ->first();
 
-
                     if (!$pagoExistente) {
-                        
-                        $seCrearonPagos = true;
 
-                        $fechaLimite = $primerMes->copy()->day(15);
+                        $seCrearonPagos = true;
 
                         Pago::create([
                             'Referencia'            => $referencia,
@@ -569,28 +661,28 @@ class PlanDePagoController extends Controller
                             'montoAPagar'           => $concepto->costo,
                             'fechaGeneracionDePago' => $primerMes->copy()->day(1),
                             'fechaLimiteDePago'     => $fechaLimite,
-                            'aportacion'            => 'INSCRIPCIÓN',
+                            'aportacion'            => $aportacionTexto,
                             'idEstatus'             => 3
                         ]);
 
-                        $usuario = $estudiantePlan->estudiante->usuario;
-
                         $creados[$idEstudiante]['pagos'][] = [
                             'referencia' => $referencia,
-                            'concepto'   => 'INSCRIPCIÓN',
+                            'concepto'   => $aportacionTexto,
                             'fecha'      => $fechaLimite,
+                            'idConcepto' => $concepto->idConceptoDePago, // 🔑 CLAVE
                         ];
 
                     } else {
-                        $usuario = $estudiantePlan->estudiante->usuario;
 
                         $duplicados[$idEstudiante]['pagos'][] = [
                             'referencia' => $pagoExistente->Referencia,
-                            'concepto'   => $pagoExistente->aportacion ?? 'INSCRIPCIÓN',
+                            'concepto'   => $pagoExistente->aportacion ?? $aportacionTexto,
                             'fecha'      => $pagoExistente->fechaLimiteDePago,
+                            'idConcepto' => $concepto->idConceptoDePago,
                         ];
                     }
                 }
+
 
 
                 // =====================
@@ -666,6 +758,7 @@ class PlanDePagoController extends Controller
                                     $mes->locale('es')->translatedFormat('F')
                                 ),
                                 'fecha'      => $fechaLimite,
+                                'idConcepto' => 2,
                             ];
 
                         } else {
@@ -676,6 +769,7 @@ class PlanDePagoController extends Controller
                                 'referencia' => $pagoExistente->Referencia,
                                 'concepto'   => $pagoExistente->aportacion ?? $pagoExistente->concepto->nombreConceptoDePago,
                                 'fecha'      => $pagoExistente->fechaLimiteDePago,
+                                'idConcepto' => $concepto->idConceptoDePago,
                             ];
                         }
 
@@ -732,7 +826,8 @@ class PlanDePagoController extends Controller
             ->route('planPago.detallesAsignacion')
             ->with('successAsignacion', true)
             ->with('creados', $creados)
-            ->with('duplicados', $duplicados);
+            ->with('duplicados', $duplicados)
+            ->with('noAplicados', $noAplicados);
     }
 
 
@@ -742,6 +837,7 @@ class PlanDePagoController extends Controller
         return view('SGFIDMA.moduloPlanDePago.detallesAsignacionDePlan', [
             'creados'    => session('creados', []),
             'duplicados' => session('duplicados', []),
+            'noAplicados'  => session('noAplicados', []),
         ]);
     }
 

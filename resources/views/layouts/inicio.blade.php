@@ -179,6 +179,32 @@
     </div>
 </div>
 
+
+
+    @php
+        $pagosOrdenados = collect($pagos);
+
+        // Inscripción o reinscripción (solo uno de los dos existirá)
+        $principal = $pagosOrdenados->first(fn ($p) =>
+            in_array($p->idConceptoDePago, [1, 30])
+        );
+
+        // Mensualidades ordenadas por fecha límite
+        $mensualidades = $pagosOrdenados
+            ->where('idConceptoDePago', 2)
+            ->sortBy('fechaLimiteDePago');
+
+        // Unir todo
+        $pagosOrdenadosFinal = collect();
+
+        if ($principal) {
+            $pagosOrdenadosFinal->push($principal);
+        }
+
+        $pagosOrdenadosFinal = $pagosOrdenadosFinal->merge($mensualidades);
+    @endphp
+
+
     @if($pagos->count())
 
         <section class="consulta">
@@ -202,7 +228,7 @@
 
                     <tbody>
 
-                        @foreach($pagos as $pago)
+                        @foreach($pagosOrdenadosFinal as $pago)
 
                             @php
                                 $yaGenerado = now()->gte($pago->fechaGeneracionDePago);

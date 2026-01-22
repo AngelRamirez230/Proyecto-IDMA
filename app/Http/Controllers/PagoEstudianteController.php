@@ -170,7 +170,15 @@ class PagoEstudianteController extends Controller
                     // ¿Es mensualidad?
                     $esMensualidad = ($concepto->idConceptoDePago == 2);
 
-                    if ($esMensualidad) {
+                    // =============================
+                    // VALIDAR SI SE APLICA BECA
+                    // =============================
+                    $ignorarBeca = (
+                        $fechaLimitePago->day == 15 &&
+                        in_array($fechaLimitePago->month, [3, 9])
+                    );
+
+                    if ($esMensualidad && !$ignorarBeca) {
 
                         $solicitudBeca = $estudiante->solicitudesDeBeca()
                             ->where('idEstatus', 6) // Aprobada
@@ -185,6 +193,7 @@ class PagoEstudianteController extends Controller
                             $costoFinal = $concepto->costo - $descuento;
                         }
                     }
+
 
                     // =============================
                     // GENERAR REFERENCIA

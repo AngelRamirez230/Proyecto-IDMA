@@ -61,12 +61,12 @@
 
                         <!-- Input cantidad -->
                         <input type="number"
-                            name="cantidades[{{ $concepto->idConceptoDePago }}]"
-                            id="cantidad_{{ $concepto->idConceptoDePago }}"
-                            class="cantidad-input"
-                            value="0"
-                            min="0"
-                            step="1">
+                        name="cantidades[{{ $concepto->idConceptoDePago }}]"
+                        id="cantidad_{{ $concepto->idConceptoDePago }}"
+                        class="cantidad-input"
+                        value="{{ old('cantidades.' . $concepto->idConceptoDePago, 0) }}"
+                        min="0"
+                        step="1">
 
                     </div>
                 @endif

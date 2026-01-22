@@ -33,6 +33,7 @@ foreach ($creados as $id => $grupo) {
             'concepto'   => $pago['concepto'],
             'fecha'      => $pago['fecha'],
             'tipo'       => 'creado',
+            'idConcepto' => $pago['idConcepto'], 
         ];
     }
 }
@@ -53,15 +54,18 @@ foreach ($duplicados as $id => $grupo) {
             'concepto'   => $pago['concepto'],
             'fecha'      => $pago['fecha'],
             'tipo'       => 'existente',
+            'idConcepto' => $pago['idConcepto'],
         ];
     }
 }
 @endphp
 
 
+
+
 <main class="consulta">
 
-    <h1 class="titulo-form2">Detalle de asignación del plan de pago</h1>
+    <h1 class="titulo-form2">Detalles de asignación del plan de pago</h1>
 
     <section class="consulta-controles">
         <div class="consulta-selects">
@@ -72,47 +76,113 @@ foreach ($duplicados as $id => $grupo) {
         </div>
     </section>
 
+    @if(!empty($noAplicados))
+
+    <section class="consulta-tabla-contenedor">
+
+        <h2 class="consulta-titulo titulo-chico">
+            Estudiantes a los que NO se aplicó el plan
+        </h2>
+
+        <table class="tabla">
+            <thead>
+                <tr>
+                    <th>Estudiante</th>
+                    <th>Motivo</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($noAplicados as $item)
+                    <tr class="fila-suspendida">
+                        <td>{{ $item['estudiante'] }}</td>
+                        <td>{{ $item['motivo'] }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+
+    </section>
+
+    @endif
+
+
     {{-- ================= TABLAS POR ESTUDIANTE ================= --}}
     @foreach($estudiantes as $grupo)
 
-        <section class="consulta-tabla-contenedor">
+        @php
+            $pagos = collect($grupo['pagos']);
 
-            <h2 class="consulta-titulo">
-                {{ $grupo['estudiante'] }} — Detalle de pagos
-            </h2>
+            // ¿Tiene al menos un pago creado?
+            $tienePagosCreados = $pagos->contains(fn($p) => $p['tipo'] === 'creado');
 
-            <table class="tabla">
-                <thead>
-                    <tr>
-                        <th>Referencia</th>
-                        <th>Concepto</th>
-                        <th>Fecha límite de pago</th>
-                        <th>Estatus</th>
-                    </tr>
-                </thead>
-                <tbody>
+            if ($tienePagosCreados) {
 
-                    @foreach($grupo['pagos'] as $pago)
-                        <tr class="{{ $pago['tipo'] === 'existente' ? 'fila-suspendida' : '' }}">
-                            <td>{{ $pago['referencia'] }}</td>
-                            <td>{{ $pago['concepto'] }}</td>
-                            <td>{{ \Carbon\Carbon::parse($pago['fecha'])->format('d/m/Y') }}</td>
-                            <td>
-                                @if($pago['tipo'] === 'creado')
-                                    <span class="estatus-activo">Creado</span>
-                                @else
-                                    <span class="estatus-suspendido">Existente</span>
-                                @endif
-                            </td>
+            
+                $principal = $pagos->first(fn($p) =>
+                    in_array($p['idConcepto'], [1, 30])
+                );
+
+                
+                $colegiaturas = $pagos
+                    ->reject(fn($p) => in_array($p['idConcepto'], [1, 30]))
+                    ->sortBy(fn($p) => \Carbon\Carbon::parse($p['fecha'])->timestamp);
+
+                
+                $pagosOrdenados = collect();
+
+                if ($principal) {
+                    $pagosOrdenados->push($principal);
+                }
+
+                $pagosOrdenados = $pagosOrdenados->merge($colegiaturas);
+            }
+        @endphp
+
+        @if($tienePagosCreados)
+
+            <section class="consulta-tabla-contenedor">
+
+                <h2 class="consulta-titulo titulo-chico">
+                    {{ $grupo['estudiante'] }} — Detalle de pagos
+                </h2>
+
+                <table class="tabla">
+                    <thead>
+                        <tr>
+                            <th>Referencia</th>
+                            <th>Concepto</th>
+                            <th>Fecha límite de pago</th>
+                            <th>Estatus</th>
                         </tr>
-                    @endforeach
+                    </thead>
+                    <tbody>
 
-                </tbody>
-            </table>
+                        @foreach($pagosOrdenados as $pago)
+                            <tr class="{{ $pago['tipo'] === 'existente' ? 'fila-suspendida' : '' }}">
+                                <td>{{ $pago['referencia'] }}</td>
+                                <td>{{ $pago['concepto'] }}</td>
+                                <td>{{ \Carbon\Carbon::parse($pago['fecha'])->format('d/m/Y') }}</td>
+                                <td>
+                                    @if($pago['tipo'] === 'creado')
+                                        <span class="estatus-activo">Creado</span>
+                                    @else
+                                        <span class="estatus-suspendido">Existente</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
 
-        </section>
+                    </tbody>
+                </table>
+
+            </section>
+
+        @endif
 
     @endforeach
+
+
+
 
     {{-- ================= SIN RESULTADOS ================= --}}
     @if(empty($estudiantes))
