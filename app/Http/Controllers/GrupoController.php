@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 use App\Models\CicloEscolar;
+use App\Models\Generacion;
 use App\Models\Grupo;
 use App\Models\Licenciatura;
 use App\Models\CicloModalidad;
@@ -37,6 +38,7 @@ class GrupoController extends Controller
 
         $licenciaturas = Licenciatura::orderBy('nombreLicenciatura')->get();
         $ciclos = CicloEscolar::orderBy('idCicloEscolar', 'desc')->get();
+        $generaciones = Generacion::orderBy('idGeneracion', 'desc')->get();
 
         $cicloModalidades = DB::table('Ciclo_modalidad as cm')
             ->join('Modalidad as m', 'cm.idModalidad', '=', 'm.idModalidad')
@@ -53,7 +55,7 @@ class GrupoController extends Controller
 
         return view(
             'SGAIDMA.moduloGrupos.altaDeGrupo',
-            compact('licenciaturas', 'ciclos', 'cicloModalidades')
+            compact('licenciaturas', 'ciclos', 'cicloModalidades', 'generaciones')
         );
     }
 
@@ -67,6 +69,7 @@ class GrupoController extends Controller
             'idLicenciatura' => 'required|exists:Licenciatura,idLicenciatura',
             'semestre' => 'required|integer|min:1|max:12',
             'claveGrupo' => 'nullable|string|max:45',
+            'idGeneracion' => 'nullable|exists:Generacion,idGeneracion',
         ]);
 
         $cicloModalidad = DB::table('Ciclo_modalidad')
@@ -80,6 +83,13 @@ class GrupoController extends Controller
         }
 
         $claveManual = $request->filled('claveGrupo') ? trim($request->claveGrupo) : null;
+        $idGeneracion = $request->filled('idGeneracion') ? (int) $request->idGeneracion : null;
+
+        if (!$idGeneracion && !$claveManual) {
+            return back()
+                ->with('popupError', 'Debes seleccionar una generacion o ingresar una clave de grupo manualmente.')
+                ->withInput();
+        }
 
         if ($claveManual) {
             $existeClave = Grupo::where('claveGrupo', $claveManual)->exists();
@@ -107,10 +117,17 @@ class GrupoController extends Controller
             $licenciatura = Licenciatura::find($request->idLicenciatura);
             $abreviacion = $licenciatura?->abreviacionLicenciatura;
 
+            $claveGeneracion = null;
+            if ($idGeneracion) {
+                $claveGeneracion = DB::table('Generacion')
+                    ->where('idGeneracion', $idGeneracion)
+                    ->value('claveGeneracion');
+            }
+
             $claveGrupo = $claveManual ?: $this->generarClaveGrupo(
                 $request->semestre,
-                $cicloModalidad->fechaInicio,
-                $abreviacion
+                $abreviacion,
+                $claveGeneracion
             );
 
             if (!$claveManual) {
@@ -127,6 +144,7 @@ class GrupoController extends Controller
                 'semestre' => $request->semestre,
                 'idLicenciatura' => $request->idLicenciatura,
                 'idCicloModalidad' => $request->idCicloModalidad,
+                'idGeneracion' => $idGeneracion,
                 'idEstatus' => 1,
             ]);
 
@@ -141,16 +159,11 @@ class GrupoController extends Controller
         }
     }
 
-    private function generarClaveGrupo($semestre, $fechaInicio, $abreviacionLicenciatura = null)
+    private function generarClaveGrupo($semestre, $abreviacionLicenciatura = null, $claveGeneracion = null)
     {
         $semestreDos = str_pad((string) $semestre, 2, '0', STR_PAD_LEFT);
 
-        $fecha = date_create($fechaInicio);
-        $anioDos = $fecha ? $fecha->format('y') : date('y');
-        $mes = $fecha ? (int) $fecha->format('m') : (int) date('m');
-
-        $bloque = $mes <= 6 ? 'A' : 'B';
-        $prefijo = ($abreviacionLicenciatura ?: '') . $semestreDos . $anioDos . $bloque;
+        $prefijo = ($abreviacionLicenciatura ?: '') . $semestreDos . ($claveGeneracion ?: '');
 
         $maxConsecutivo = DB::table('Grupo')
             ->where('claveGrupo', 'like', $prefijo . '__')
@@ -180,6 +193,7 @@ class GrupoController extends Controller
             ->join('Ciclo_modalidad as cm', 'g.idCicloModalidad', '=', 'cm.idCicloModalidad')
             ->join('Modalidad as m', 'cm.idModalidad', '=', 'm.idModalidad')
             ->join('Ciclo_escolar as ce', 'cm.idCicloEscolar', '=', 'ce.idCicloEscolar')
+            ->leftJoin('Generacion as gen', 'g.idGeneracion', '=', 'gen.idGeneracion')
             ->leftJoin(
                 DB::raw('(select idGrupo, count(*) as inscritos from Grupo_estudiante group by idGrupo) ge'),
                 'g.idGrupo',
@@ -195,6 +209,7 @@ class GrupoController extends Controller
                 'm.nombreModalidad',
                 'ce.nombreCicloEscolar',
                 'ce.idCicloEscolar',
+                'gen.claveGeneracion',
                 DB::raw('COALESCE(ge.inscritos, 0) as inscritos')
             );
 
@@ -243,6 +258,7 @@ class GrupoController extends Controller
             ->join('Ciclo_modalidad as cm', 'g.idCicloModalidad', '=', 'cm.idCicloModalidad')
             ->join('Modalidad as m', 'cm.idModalidad', '=', 'm.idModalidad')
             ->join('Ciclo_escolar as ce', 'cm.idCicloEscolar', '=', 'ce.idCicloEscolar')
+            ->leftJoin('Generacion as gen', 'g.idGeneracion', '=', 'gen.idGeneracion')
             ->select(
                 'g.idGrupo',
                 'g.claveGrupo',
@@ -250,7 +266,8 @@ class GrupoController extends Controller
                 'g.idEstatus',
                 'l.nombreLicenciatura',
                 'm.nombreModalidad',
-                'ce.nombreCicloEscolar'
+                'ce.nombreCicloEscolar',
+                'gen.claveGeneracion'
             )
             ->where('g.idGrupo', $id)
             ->first();
@@ -299,6 +316,7 @@ class GrupoController extends Controller
                 'g.semestre',
                 'g.idLicenciatura',
                 'g.idCicloModalidad',
+                'g.idGeneracion',
                 'cm.idCicloEscolar'
             )
             ->where('g.idGrupo', $id)
@@ -323,6 +341,8 @@ class GrupoController extends Controller
             ->orderBy('cm.idCicloEscolar')
             ->orderBy('m.nombreModalidad')
             ->get();
+
+        $generaciones = Generacion::orderBy('idGeneracion', 'desc')->get();
 
         $estudiantes = DB::table('Grupo_estudiante as ge')
             ->join('Estudiante as e', 'ge.idEstudiante', '=', 'e.idEstudiante')
@@ -354,8 +374,8 @@ class GrupoController extends Controller
                 'u.primerApellido',
                 'u.segundoApellido'
             )
-            ->whereIn('e.idEstatus', [1, 4])
-            ->where('u.idtipoDeUsuario', 4)
+            ->where('e.idEstatus', 4)
+            ->where('u.idestatus', 1)
             ->whereNull('ge.idGrupo')
             ->orderBy('u.primerApellido')
             ->orderBy('u.primerNombre')
@@ -363,7 +383,7 @@ class GrupoController extends Controller
 
         return view(
             'SGAIDMA.moduloGrupos.editarDeGrupo',
-            compact('grupo', 'licenciaturas', 'ciclos', 'cicloModalidades', 'estudiantes', 'disponibles')
+            compact('grupo', 'licenciaturas', 'ciclos', 'cicloModalidades', 'generaciones', 'estudiantes', 'disponibles')
         );
     }
 
@@ -381,6 +401,7 @@ class GrupoController extends Controller
             'idLicenciatura' => 'required|exists:Licenciatura,idLicenciatura',
             'semestre' => 'required|integer|min:1|max:12',
             'claveGrupo' => 'nullable|string|max:45',
+            'idGeneracion' => 'nullable|exists:Generacion,idGeneracion',
         ]);
 
         $grupo = Grupo::findOrFail($id);
@@ -396,6 +417,13 @@ class GrupoController extends Controller
         }
 
         $claveManual = $request->filled('claveGrupo') ? trim($request->claveGrupo) : null;
+        $idGeneracion = $request->filled('idGeneracion') ? (int) $request->idGeneracion : null;
+
+        if (!$idGeneracion && !$claveManual) {
+            return back()
+                ->with('popupError', 'Debes seleccionar una generacion o ingresar una clave de grupo manualmente.')
+                ->withInput();
+        }
 
         if ($claveManual) {
             $existeClave = Grupo::where('claveGrupo', $claveManual)
@@ -423,10 +451,17 @@ class GrupoController extends Controller
         $licenciatura = Licenciatura::find($request->idLicenciatura);
         $abreviacion = $licenciatura?->abreviacionLicenciatura;
 
+        $claveGeneracion = null;
+        if ($idGeneracion) {
+            $claveGeneracion = DB::table('Generacion')
+                ->where('idGeneracion', $idGeneracion)
+                ->value('claveGeneracion');
+        }
+
         $claveGrupo = $claveManual ?: $this->generarClaveGrupo(
             $request->semestre,
-            $cicloModalidad->fechaInicio,
-            $abreviacion
+            $abreviacion,
+            $claveGeneracion
         );
 
         if (!$claveManual) {
@@ -445,6 +480,7 @@ class GrupoController extends Controller
             'semestre' => $request->semestre,
             'idLicenciatura' => $request->idLicenciatura,
             'idCicloModalidad' => $request->idCicloModalidad,
+            'idGeneracion' => $idGeneracion,
         ]);
 
         return redirect()
@@ -497,8 +533,10 @@ class GrupoController extends Controller
         $ids = $request->estudiantes;
 
         $validos = DB::table('Estudiante as e')
+            ->join('Usuario as u', 'e.idUsuario', '=', 'u.idUsuario')
             ->leftJoin('Grupo_estudiante as ge', 'e.idEstudiante', '=', 'ge.idEstudiante')
-            ->whereIn('e.idEstatus', [1, 4])
+            ->where('e.idEstatus', 4)
+            ->where('u.idestatus', 1)
             ->whereNull('ge.idGrupo')
             ->whereIn('e.idEstudiante', $ids)
             ->pluck('e.idEstudiante')
