@@ -109,7 +109,7 @@
                             <tr class="tabla-fila">
                                 <td>{{ $estudiante->matriculaAlfanumerica ?? 'Sin matricula' }}</td>
                                 <td>{{ $nombreCompleto ?: 'Sin nombre' }}</td>
-                                <td>{{ $estudiante->idGeneracion ?? 'N/D' }}</td>
+                                <td>{{ $estudiante->claveGeneracion ?? 'N/D' }}</td>
                             </tr>
                         @endforeach
                     @endif

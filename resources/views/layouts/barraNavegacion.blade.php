@@ -67,18 +67,18 @@
         </li>
         @endadmin
 
-        {{-- HORARIOS --}}
-        @admin
-        <li class="subnav-item"><a href="#">Horarios</a></li>
+        {{-- GRUPOS --}}
         @php
             $puedeVerGrupos = auth()->check()
                 && in_array((int) auth()->user()->idtipoDeUsuario, [1, 2], true);
         @endphp
-        
-        {{-- GRUPOS --}}
         @if($puedeVerGrupos)
             <li class="subnav-item"><a href="{{ route('apartadoGrupos') }}">Grupos</a></li>
         @endif
+
+        {{-- HORARIOS --}}
+        @admin
+        <li class="subnav-item"><a href="#">Horarios</a></li>
         @endadmin
 
         {{-- CALIFICACIONES --}}

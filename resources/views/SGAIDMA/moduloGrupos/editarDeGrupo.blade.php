@@ -169,7 +169,7 @@
                                 </td>
                                 <td>{{ $estudiante->matriculaAlfanumerica ?? 'Sin matricula' }}</td>
                                 <td>{{ $nombreCompleto ?: 'Sin nombre' }}</td>
-                                <td>{{ $estudiante->idGeneracion ?? 'N/D' }}</td>
+                                <td>{{ $estudiante->claveGeneracion ?? 'N/D' }}</td>
                             </tr>
                         @endforeach
                     @endif
@@ -235,7 +235,7 @@
                                         </td>
                                         <td class="col-matricula">{{ $estudiante->matriculaAlfanumerica ?? 'Sin matrícula' }}</td>
                                         <td class="col-nombre">{{ $nombreCompleto ?: 'Sin nombre' }}</td>
-                                        <td class="col-generacion">{{ $estudiante->idGeneracion ?? 'N/D' }}</td>
+                                        <td class="col-generacion">{{ $estudiante->claveGeneracion ?? 'N/D' }}</td>
                                         <td>{{ $estudiante->grado ?? '-' }}</td>
                                     </tr>
                                 @endforeach

@@ -16,6 +16,7 @@ class Generacion extends Model
         'añoDeFinalizacion',
         'idMesFin',
         'nombreGeneracion',
+        'claveGeneracion',
         'idEstatus'
     ];
 
