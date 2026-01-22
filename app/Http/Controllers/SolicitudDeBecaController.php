@@ -118,6 +118,19 @@ class SolicitudDeBecaController extends Controller
             }
 
             /* ======================================================
+            VALIDAR QUE NO TENGA OTRA BECA APROBADA
+            ====================================================== */
+            $becaAprobada = SolicitudDeBeca::delEstudiante($estudiante->idEstudiante)
+                ->where('idEstatus', 6) // Aprobada
+                ->exists();
+
+            if ($becaAprobada) {
+                return back()
+                    ->with('popupError', 'No puedes solicitar otra beca mientras tengas una beca aprobada vigente.')
+                    ->withInput();
+            }
+
+            /* ======================================================
             VALIDAR SOLICITUD DUPLICADA (SOLO PENDIENTE)
             ====================================================== */
             $solicitudPendiente = SolicitudDeBeca::delEstudiante($estudiante->idEstudiante)
@@ -328,7 +341,7 @@ class SolicitudDeBecaController extends Controller
 
             return Carbon::create($anio + 1, 2, 1)
                 ->endOfMonth()
-                ->subDays(8); // 1–2 días antes de la última semana
+                ->subDays(2); // 1–2 días antes de la última semana
         }
 
         // Fallback (no debería pasar)
@@ -379,6 +392,22 @@ class SolicitudDeBecaController extends Controller
                     'observacion' => null,
                 ]);
 
+
+                // ===== NOTIFICACIÓN =====
+                $usuario = $solicitud->estudiante?->usuario;
+                $nombreBeca = $solicitud->beca?->nombreDeBeca ?? 'tu beca';
+                if ($usuario) {
+                    Notificacion::create([
+                        'idUsuario'          => $usuario->idUsuario,
+                        'titulo'             => 'Solicitud de beca aprobada',
+                        'mensaje'            => "Tu solicitud para la beca: {$nombreBeca} ha sido aprobada. Fecha de conclusión: {$fechaConclusion->format('d/m/Y')}.",
+                        'tipoDeNotificacion' => 1, // Información
+                        'fechaDeInicio'      => Carbon::today()->toDateString(),
+                        'fechaFin'           => Carbon::today()->addDays(3)->toDateString(),
+                        'leida'              => 0,
+                    ]);
+                }
+
                 DB::commit();
 
                 return redirect()
@@ -403,6 +432,21 @@ class SolicitudDeBecaController extends Controller
                     'fechaDeConclusion' => now(),
                     'observacion' => $request->observaciones,
                 ]);
+
+                // ===== NOTIFICACIÓN =====
+                $usuario = $solicitud->estudiante?->usuario;
+                $nombreBeca = $solicitud->beca?->nombreDeBeca ?? 'tu beca';
+                if ($usuario) {
+                    Notificacion::create([
+                        'idUsuario'          => $usuario->idUsuario,
+                        'titulo'             => 'Solicitud de beca rechazada',
+                        'mensaje'            => "Tu solicitud para la beca '{$nombreBeca}' ha sido rechazada. Observaciones: {$request->observaciones}",
+                        'tipoDeNotificacion' => 2, // Advertencia
+                        'fechaDeInicio'      => Carbon::today()->toDateString(),
+                        'fechaFin'           => Carbon::today()->addDays(7)->toDateString(),
+                        'leida'              => 0,
+                    ]);
+                }
 
                 DB::commit();
 

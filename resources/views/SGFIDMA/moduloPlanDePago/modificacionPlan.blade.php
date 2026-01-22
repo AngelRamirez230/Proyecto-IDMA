@@ -16,16 +16,16 @@
 
         <h1 class="titulo-form2">Modificación de plan de pago</h1>
 
-        {{-- NOMBRE DEL PLAN DE PAGO (SOLO LECTURA) --}}
+        {{-- NOMBRE DEL PLAN DE PAGO --}}
         <div class="form-group2">
             <label for="nombrePlan">Nombre del plan de pago:</label>
             <input
                 type="text"
                 id="nombrePlan"
                 name="nombrePlan"
-                class="input-grande2 input-bloqueado2"
+                class="input-grande2"
                 value="{{ old('nombrePlan', $plan->nombrePlanDePago) }}"
-                readonly
+                
             >
             <x-error-field field="nombrePlan" />
         </div>

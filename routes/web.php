@@ -204,6 +204,11 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
     Route::get('/pagos/{referencia}',[PagoController::class, 'show'])->name('pagos.show');
     Route::get('/pagos/{referencia}/recibo',[PagoController::class, 'descargarRecibo'])->name('pagos.recibo');
 
+    // VALIDACION DE PAGOS
+    Route::get('/validar/pagos', [PagoController::class, 'vistaValidarPagos'])->name('pagos.validar');
+    Route::post('/validar/pagos/archivo', [PagoController::class, 'validarArchivo'])->name('pagos.validarArchivo');
+    Route::post('/pagos/validar/{referencia}', [PagoController::class, 'validarPago'])->name('pagos.validarPago');
+
 
 
 

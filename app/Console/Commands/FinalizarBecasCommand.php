@@ -44,7 +44,7 @@ class FinalizarBecasCommand extends Command
                 Notificacion::create([
                     'idUsuario'          => $usuario->idUsuario,
                     'titulo'             => 'Beca finalizada',
-                    'mensaje'            => "Tu beca \"{$nombreBeca}\" ha finalizado el {$beca->fechaDeConclusion->format('d/m/Y')}.",
+                    'mensaje'            => "Tu beca: {$nombreBeca} ha finalizado el {$beca->fechaDeConclusion->format('d/m/Y')}.",
                     'tipoDeNotificacion' => 2, // Advertencia
                     'fechaDeInicio'      => $hoy->toDateString(),
                     'fechaFin'           => $hoy->copy()->addDays(3)->toDateString(),

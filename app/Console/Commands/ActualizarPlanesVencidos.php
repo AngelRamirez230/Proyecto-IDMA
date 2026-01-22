@@ -37,7 +37,7 @@ class ActualizarPlanesVencidos extends Command
                 Notificacion::create([
                     'idUsuario'          => $estudiante->usuario->idUsuario,
                     'titulo'             => 'Plan de pago finalizado',
-                    'mensaje'            => "Tu plan de pago '{$plan->planDePago->nombrePlanDePago}' ha finalizado.",
+                    'mensaje'            => "Tu plan de pago: {$plan->planDePago->nombrePlanDePago} ha finalizado.",
                     'tipoDeNotificacion' => 2,
                     'fechaDeInicio'      => $hoy->toDateString(),
                     'fechaFin'           => $hoy->copy()->addDays(3)->toDateString(),

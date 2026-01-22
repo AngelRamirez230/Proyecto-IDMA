@@ -14,26 +14,26 @@
         <h1 class="titulo-form2">Detalles de pago</h1>
 
         <div class="detalle-usuario__header">
-                <div class="detalle-usuario__identidad">
-                    <div class="detalle-usuario__nombre">
-                        Número de Referencia: {{ $pago->Referencia }}
-                    </div>
-                </div>
-
-                <div class="detalle-usuario__acciones">
-                    <a href="{{ route('consultaPagos') }}"
-                    class="btn-boton-formulario btn-cancelar">
-                        Volver
-                    </a>
-
-                    @if($pago->idEstatus == 3)
-                        <a href="{{ route('pagos.recibo', $pago->Referencia) }}"
-                        class="btn-boton-formulario2 btn-accion">
-                            Descargar recibo
-                        </a>
-                    @endif
+            <div class="detalle-usuario__identidad">
+                <div class="detalle-usuario__nombre">
+                    Número de Referencia: {{ $pago->Referencia }}
                 </div>
             </div>
+
+            <div class="detalle-usuario__acciones">
+                <a href="{{ route('consultaPagos') }}"
+                class="btn-boton-formulario btn-cancelar">
+                    Volver
+                </a>
+
+                @if($pago->idEstatus == 3)
+                    <a href="{{ route('pagos.recibo', $pago->Referencia) }}"
+                    class="btn-boton-formulario2 btn-accion">
+                        Descargar recibo
+                    </a>
+                @endif
+            </div>
+        </div>
 
         <section class="consulta-tabla-contenedor detalle-usuario">
 

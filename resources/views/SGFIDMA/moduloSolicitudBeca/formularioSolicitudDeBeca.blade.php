@@ -53,7 +53,7 @@
                 type="text"
                 id="nombreBeca"
                 name="nombreBeca"
-                class="input-grande2 input-bloqueado2"
+                class="input-grande2"
                 value="{{ old('nombreBeca', $beca->nombreDeBeca ?? '') }}"
                 readonly
             >
@@ -67,7 +67,7 @@
                     type="text"
                     id="porcentajeBeca"
                     name="porcentajeBeca"
-                    class="input-chico2 input-bloqueado2"
+                    class="input-chico2"
                     value="{{ old('porcentajeBeca', $beca->porcentajeDeDescuento ?? '') }}"
                     readonly
                 >
@@ -126,7 +126,7 @@
             <p>Formato PDF</p>
         </div>
 
-        <a href="{{ asset('storage/documentos/becas/DocumentoDePrueba.pdf') }}" class="link-descarga" download>
+        <a href="{{ asset('storage/documentos/becas/SOLICITUD_DE_RENOVACION_DE_BECA.pdf') }}" class="link-descarga" download>
             Descárguelo aquí
         </a>
 

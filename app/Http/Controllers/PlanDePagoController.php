@@ -226,6 +226,18 @@ class PlanDePagoController extends Controller
         // Si solo cambia estatus
         if ($request->accion === 'Suspender/Habilitar') {
 
+            // Verificar si hay estudiantes activos con este plan
+            $tieneEstudianteActivo = $plan->estudiantes()
+                                        ->where('idEstatus', 1) // 1 = activo
+                                        ->exists();
+
+            // Intento de suspender
+            if ($plan->idEstatus == 1 && $tieneEstudianteActivo) {
+                return redirect()->route('consultaPlan')
+                    ->with('popupError', 'No se puede suspender este plan por que existen estudiantes con este plan asignado.');
+            }
+
+            // Cambiar estatus normalmente
             $estatusAnterior = $plan->idEstatus;
             $plan->idEstatus = ($plan->idEstatus == 1) ? 2 : 1;
             $plan->save();
@@ -237,17 +249,16 @@ class PlanDePagoController extends Controller
             return redirect()->route('consultaPlan')->with('success', $mensaje);
         }
 
-        // Validación normal
+
+        // Validación del nombre
         $request->validate([
             'nombrePlan' => 'required|string|max:150',
-            'cantidades' => 'required|array',
         ]);
 
-        // Nombre formateado
         $nombreFormateado = $this->mbUcwords($request->nombrePlan);
 
         // Verificar duplicado sin contar el actual
-        $existe = PlanDePago::whereRaw('LOWER(nombrePlanDePago) = ?', [mb_strtolower($request->nombrePlan)])
+        $existe = PlanDePago::whereRaw('LOWER(nombrePlanDePago) = ?', [mb_strtolower($nombreFormateado)])
                             ->where('idPlanDePago', '!=', $id)
                             ->exists();
 
@@ -257,7 +268,26 @@ class PlanDePagoController extends Controller
                 ->withInput();
         }
 
-        // Verificar que no todos sean 0
+        // ==============================
+        // VERIFICAR SI ALGÚN ESTUDIANTE ACTIVO USA ESTE PLAN
+        // ==============================
+        $tieneEstudianteActivo = $plan->estudiantes()
+                                    ->where('idEstatus', 1) // 1 = activo
+                                    ->exists();
+
+        // Si tiene estudiantes activos, solo se permite cambiar el nombre
+        if ($tieneEstudianteActivo) {
+            $plan->nombrePlanDePago = $nombreFormateado;
+            $plan->save();
+
+            return redirect()->route('consultaPlan')->with('success', 'El nombre del plan se actualizó correctamente, pero no se pueden modificar los conceptos porque el plan tiene estudiantes activos.');
+        }
+
+        // Validación de conceptos solo si NO hay estudiantes activos
+        $request->validate([
+            'cantidades' => 'required|array',
+        ]);
+
         $todasCero = collect($request->cantidades)->every(fn($c) => intval($c) <= 0);
 
         if ($todasCero) {
@@ -266,13 +296,15 @@ class PlanDePagoController extends Controller
                 ->withInput();
         }
 
-        // Eliminar conceptos anteriores
+        // Actualizar nombre
+        $plan->nombrePlanDePago = $nombreFormateado;
+        $plan->save();
+
+        // Eliminar conceptos anteriores y registrar nuevos
         $plan->conceptos()->delete();
 
-        // Registrar nuevos
         foreach ($request->cantidades as $idConcepto => $cantidad) {
             $cantidad = intval($cantidad);
-
             if ($cantidad > 0) {
                 PlanConcepto::create([
                     'idPlanDePago' => $plan->idPlanDePago,
@@ -284,6 +316,8 @@ class PlanDePagoController extends Controller
 
         return redirect()->route('consultaPlan')->with('success', 'Plan de pagos actualizado correctamente.');
     }
+
+
 
 
     public function destroy($id)

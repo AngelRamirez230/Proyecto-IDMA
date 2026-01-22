@@ -206,81 +206,83 @@
 
 
     @if($pagos->count())
+        @if($planAsignado)
 
-        <section class="consulta">
+            <section class="consulta">
 
-            <h2 class="consulta-titulo titulo-centrado">
-                {{ $planAsignado->planDePago->nombrePlanDePago }}
-            </h2>
+                <h2 class="consulta-titulo titulo-centrado">
+                    {{ $planAsignado->planDePago->nombrePlanDePago }}
+                </h2>
 
-            <section class="consulta-tabla-contenedor">
-                <table class="tabla">
+                <section class="consulta-tabla-contenedor">
+                    <table class="tabla">
 
-                    <thead>
-                        <tr>
-                            <th>Concepto</th>
-                            <th>Aportación</th>
-                            <th>Fecha limite de pago</th>
-                            <th>Estatus</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-
-                        @foreach($pagosOrdenadosFinal as $pago)
-
-                            @php
-                                $yaGenerado = now()->gte($pago->fechaGeneracionDePago);
-                            @endphp
-
+                        <thead>
                             <tr>
-                                <td>{{ $pago->concepto->nombreConceptoDePago }}</td>
-
-                                <td>{{ $pago->aportacion }}</td>
-
-                                <td>{{ $pago->fechaLimiteDePago->format('d/m/Y') }}</td>
-
-                                <td>
-                                    <span class="estatus estatus-{{ strtolower($pago->estatus->nombreTipoDeEstatus) }}">
-                                        {{ $pago->estatus->nombreTipoDeEstatus }}
-                                    </span>
-                                </td>
-
-                                <td>
-                                    <div class="tabla-acciones">
-
-                                        @php
-                                            $yaGenerado = now()->gte($pago->fechaGeneracionDePago);
-                                        @endphp
-
-                                        {{-- VER DETALLES --}}
-                                        <a href="{{ $yaGenerado ? route('pagos.show', $pago->Referencia) : '#' }}"
-                                        class="btn-boton-formulario2 btn-accion {{ $yaGenerado ? '' : 'btn-desabilitado' }}"
-                                        title="{{ $yaGenerado ? 'Ver detalles' : 'Disponible próximamente' }}">
-                                            Ver detalles
-                                        </a>
-
-                                        {{-- DESCARGAR RECIBO --}}
-                                        <a href="{{ ($yaGenerado) ? route('pagos.recibo', $pago->Referencia) : '#' }}"
-                                        class="btn-boton-formulario2 btn-accion {{ ($yaGenerado) ? '' : 'btn-desabilitado' }}"
-                                        title="{{ ($yaGenerado) ? 'Descargar recibo' : 'No disponible aún' }}">
-                                            Descargar recibo
-                                        </a>
-
-                                    </div>
-                                </td>
-
+                                <th>Concepto</th>
+                                <th>Aportación</th>
+                                <th>Fecha limite de pago</th>
+                                <th>Estatus</th>
+                                <th>Acciones</th>
                             </tr>
+                        </thead>
 
-                        @endforeach
+                        <tbody>
 
-                    </tbody>
+                            @foreach($pagosOrdenadosFinal as $pago)
 
-                </table>
+                                @php
+                                    $yaGenerado = now()->gte($pago->fechaGeneracionDePago);
+                                @endphp
+
+                                <tr>
+                                    <td>{{ $pago->concepto->nombreConceptoDePago }}</td>
+
+                                    <td>{{ $pago->aportacion }}</td>
+
+                                    <td>{{ $pago->fechaLimiteDePago->format('d/m/Y') }}</td>
+
+                                    <td>
+                                        <span class="estatus estatus-{{ strtolower($pago->estatus->nombreTipoDeEstatus) }}">
+                                            {{ $pago->estatus->nombreTipoDeEstatus }}
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <div class="tabla-acciones">
+
+                                            @php
+                                                $yaGenerado = now()->gte($pago->fechaGeneracionDePago);
+                                            @endphp
+
+                                            {{-- VER DETALLES --}}
+                                            <a href="{{ $yaGenerado ? route('pagos.show', $pago->Referencia) : '#' }}"
+                                            class="btn-boton-formulario2 btn-accion {{ $yaGenerado ? '' : 'btn-desabilitado' }}"
+                                            title="{{ $yaGenerado ? 'Ver detalles' : 'Disponible próximamente' }}">
+                                                Ver detalles
+                                            </a>
+
+                                            {{-- DESCARGAR RECIBO --}}
+                                            <a href="{{ ($yaGenerado) ? route('pagos.recibo', $pago->Referencia) : '#' }}"
+                                            class="btn-boton-formulario2 btn-accion {{ ($yaGenerado) ? '' : 'btn-desabilitado' }}"
+                                            title="{{ ($yaGenerado) ? 'Descargar recibo' : 'No disponible aún' }}">
+                                                Descargar recibo
+                                            </a>
+
+                                        </div>
+                                    </td>
+
+                                </tr>
+
+                            @endforeach
+
+                        </tbody>
+
+                    </table>
+                </section>
+
             </section>
-
-        </section>
+        @endif
 
     @endif
 

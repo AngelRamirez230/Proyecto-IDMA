@@ -35,6 +35,15 @@
                         </select>
                     @endif
 
+                    @estudiante
+                        <select name="filtro" class="select select-boton" onchange="this.form.submit()">
+                            <option value="" disabled selected>Filtrar por</option>
+                            <option value="todas" {{ ($filtro ?? '') == 'todas' ? 'selected' : '' }}>Ver todas</option>
+                            <option value="pieza" {{ ($filtro ?? '') == 'pieza' ? 'selected' : '' }}>Pieza</option>
+                            <option value="servicio" {{ ($filtro ?? '') == 'servicio' ? 'selected' : '' }}>Servicio</option>
+                        </select>
+                    @endestudiante
+
                     <select name="orden" class="select select-boton" onchange="this.form.submit()">
                         <option value="" disabled selected>Ordenar por</option>
                         <option value="alfabetico" {{ ($orden ?? '') == 'alfabetico' ? 'selected' : '' }}>Alfabéticamente (A-Z)</option>

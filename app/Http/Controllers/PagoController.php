@@ -383,4 +383,40 @@ class PagoController extends Controller
     }
 
 
+
+    // Mostrar la vista de validación de pagos pendientes
+    public function vistaValidarPagos()
+    {
+        $pagos = Pago::with(['estudiante.usuario', 'concepto', 'estatus'])
+                    ->where('idEstatus', 3) // solo pendientes
+                    ->paginate(10);
+
+        return view('SGFIDMA.moduloPagos.validacionDePagos', compact('pagos'));
+    }
+
+    // Validar pagos desde un archivo TXT
+    public function validarArchivo(Request $request)
+    {
+        $request->validate([
+            'archivoTxt' => 'required|file|mimes:txt'
+        ]);
+
+        $contenido = file($request->file('archivoTxt')->getRealPath(), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
+        $pagosValidados = [];
+        foreach ($contenido as $referencia) {
+            $pago = Pago::where('Referencia', trim($referencia))->first();
+            if ($pago && $pago->idEstatus == 3) {
+                $pago->idEstatus = 6;
+                $pago->fechaDePago = now();
+                $pago->save();
+                $pagosValidados[] = $referencia;
+            }
+        }
+
+        return redirect()->back()->with('success', "Pagos validados: " . implode(', ', $pagosValidados));
+    }
+
+
+
 }
