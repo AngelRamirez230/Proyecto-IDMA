@@ -113,12 +113,12 @@
         @endif
 
         {{-- 6. HORARIOS --}}
-        @admin
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(2, 3, 4, 5, 6, 7))
         <a href="#" class="card-btn">
             <img src="/imagenes/IconoInicioHorarios.png" alt="">
             <span class="card-btn-title">Horarios</span>
         </a>
-        @endadmin
+        @endif
 
         {{-- 7. CALIFICACIONES --}}
         @admin

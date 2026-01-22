@@ -15,6 +15,7 @@ class Grupo extends Model
         'semestre',
         'idLicenciatura',
         'idCicloModalidad',
+        'idGeneracion',
         'idEstatus',
     ];
 }
