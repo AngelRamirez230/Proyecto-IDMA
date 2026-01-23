@@ -147,7 +147,7 @@
 
                         <tr>
                             <td>Forma de pago</td>
-                            <td>{{ $pago->idTipoDePago ?? '-' }}</td>
+                            <td>{{ $pago->tipoDePago->nombreTipoDePago ?? '-' }}</td>
                         </tr>
 
                         <tr>

@@ -9,6 +9,7 @@
 <body>
 
     @include('layouts.barraNavegacion')
+    
 
     <main class="consulta">
 
