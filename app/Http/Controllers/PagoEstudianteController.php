@@ -106,11 +106,9 @@ class PagoEstudianteController extends Controller
         $validator = Validator::make(
             $request->all(),
             [
-                // ======================
-                // PAGO
-                // ======================
                 'idConceptoDePago'   => 'required|exists:concepto_de_pago,idConceptoDePago',
-                'fechaLimiteDePago'  => 'required|date|after_or_equal:today',
+                'fechaEmisionDePago' => 'required|date|after_or_equal:today',
+                'fechaLimiteDePago'  => 'required|date|after_or_equal:fechaEmisionDePago',
                 'estudiantes'        => 'required|array|min:1',
                 'estudiantes.*'      => 'exists:estudiante,idEstudiante',
                 'aportacion'         => 'required|string|max:100',
@@ -123,15 +121,17 @@ class PagoEstudianteController extends Controller
                 'min'      => 'Debe seleccionar al menos :min estudiante.',
                 'max'      => 'El campo :attribute no debe exceder :max caracteres.',
                 'exists'   => 'El :attribute seleccionado no es válido.',
-                'after_or_equal'  => 'La :attribute no puede ser menor a la fecha actual.',
+                'after_or_equal' => 'La :attribute no puede ser menor a la fecha de emisión.',
             ],
             [
-                'idConceptoDePago'  => 'concepto de pago',
+                'idConceptoDePago'   => 'concepto de pago',
+                'fechaEmisionDePago'=> 'fecha de emisión de pago',
                 'fechaLimiteDePago' => 'fecha límite de pago',
                 'estudiantes'       => 'estudiantes',
                 'aportacion'        => 'aportación',
             ]
         );
+
 
         if ($validator->fails()) {
             return back()
@@ -142,11 +142,14 @@ class PagoEstudianteController extends Controller
 
         $concepto = ConceptoDePago::findOrFail($request->idConceptoDePago);
         $fechaLimitePago = Carbon::parse($request->fechaLimiteDePago);
+        $fechaEmisionPago = Carbon::parse($request->fechaEmisionDePago);
+
 
 
         $contadorReferencias = 0;
         $referenciasCreadas = [];
         $referenciasDuplicadas = [];
+        $omitidosPorPlan = [];
 
 
         try {
@@ -154,13 +157,34 @@ class PagoEstudianteController extends Controller
             // =============================
             // TRANSACCIÓN
             // =============================
-            DB::transaction(function () use ($request,$concepto,$fechaLimitePago,&$contadorReferencias,&$referenciasCreadas,&$referenciasDuplicadas) 
+            DB::transaction(function () use ($request,$concepto,$fechaLimitePago,$fechaEmisionPago,&$contadorReferencias,&$referenciasCreadas,&$referenciasDuplicadas,&$omitidosPorPlan) 
             {
 
 
                 foreach ($request->estudiantes as $idEstudiante) {
 
                     $estudiante = Estudiante::with('usuario')->findOrFail($idEstudiante);
+
+
+                    // =============================
+                    // VALIDAR PLAN DE PAGO ACTIVO
+                    // =============================
+                    $conceptosRestringidos = [1, 2, 30];
+
+                    if (
+                        $estudiante->tienePlanActivo() &&
+                        in_array($concepto->idConceptoDePago, $conceptosRestringidos)
+                    ) {
+
+                        $omitidosPorPlan[] = [
+                            'estudiante' => $estudiante->usuario->primerNombre . ' ' . $estudiante->usuario->primerApellido,
+                            'concepto'   => $concepto->nombreConceptoDePago,
+                            'motivo'     => 'Cuenta con plan de pago activo',
+                        ];
+
+                        continue;
+                    }
+
 
                     // =============================
                     // CALCULAR MONTO FINAL
@@ -265,7 +289,7 @@ class PagoEstudianteController extends Controller
                             'idEstudiante'          => $estudiante->idEstudiante,
                             'idConceptoDePago'      => $concepto->idConceptoDePago,
                             'montoAPagar'            => $costoFinal,
-                            'fechaGeneracionDePago' => now(),
+                            'fechaGeneracionDePago' => $fechaEmisionPago,
                             'fechaLimiteDePago'     => $fechaLimitePago,
                             'aportacion'            => $request->aportacion,
                             'idEstatus'             => 3,
@@ -288,8 +312,8 @@ class PagoEstudianteController extends Controller
                             'titulo'            => 'Nuevo pago asignado',
                             'mensaje'           => "Se te ha asignado el concepto de pago: {$concepto->nombreConceptoDePago}. Revisa tus pagos.",
                             'tipoDeNotificacion'=> 1, // Informativo
-                            'fechaDeInicio'     => now()->toDateString(),
-                            'fechaFin'          => now()->addDays(3)->toDateString(),
+                            'fechaDeInicio' => $fechaEmisionPago->toDateString(),
+                            'fechaFin'           => $fechaEmisionPago->copy()->addDays(3)->toDateString(),
                             'leida'             => 0,
                         ]);
                     } else {
@@ -316,7 +340,8 @@ class PagoEstudianteController extends Controller
             ->route('pagos.detalles-referencias')
             ->with('successPagos', true)
             ->with('creados', $referenciasCreadas)
-            ->with('duplicados', $referenciasDuplicadas);
+            ->with('duplicados', $referenciasDuplicadas)
+            ->with('omitidos', $omitidosPorPlan);;
         
     }
 
@@ -325,7 +350,8 @@ class PagoEstudianteController extends Controller
     {
         return view('SGFIDMA.moduloPagos.detallesGeneracionDeReferencias', [
             'creados'    => session('creados', []),
-            'duplicados' => session('duplicados', [])
+            'duplicados' => session('duplicados', []),
+            'omitidos'   => session('omitidos', []),
         ]);
     }
 

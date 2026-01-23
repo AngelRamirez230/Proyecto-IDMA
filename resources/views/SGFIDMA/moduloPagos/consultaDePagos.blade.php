@@ -75,6 +75,40 @@
 
         </section>
 
+
+        <div class="detalle-usuario__header">
+
+            <!-- BOTÓN SUBIR TXT -->
+            <form action="{{ route('pagos.validarArchivo') }}" method="POST" enctype="multipart/form-data" class="upload-form">
+                @csrf
+                <div class="upload-container">
+
+                    <label for="archivoTxt" class="btn-upload">
+                        Seleccionar archivo
+                    </label>
+
+                    <input 
+                        type="file" 
+                        name="archivoTxt" 
+                        id="archivoTxt" 
+                        accept=".txt,.xlsx,.xls" 
+                        required 
+                        class="upload-input-hidden"
+                    >
+
+                    <span id="archivoNombre" class="archivo-nombre">
+                        Ningún documento seleccionado
+                    </span>
+
+                    <!-- Botón validar -->
+                    <button type="submit" class="btn-boton-formulario2 btn-accion">
+                        Validar pagos
+                    </button>
+
+                </div>
+            </form>
+        </div>
+
         <!-- =========================
             TABLA
         ========================== -->
@@ -160,6 +194,24 @@
         </div>
 
     </main>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const input = document.getElementById('archivoTxt');
+            const span  = document.getElementById('archivoNombre');
+
+            if (input) {
+                input.addEventListener('change', function () {
+                    if (this.files && this.files.length > 0) {
+                        span.textContent = this.files[0].name;
+                    } else {
+                        span.textContent = 'Ningún documento seleccionado';
+                    }
+                });
+            }
+        });
+    </script>
 
 </body>
 </html>

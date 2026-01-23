@@ -15,7 +15,8 @@
 
                 <p>
                     Pagos creados: <strong>{{ count(session('creados', [])) }}</strong> <br>
-                    Pagos existentes: <strong>{{ count(session('duplicados', [])) }}</strong> 
+                    Pagos existentes: <strong>{{ count(session('duplicados', [])) }}</strong> <br> 
+                    Pagos omitidos: <strong>{{ count(session('omitidos', [])) }}</strong>
                 </p>
 
                 <button
@@ -108,6 +109,49 @@
                 </tbody>
             </table>
         </section>
+
+
+        {{-- ================= OMITIDOS POR PLAN ================= --}}
+        @if(!empty($omitidos))
+        <section class="consulta-tabla-contenedor" style="margin-top:40px;">
+
+            <h2 class="titulo-form2" style="font-size:22px;">
+                Pagos omitidos por plan activo
+            </h2>
+
+            <table class="tabla">
+                <thead>
+                    <tr class="tabla-encabezado">
+                        <th>Nombre estudiante</th>
+                        <th>Concepto</th>
+                        <th>Motivo</th>
+                    </tr>
+                </thead>
+
+                <tbody class="tabla-cuerpo">
+
+                @foreach($omitidos as $item)
+                    <tr class="fila-suspendida">
+                        <td>{{ $item['estudiante'] }}</td>
+                        <td>{{ $item['concepto'] }}</td>
+                        <td>{{ $item['motivo'] }}</td>
+                    </tr>
+                @endforeach
+
+                @if(empty($omitidos))
+                    <tr>
+                        <td colspan="3" class="tablaVacia">
+                            No hay información para mostrar.
+                        </td>
+                    </tr>
+                @endif
+
+                </tbody>
+            </table>
+
+        </section>
+        @endif
+
 
     </main>
 
