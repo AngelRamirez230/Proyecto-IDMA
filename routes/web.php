@@ -15,6 +15,7 @@ use App\Http\Controllers\AsignaturaController;
 use App\Http\Controllers\GrupoController;
 use App\Models\Empleado;
 use App\Http\Controllers\PagoController;
+use App\Http\Controllers\HorarioController;
 use App\Http\Controllers\PagoEstudianteController;
 use App\Http\Controllers\NotificacionController;
 
@@ -251,5 +252,10 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
     Route::post('/grupos/{id}/desasignar-estudiantes', [GrupoController::class, 'desasignarEstudiantes'])
         ->name('grupos.desasignarEstudiantes');
     Route::delete('/grupos/{id}', [GrupoController::class, 'destroy'])->name('grupos.destroy');
+
+    /*----------- HORARIOS -----------*/
+    Route::get('/apartadoHorarios', [HorarioController::class, 'apartado'])->name('apartadoHorarios');
+    Route::get('/altaHorario', [HorarioController::class, 'create'])->name('altaHorario');
+    Route::post('/horarios', [HorarioController::class, 'store'])->name('horarios.store');
 
 });

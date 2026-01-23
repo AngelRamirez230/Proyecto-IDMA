@@ -11,8 +11,8 @@
     @include('layouts.barraNavegacion')
 
     <main class="apartado-general">
-        @if(auth()->check() && (int)auth()->user()->idtipoDeUsuario === 1)
-            <a href="#" class="btn-boton btn-alta-usuario">Alta de horario</a>
+        @if(auth()->check() && (auth()->user()->esAdmin() || auth()->user()->esEmpleadoDe([2, 3, 4, 5, 6, 7])))
+            <a href="{{ route('altaHorario') }}" class="btn-boton btn-alta-usuario">Alta de horario</a>
         @endif
         <a href="#" class="btn-boton btn-consulta-usuario">Consulta de horarios</a>
     </main>

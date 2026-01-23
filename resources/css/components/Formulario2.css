@@ -175,6 +175,22 @@
     overflow: auto;
 }
 
+.horarios-bloque {
+    grid-column: 1 / -1;
+}
+
+.horarios-bloque .consulta-titulo {
+    margin: 18px 0 12px;
+}
+
+.consulta-tabla-contenedor2 {
+    width: 100%;
+    padding: 0 20px;
+    box-sizing: border-box;
+    overflow-x: auto;
+    margin-bottom: 40px;
+}
+
 .popup-botones--separado {
     margin-top: 16px;
 }
