@@ -185,6 +185,22 @@
     background-color: #7a7a7a;
 }
 
+.btn-desabilitado{
+    background-color: #B0B0B0 !important;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
+.titulo-centrado {
+    text-align: center ;
+    width: 100%;
+}
+
+.titulo-chico {
+    font-size: 1.1rem !important;
+    text-align: center !important;
+}
+
 /* =======================
    INPUT CON ICONO
 ======================= */

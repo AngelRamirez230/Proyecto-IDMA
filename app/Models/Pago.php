@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Estudiante;
 use App\Models\ConceptoDePago;
 use App\Models\Estatus;
+use App\Models\TipoDePago;
 
 class Pago extends Model
 {
@@ -21,6 +22,7 @@ class Pago extends Model
         'Referencia',
         'fechaDePago',
         'idConceptoDePago',
+        'montoAPagar',
         'numeroDeOperaciónBAZ',
         'numeroDeSucursal',
         'comisión',
@@ -38,9 +40,11 @@ class Pago extends Model
 
 
     protected $casts = [
+        'fechaDePago' => 'datetime',
         'fechaGeneracionDePago' => 'datetime',
         'fechaLimiteDePago'     => 'datetime',
     ];
+
 
     // =============================
     // RELACIONES
@@ -72,4 +76,15 @@ class Pago extends Model
             'idTipoDeEstatus'
         );
     }
+
+
+    public function tipoDePago()
+    {
+        return $this->belongsTo(
+            TipoDePago::class,
+            'idTipoDePago',
+            'idTipoDePago'
+        );
+    }
+
 }

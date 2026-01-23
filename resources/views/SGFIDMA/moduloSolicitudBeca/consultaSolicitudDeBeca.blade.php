@@ -78,7 +78,7 @@
                                 {{ $solicitud->estudiante->usuario->segundoApellido }}
                             </td>
                             <td>{{ $solicitud->beca->nombreDeBeca ?? 'Sin beca' }}</td>
-                            <td>{{ $solicitud->fechaDeSolicitud ?? 'Sin fecha definida' }}</td>
+                            <td>{{ $solicitud->fechaDeSolicitud?->format('d/m/Y') ?? 'Sin fecha definida' }}</td>
                             <td>{{ $solicitud->estatus->nombreTipoDeEstatus ?? 'Sin estatus' }}</td>
 
                             <td>

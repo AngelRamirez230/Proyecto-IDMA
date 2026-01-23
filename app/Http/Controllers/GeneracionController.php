@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\Generacion;
 use App\Models\Mes;
@@ -10,6 +11,9 @@ class GeneracionController extends Controller
 {
     public function verificarGeneracion()
     {
+        if (!Auth::user()->esAdmin()) {
+            return null;
+        }
         $mesActual = now()->month;
         $añoActual = now()->year;
 
@@ -57,14 +61,21 @@ class GeneracionController extends Controller
                 ->with('popupError', 'La generación ya existe');
         }
 
+        $claveGeneracion = $this->generarClaveGeneracion(
+            $request->añoDeInicio,
+            $request->idMesInicio
+        );
+
         Generacion::create([
-            'añoDeInicio'       => $request->añoDeInicio,
-            'idMesInicio'      => $request->idMesInicio,
-            'añoDeFinalizacion'          => $request->añoDeFinalizacion,
-            'idMesFin'         => $request->idMesFin,
-            'nombreGeneracion' => $request->nombreGeneracion,
-            'idEstatus'  => 1, // Activa
+            'añoDeInicio'        => $request->añoDeInicio,
+            'idMesInicio'       => $request->idMesInicio,
+            'añoDeFinalizacion' => $request->añoDeFinalizacion,
+            'idMesFin'          => $request->idMesFin,
+            'nombreGeneracion'  => $request->nombreGeneracion,
+            'claveGeneracion'   => $claveGeneracion,
+            'idEstatus'         => 1,
         ]);
+
 
         return redirect()->back()
             ->with('success', 'Generación creada correctamente');
@@ -79,16 +90,14 @@ class GeneracionController extends Controller
     public function armarDatosGeneracion(int $añoDeInicio, int $mesInicio): array
     {
         if ($mesInicio == 3) {
-            // Marzo → Febrero +4 años
-            $mesFin  = 2;
+            $mesFin = 2;
             $añoDeFinalizacion = $añoDeInicio + 4;
 
             $nombreGeneracion =
                 'Marzo ' . substr($añoDeInicio, -2) .
                 ' - Febrero ' . substr($añoDeFinalizacion, -2);
         } else {
-            // Septiembre → Agosto +4 años
-            $mesFin  = 8;
+            $mesFin = 8;
             $añoDeFinalizacion = $añoDeInicio + 4;
 
             $nombreGeneracion =
@@ -96,12 +105,25 @@ class GeneracionController extends Controller
                 ' - Agosto ' . substr($añoDeFinalizacion, -2);
         }
 
+        $claveGeneracion = $this->generarClaveGeneracion($añoDeInicio, $mesInicio);
+
         return [
             'añoDeInicio'       => $añoDeInicio,
             'idMesInicio'      => $mesInicio,
-            'añoDeFinalizacion'  => $añoDeFinalizacion,
+            'añoDeFinalizacion' => $añoDeFinalizacion,
             'idMesFin'         => $mesFin,
             'nombreGeneracion' => $nombreGeneracion,
+            'claveGeneracion'  => $claveGeneracion,
         ];
     }
+
+
+
+    private function generarClaveGeneracion(int $añoDeInicio, int $mesInicio): string
+    {
+        $letra = ($mesInicio == 3) ? 'A' : 'B';
+
+        return substr($añoDeInicio, -2) . $letra;
+    }
+
 }

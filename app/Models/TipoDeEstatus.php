@@ -13,4 +13,13 @@ class TipoDeEstatus extends Model
     protected $fillable = [
         'nombreTipoDeEstatus'
     ];
+
+    public function estudiantePlanes()
+    {
+        return $this->hasMany(
+            EstudiantePlan::class,
+            'idEstatus',
+            'idTipoDeEstatus'
+        );
+    }
 }

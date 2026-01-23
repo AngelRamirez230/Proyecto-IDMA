@@ -62,7 +62,9 @@
                     <tr class="tabla-encabezado">
                         <th>Nombre de beca</th>
                         <th>Porcentaje de descuento</th>
-                        <th>Estatus</th>
+                        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+                             <th>Estatus</th>
+                        @endif
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -76,7 +78,9 @@
                             <tr class="{{ $beca->idEstatus == 2 ? 'fila-suspendida' : '' }}">
                                 <td>{{ $beca->nombreDeBeca }}</td>
                                 <td>{{ $beca->porcentajeDeDescuento }}%</td>
-                                <td>{{ $beca->estatus->nombreTipoDeEstatus ?? 'Sin estatus' }}</td>
+                                @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+                                    <td>{{ $beca->estatus->nombreTipoDeEstatus ?? 'Sin estatus' }}</td>
+                                @endif
 
                                 <td>
                                     <div class="tabla-acciones">
@@ -132,7 +136,6 @@
                                         <a href="{{ route('solicitud-beca.create', $beca->idBeca)}}" class="btn-boton-formulario2 btn-accion" title="Solicitar beca">
                                             Solicitar beca
                                         </a>
-
                                     @endestudiante
 
                                     </div>

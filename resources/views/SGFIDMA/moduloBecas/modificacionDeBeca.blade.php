@@ -22,9 +22,9 @@
                 type="text"
                 id="nombreBeca"
                 name="nombreBeca"
-                class="input-grande2 input-bloqueado2"
+                class="input-grande2"
                 value="{{ old('nombreBeca', $beca->nombreDeBeca) }}"
-                readonly
+                required
             >
             <x-error-field field="nombreBeca" />
         </div>
