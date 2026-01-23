@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
+
 
 // MODELOS
 use App\Models\Pago;
@@ -394,16 +396,32 @@ class PagoController extends Controller
         return view('SGFIDMA.moduloPagos.validacionDePagos', compact('pagos'));
     }
 
-    // Validar pagos desde un archivo TXT
+
     public function validarArchivo(Request $request)
     {
         $request->validate([
-            'archivoTxt' => 'required|file|mimes:txt'
+            'archivoTxt' => 'required|file|mimes:txt,xlsx,xls'
         ]);
 
-        $lineas = file($request->file('archivoTxt')->getRealPath(), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        $archivo = $request->file('archivoTxt');
+        $extension = strtolower($archivo->getClientOriginalExtension());
 
-        // Quitar primera y última línea
+        if ($extension === 'txt') {
+            return $this->procesarTxt($archivo);
+        }
+
+        if (in_array($extension, ['xlsx', 'xls'])) {
+            return $this->procesarExcel($archivo);
+        }
+
+        return redirect()->back()->with('popupError', 'Formato de archivo no válido.');
+    }
+
+
+    private function procesarTxt($archivo)
+    {
+        $lineas = file($archivo->getRealPath(), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
         array_shift($lineas);
         array_pop($lineas);
 
@@ -411,10 +429,6 @@ class PagoController extends Controller
         $pagosNoEncontrados = [];
 
         foreach ($lineas as $linea) {
-
-            // ================================
-            // EXTRAER CAMPOS POR POSICIÓN
-            // ================================
 
             $tipoRegistro  = substr($linea, 0, 1);
             $fechaPagoTxt = substr($linea, 1, 8);
@@ -424,56 +438,170 @@ class PagoController extends Controller
             $formaPago    = substr($linea, 54, 2);
             $importePago  = substr($linea, 56, 11);
             $comision     = substr($linea, 67, 11);
-            $iva           = substr($linea, 78, 11);
+            $iva          = substr($linea, 78, 11);
             $importeNeto  = substr($linea, 89, 11);
 
-            // ================================
-            // LIMPIEZA DE VALORES
-            // ================================
-
-            $fechaPago = \Carbon\Carbon::createFromFormat('Ymd', $fechaPagoTxt);
+            $fechaPago = Carbon::createFromFormat('Ymd', $fechaPagoTxt);
 
             $importePago = number_format(((int)$importePago) / 100, 2, '.', '');
             $comision    = number_format(((int)$comision) / 100, 2, '.', '');
             $iva         = number_format(((int)$iva) / 100, 2, '.', '');
             $importeNeto = number_format(((int)$importeNeto) / 100, 2, '.', '');
 
-            // ================================
-            // BUSCAR PAGO POR REFERENCIA
-            // ================================
-
             $pago = Pago::where('Referencia', $referencia)->first();
+
 
             if (!$pago) {
                 $pagosNoEncontrados[] = $referencia;
                 continue;
             }
 
-            // ================================
-            // ACTUALIZAR CAMPOS PERMITIDOS
-            // ================================
+            if ($pago->idEstatus == 6) continue;
 
-            $pago->fechaDePago = $fechaPago;
-            $pago->numeroDeOperaciónBAZ = $operacionBaz;
-            $pago->numeroDeSucursal = $sucursal;
-            $pago->idTipoDePago = $formaPago;
-            $pago->ImporteDePago = $importePago;
-            $pago->comisión = $comision;
-            $pago->IVA = $iva;
-            $pago->ImporteNeto = $importeNeto;
-            $pago->tipoDeRegistro = $tipoRegistro;
-            $pago->idEstatus = 6;
-
-            $pago->save();
+            $pago->update([
+                'fechaDePago' => $fechaPago,
+                'numeroDeOperaciónBAZ' => $operacionBaz,
+                'numeroDeSucursal' => $sucursal,
+                'idTipoDePago' => $formaPago,
+                'ImporteDePago' => $importePago,
+                'comisión' => $comision,
+                'IVA' => $iva,
+                'ImporteNeto' => $importeNeto,
+                'tipoDeRegistro' => $tipoRegistro,
+                'idEstatus' => 6,
+            ]);
 
             $pagosActualizados[] = $referencia;
         }
 
+        $nombreArchivo = $archivo->getClientOriginalName();
+
         return redirect()->back()->with('success',
-            "Pagos validados: " . count($pagosActualizados) .
-            "<br>No encontrados: " . count($pagosNoEncontrados)
+            "TXT cargado correctamente<br>
+            <strong>Archivo cargado</strong>: {$nombreArchivo}<br>
+            <strong>Pagos validados:</strong> " . count($pagosActualizados) .
+            "<br><strong>No encontrados:</strong> " . count($pagosNoEncontrados)
         );
     }
+
+
+
+    private function procesarExcel($archivo)
+    {
+        $filas = \Maatwebsite\Excel\Facades\Excel::toArray([], $archivo)[0];
+
+        // Eliminar filas 1,2,3 (titulo + encabezados)
+        $filas = array_slice($filas, 3);
+
+        $pagosActualizados = [];
+        $pagosNoEncontrados = [];
+
+        foreach ($filas as $fila) {
+
+            if (count($fila) < 13) continue;
+
+            // ================================
+            // LIMPIEZA DE DATOS
+            // ================================
+
+            $fechaHora  = trim((string) $fila[0]);
+            $noSucursal = trim((string) $fila[3]);
+            $operacionBaz = trim((string) $fila[5]);
+
+            $tipoOperacion = trim((string) $fila[6]);
+            $referencia = trim((string) $fila[8]);
+
+            // Limpieza extra para caracteres invisibles
+            $referencia = preg_replace('/\s+/', '', $referencia);
+
+            $importePago = floatval($fila[9]);
+            $comision    = floatval($fila[10]);
+            $iva         = floatval($fila[11]);
+            $importeNeto = floatval($fila[12]);
+
+            if (!$referencia) continue;
+
+            // ================================
+            // LIMPIEZA DE FECHA
+            // ================================
+            try {
+                $fechaPago = Carbon::createFromFormat('d/m/Y H:i:s', $fechaHora)->format('Y-m-d');
+            } catch (\Exception $e) {
+                continue;
+            }
+
+            // ================================
+            // NORMALIZAR FORMA DE PAGO
+            // ================================
+
+            $tipoOperacionNormalizado = mb_strtolower($tipoOperacion);
+            $tipoOperacionNormalizado = str_replace(
+                ['á','é','í','ó','ú','ñ'],
+                ['a','e','i','o','u','n'],
+                $tipoOperacionNormalizado
+            );
+
+            if (str_contains($tipoOperacionNormalizado, 'efectivo')) {
+                $formaPago = 1;
+            } elseif (
+                str_contains($tipoOperacionNormalizado, 'deposit') ||
+                str_contains($tipoOperacionNormalizado, 'dep')
+            ) {
+                $formaPago = 3;
+            } else {
+                $formaPago = null;
+            }
+
+            if (!$formaPago) {
+                continue;
+            }
+            
+
+            // ================================
+            // BUSCAR PAGO
+            // ================================
+
+            $pago = Pago::whereRaw('TRIM(Referencia) = ?', [$referencia])->first();
+
+            if (!$pago) {
+                $pagosNoEncontrados[] = $referencia;
+                continue;
+            }
+
+            if ($pago->idEstatus == 6) continue;
+
+            // ================================
+            // ACTUALIZAR
+            // ================================
+
+            $pago->update([
+                'fechaDePago' => $fechaPago,
+                'numeroDeSucursal' => $noSucursal,
+                'numeroDeOperaciónBAZ' => $operacionBaz,
+                'idTipoDePago' => $formaPago,
+                'ImporteDePago' => $importePago,
+                'comisión' => $comision,
+                'IVA' => $iva,
+                'ImporteNeto' => $importeNeto,
+                'tipoDeRegistro' => 'D',
+                'idEstatus' => 6,
+            ]);
+
+            $pagosActualizados[] = $referencia;
+        }
+
+        $nombreArchivo = $archivo->getClientOriginalName();
+
+        return redirect()->back()->with('success',
+            "Excel cargado correctamente<br>
+            <strong>Archivo cargado</strong>: {$nombreArchivo}<br>
+            <strong>Pagos validados:</strong> " . count($pagosActualizados) .
+            "<br><strong>No encontrados:</strong> " . count($pagosNoEncontrados)
+        );
+
+    }
+
+
 
 
 

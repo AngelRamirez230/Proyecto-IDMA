@@ -80,20 +80,18 @@
             <x-error-field field="fechaDeFinalizacion" />
         </div>
 
-        {{-- SELECCIONAR TODOS --}}
-        <div class="form-group2" style="margin-bottom:40px;">
-            <label class="chk-label">
-                <input type="checkbox" id="selectAll" class="chk-grande">
-                <span>Seleccionar todos los estudiantes</span>
-            </label>
-        </div>
 
         {{-- TABLA --}}
         <section class="consulta-tabla-contenedor">
             <table class="tabla">
                 <thead>
                     <tr class="tabla-encabezado">
-                        <th>Seleccionar</th>
+                        <th style="text-align:center; white-space:nowrap;">
+                            <label style="display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;">
+                                <input type="checkbox" id="selectAll" class="chk-grande">
+                                <span>Seleccionar</span>
+                            </label>
+                        </th>
                         <th>Nombre</th>
                         <th>Matrícula</th>
                         <th>Semestre</th>
