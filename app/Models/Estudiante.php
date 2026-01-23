@@ -63,4 +63,15 @@ class Estudiante extends Model
             'idEstudiante'
         );
     }
+
+    public function planesDePago()
+    {
+        return $this->hasMany(
+            EstudiantePlan::class,
+            'idEstudiante',
+            'idEstudiante'
+        );
+    }
+
+    
 }

@@ -31,6 +31,34 @@ class PagoController extends Controller
         $concepto = ConceptoDePago::findOrFail($idConcepto);
 
         // =============================
+        // VALIDAR SI ES COLEGIATURA
+        // =============================
+        $esMensualidad = ($concepto->idConceptoDePago == 2);
+
+        // =============================
+        // BUSCAR BECA APROBADA
+        // =============================
+        $solicitudBeca = $estudiante->solicitudesDeBeca()
+            ->where('idEstatus', 6) // Aprobada
+            ->with('beca')
+            ->first();
+
+        // =============================
+        // CALCULAR COSTO FINAL
+        // =============================
+        $costoFinal = $concepto->costo;
+
+        if ($esMensualidad && $solicitudBeca && $solicitudBeca->beca) {
+
+            $porcentaje = $solicitudBeca->beca->porcentajeDeDescuento;
+
+            $descuento = ($concepto->costo * $porcentaje) / 100;
+
+            $costoFinal = $concepto->costo - $descuento;
+        }
+
+
+        // =============================
         // NOMBRE COMPLETO
         // =============================
         $nombreCompleto = trim(
@@ -41,13 +69,20 @@ class PagoController extends Controller
         );
 
         // =============================
-        // FECHA LÍMITE DE PAGO (DÍA 15)
+        // FECHA LÍMITE DE PAGO
+        // Regla: +8 días sin pasar de mes
         // =============================
-        $fechaLimitePago = Carbon::now()->day(15);
 
-        if (Carbon::now()->day > 15) {
-            $fechaLimitePago->addMonth();
+        $fechaGeneracion = Carbon::today(); 
+
+        $fechaLimitePago = $fechaGeneracion->copy()->addDays(8);
+
+        // Si se pasó al siguiente mes → último día del mes original
+        if ($fechaLimitePago->month !== $fechaGeneracion->month) {
+            $fechaLimitePago = $fechaGeneracion->copy()->endOfMonth();
         }
+
+
 
         // =============================
         // FECHA CONDENSADA
@@ -79,7 +114,7 @@ class PagoController extends Controller
         // =============================
 
         // 1. Obtener costo y dejarlo en 10 dígitos sin punto decimal
-        $monto = number_format($concepto->costo, 2, '', ''); // ej. 1130.00 → 113000
+        $monto = number_format($costoFinal, 2, '', ''); // ej. 1130.00 → 113000
         $monto = str_pad($monto, 10, '0', STR_PAD_LEFT);
 
         // 2. Ponderadores (se asignan desde la derecha)
@@ -157,11 +192,24 @@ class PagoController extends Controller
             . $remanente;
 
         // =============================
+        // VALIDAR SI LA REFERENCIA YA EXISTE
+        // =============================
+        $existeReferencia = Pago::where('Referencia', $referenciaFinal)->exists();
+
+        if ($existeReferencia) {
+            return redirect()
+                ->back()
+                ->with('popupError', 'La referencia de pago ya existe. Revisa tu apartado de pagos.');
+        }
+
+
+        // =============================
         // GUARDAR PAGO
         // =============================
         Pago::create([
             'Referencia'             => $referenciaFinal,
             'idConceptoDePago'       => $concepto->idConceptoDePago,
+            'montoAPagar'            => $costoFinal,
             'fechaGeneracionDePago'  => now(),
             'fechaLimiteDePago'     => $fechaLimitePago,
             'aportacion'            => null,
@@ -181,6 +229,7 @@ class PagoController extends Controller
                 'nombreCompleto' => $nombreCompleto,
                 'fechaEmision'   => now()->format('d/m/Y'),
                 'fechaLimite'    => $fechaLimitePago->format('d/m/Y'),
+                'montoAPagar' => $costoFinal,
                 
             ]
         )->setPaper('letter');
@@ -212,10 +261,10 @@ class PagoController extends Controller
                 'estudiante'     => $pago->estudiante,
                 'concepto'       => $pago->concepto,
                 'nombreCompleto' => $nombreCompleto,
-                'fechaEmision'   => $pago->fechaGeneracionDePago->format('d/m/Y'),
-                'fechaLimite'    => $pago->fechaLimiteDePago->format('d/m/Y'),
-                'aportacion'     => $pago->aportacion,
-                'pago'           => $pago, 
+                'fechaEmision'   => $pago->fechaGeneracionDePago?->format('d/m/Y'),
+                'fechaLimite'    => $pago->fechaLimiteDePago?->format('d/m/Y'),
+                'montoAPagar'    => $pago->montoAPagar,
+                'pago'           => $pago,
             ]
         )->setPaper('letter');
 
@@ -246,7 +295,8 @@ class PagoController extends Controller
         // RESTRICCIÓN POR ROL
         // =============================
         if ($usuario->estudiante) {
-            $query->where('idEstudiante', $usuario->estudiante->idEstudiante);
+            $query->where('idEstudiante', $usuario->estudiante->idEstudiante)
+                ->whereDate('fechaGeneracionDePago', '<=', Carbon::today());
         }
 
         // =============================
@@ -331,6 +381,101 @@ class PagoController extends Controller
             'pago' => $pago
         ]);
     }
+
+
+
+    // Mostrar la vista de validación de pagos pendientes
+    public function vistaValidarPagos()
+    {
+        $pagos = Pago::with(['estudiante.usuario', 'concepto', 'estatus'])
+                    ->where('idEstatus', 3) // solo pendientes
+                    ->paginate(10);
+
+        return view('SGFIDMA.moduloPagos.validacionDePagos', compact('pagos'));
+    }
+
+    // Validar pagos desde un archivo TXT
+    public function validarArchivo(Request $request)
+    {
+        $request->validate([
+            'archivoTxt' => 'required|file|mimes:txt'
+        ]);
+
+        $lineas = file($request->file('archivoTxt')->getRealPath(), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
+        // Quitar primera y última línea
+        array_shift($lineas);
+        array_pop($lineas);
+
+        $pagosActualizados = [];
+        $pagosNoEncontrados = [];
+
+        foreach ($lineas as $linea) {
+
+            // ================================
+            // EXTRAER CAMPOS POR POSICIÓN
+            // ================================
+
+            $tipoRegistro  = substr($linea, 0, 1);
+            $fechaPagoTxt = substr($linea, 1, 8);
+            $referencia   = trim(substr($linea, 9, 31));
+            $operacionBaz = substr($linea, 40, 10);
+            $sucursal     = substr($linea, 51, 4);
+            $formaPago    = substr($linea, 54, 2);
+            $importePago  = substr($linea, 56, 11);
+            $comision     = substr($linea, 67, 11);
+            $iva           = substr($linea, 78, 11);
+            $importeNeto  = substr($linea, 89, 11);
+
+            // ================================
+            // LIMPIEZA DE VALORES
+            // ================================
+
+            $fechaPago = \Carbon\Carbon::createFromFormat('Ymd', $fechaPagoTxt);
+
+            $importePago = number_format(((int)$importePago) / 100, 2, '.', '');
+            $comision    = number_format(((int)$comision) / 100, 2, '.', '');
+            $iva         = number_format(((int)$iva) / 100, 2, '.', '');
+            $importeNeto = number_format(((int)$importeNeto) / 100, 2, '.', '');
+
+            // ================================
+            // BUSCAR PAGO POR REFERENCIA
+            // ================================
+
+            $pago = Pago::where('Referencia', $referencia)->first();
+
+            if (!$pago) {
+                $pagosNoEncontrados[] = $referencia;
+                continue;
+            }
+
+            // ================================
+            // ACTUALIZAR CAMPOS PERMITIDOS
+            // ================================
+
+            $pago->fechaDePago = $fechaPago;
+            $pago->numeroDeOperaciónBAZ = $operacionBaz;
+            $pago->numeroDeSucursal = $sucursal;
+            $pago->idTipoDePago = $formaPago;
+            $pago->ImporteDePago = $importePago;
+            $pago->comisión = $comision;
+            $pago->IVA = $iva;
+            $pago->ImporteNeto = $importeNeto;
+            $pago->tipoDeRegistro = $tipoRegistro;
+            $pago->idEstatus = 6;
+
+            $pago->save();
+
+            $pagosActualizados[] = $referencia;
+        }
+
+        return redirect()->back()->with('success',
+            "Pagos validados: " . count($pagosActualizados) .
+            "<br>No encontrados: " . count($pagosNoEncontrados)
+        );
+    }
+
+
 
 
 }

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\TipoDeUnidad;
 use App\Models\ConceptoDePago;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class ConceptoController extends Controller
 {
@@ -108,6 +109,15 @@ class ConceptoController extends Controller
         // Trae todos los conceptos con sus relaciones
         $concepto = ConceptoDePago::with(['unidad', 'estatus']);
 
+        /*
+        ==================================================
+        RESTRICCIÓN PARA ESTUDIANTES
+        ==================================================
+        */
+        if (Auth::check() && Auth::user()->idtipoDeUsuario == 4) { // ← estudiante
+            $concepto->whereNotIn('idConceptoDePago', [1, 2, 30]);
+        }
+
         //Aplicar buscar
         if ($request->filled('buscarConcepto')) {
             $concepto->where('nombreConceptoDePago', 'LIKE', '%' . $buscar . '%');
@@ -138,7 +148,8 @@ class ConceptoController extends Controller
 
 
         $conceptos = $concepto->paginate(5)->withQueryString();
-;
+
+        
 
         // Retorna la vista
         return view('SGFIDMA.moduloConceptosDePago.consultaDeConceptos', compact('conceptos','filtro','orden','buscar'));

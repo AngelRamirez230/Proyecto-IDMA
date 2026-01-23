@@ -167,19 +167,15 @@ class BecaController extends Controller
         $beca = Beca::findOrFail($idBeca);
 
         if ($request->accion === 'guardar') {
-            
+
+            // Validar nombre y porcentaje
             $validator = Validator::make(
                 $request->all(),
                 [
-                    // ======================
-                    // BECA
-                    // ======================
+                    'nombreBeca'     => 'required|string|max:150',
                     'porcentajeBeca' => 'required|numeric|min:1|max:100',
                 ],
                 [
-                    // ======================
-                    // MENSAJES GENERALES
-                    // ======================
                     'required' => 'El campo :attribute es obligatorio.',
                     'string'   => 'El campo :attribute debe ser texto.',
                     'numeric'  => 'El campo :attribute debe ser un número válido.',
@@ -187,9 +183,7 @@ class BecaController extends Controller
                     'max'      => 'El campo :attribute no debe exceder :max.',
                 ],
                 [
-                    // ======================
-                    // NOMBRES AMIGABLES
-                    // ======================
+                    'nombreBeca'     => 'nombre de la beca',
                     'porcentajeBeca' => 'porcentaje de descuento',
                 ]
             );
@@ -201,12 +195,25 @@ class BecaController extends Controller
                     ->withInput();
             }
 
+            // Actualizar campos
+            $beca->nombreDeBeca = $request->nombreBeca;
             $beca->porcentajeDeDescuento = $request->porcentajeBeca;
             $beca->save();
 
             return redirect()->route('consultaBeca')->with('success', 'Beca actualizada correctamente.');
 
         } elseif ($request->accion === 'Suspender/Habilitar') {
+
+            // Revisar si hay estudiantes usando la beca y evitar suspender
+            $tieneSolicitudesActivas = $beca->solicitudes()
+                                            ->where('idEstatus', 6) // 1 = activo
+                                            ->exists();
+
+            if ($beca->idEstatus == 1 && $tieneSolicitudesActivas) {
+                return redirect()->route('consultaBeca')
+                    ->with('popupError', 'No se puede suspender esta beca porque algunos estudiantes tienen asignada esta beca.');
+            }
+
             // Guardar el estatus actual antes de cambiarlo
             $estatusAnterior = $beca->idEstatus;
 
@@ -222,6 +229,7 @@ class BecaController extends Controller
             return redirect()->route('consultaBeca')->with('success', $mensaje);
         }
     }
+
 
 
     public function destroy($idBeca)

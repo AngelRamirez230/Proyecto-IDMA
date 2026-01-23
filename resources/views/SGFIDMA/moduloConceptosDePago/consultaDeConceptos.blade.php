@@ -35,6 +35,15 @@
                         </select>
                     @endif
 
+                    @estudiante
+                        <select name="filtro" class="select select-boton" onchange="this.form.submit()">
+                            <option value="" disabled selected>Filtrar por</option>
+                            <option value="todas" {{ ($filtro ?? '') == 'todas' ? 'selected' : '' }}>Ver todas</option>
+                            <option value="pieza" {{ ($filtro ?? '') == 'pieza' ? 'selected' : '' }}>Pieza</option>
+                            <option value="servicio" {{ ($filtro ?? '') == 'servicio' ? 'selected' : '' }}>Servicio</option>
+                        </select>
+                    @endestudiante
+
                     <select name="orden" class="select select-boton" onchange="this.form.submit()">
                         <option value="" disabled selected>Ordenar por</option>
                         <option value="alfabetico" {{ ($orden ?? '') == 'alfabetico' ? 'selected' : '' }}>Alfabéticamente (A-Z)</option>
@@ -53,7 +62,9 @@
                         <th>Concepto de pago</th>
                         <th>Costo</th>
                         <th>Unidad</th>
-                        <th>Estatus</th>
+                        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+                            <th>Estatus</th>
+                        @endif
                         <th>Acciones</th>
 
                     </tr>
@@ -69,7 +80,9 @@
                                 <td>{{ $concepto->nombreConceptoDePago }}</td>
                                 <td>${{ $concepto->costo }}</td>
                                 <td>{{ $concepto->unidad->nombreUnidad ?? 'Sin unidad' }}</td>
-                                <td>{{ $concepto->estatus->nombreTipoDeEstatus ?? 'Sin estatus' }}</td>
+                                @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+                                    <td>{{ $concepto->estatus->nombreTipoDeEstatus ?? 'Sin estatus' }}</td>
+                                @endif
                                 <td>
                                     <div class="tabla-acciones">
 

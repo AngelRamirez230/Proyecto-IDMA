@@ -77,7 +77,7 @@
         @endadmin
 
         {{-- 2. ESTUDIANTES --}}
-        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+        @if(Auth::user()->esAdmin())
         <a href="{{ route('apartadoEstudiantes') }}" class="card-btn">
             <img src="/imagenes/IconoInicioEstudiantes.png" alt="">
             <span class="card-btn-title">Estudiantes</span>
@@ -178,6 +178,116 @@
 
     </div>
 </div>
+
+
+
+    @php
+        $pagosOrdenados = collect($pagos);
+
+        // Inscripción o reinscripción (solo uno de los dos existirá)
+        $principal = $pagosOrdenados->first(fn ($p) =>
+            in_array($p->idConceptoDePago, [1, 30])
+        );
+
+        // Mensualidades ordenadas por fecha límite
+        $mensualidades = $pagosOrdenados
+            ->where('idConceptoDePago', 2)
+            ->sortBy('fechaLimiteDePago');
+
+        // Unir todo
+        $pagosOrdenadosFinal = collect();
+
+        if ($principal) {
+            $pagosOrdenadosFinal->push($principal);
+        }
+
+        $pagosOrdenadosFinal = $pagosOrdenadosFinal->merge($mensualidades);
+    @endphp
+
+
+    @if($pagos->count())
+        @if($planAsignado)
+
+            <section class="consulta">
+
+                <h2 class="consulta-titulo titulo-centrado">
+                    {{ $planAsignado->planDePago->nombrePlanDePago }}
+                </h2>
+
+                <section class="consulta-tabla-contenedor">
+                    <table class="tabla">
+
+                        <thead>
+                            <tr>
+                                <th>Concepto</th>
+                                <th>Aportación</th>
+                                <th>Fecha limite de pago</th>
+                                <th>Estatus</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @foreach($pagosOrdenadosFinal as $pago)
+
+                                @php
+                                    $yaGenerado = now()->gte($pago->fechaGeneracionDePago);
+                                @endphp
+
+                                <tr>
+                                    <td>{{ $pago->concepto->nombreConceptoDePago }}</td>
+
+                                    <td>{{ $pago->aportacion }}</td>
+
+                                    <td>{{ $pago->fechaLimiteDePago->format('d/m/Y') }}</td>
+
+                                    <td>
+                                        <span class="estatus estatus-{{ strtolower($pago->estatus->nombreTipoDeEstatus) }}">
+                                            {{ $pago->estatus->nombreTipoDeEstatus }}
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <div class="tabla-acciones">
+
+                                            @php
+                                                $yaGenerado = now()->gte($pago->fechaGeneracionDePago);
+                                            @endphp
+
+                                            {{-- VER DETALLES --}}
+                                            <a href="{{ $yaGenerado ? route('pagos.show', $pago->Referencia) : '#' }}"
+                                            class="btn-boton-formulario2 btn-accion {{ $yaGenerado ? '' : 'btn-desabilitado' }}"
+                                            title="{{ $yaGenerado ? 'Ver detalles' : 'Disponible próximamente' }}">
+                                                Ver detalles
+                                            </a>
+
+                                            {{-- DESCARGAR RECIBO --}}
+                                            <a href="{{ ($yaGenerado) ? route('pagos.recibo', $pago->Referencia) : '#' }}"
+                                            class="btn-boton-formulario2 btn-accion {{ ($yaGenerado) ? '' : 'btn-desabilitado' }}"
+                                            title="{{ ($yaGenerado) ? 'Descargar recibo' : 'No disponible aún' }}">
+                                                Descargar recibo
+                                            </a>
+
+                                        </div>
+                                    </td>
+
+                                </tr>
+
+                            @endforeach
+
+                        </tbody>
+
+                    </table>
+                </section>
+
+            </section>
+        @endif
+
+    @endif
+
+
+
 
 
     <script>

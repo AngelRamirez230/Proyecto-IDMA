@@ -170,6 +170,10 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
     Route::put('/planes/{id}', [PlanDePagoController::class, 'update'])->name('planes.update');
     Route::delete('/planes/{id}', [PlanDePagoController::class, 'destroy'])->name('planes.destroy');
 
+    Route::get('/admin/plan-pago/asignar',[PlanDePagoController::class, 'asignarCreate'])->name('admin.planPago.asignar.create');
+    Route::post('/admin/plan-pago/asignar',[PlanDePagoController::class, 'asignarStore'])->name('admin.planPago.asignar.store');
+    Route::get('/admin/plan-pago/detalles-asignacion',[PlanDePagoController::class, 'detallesAsignacionDePlan'])->name('planPago.detallesAsignacion');
+
     /*----------- SOLICITUD DE BECA -----------*/
 
     Route::get('/consulta-solicitudes-beca',[SolicitudDeBecaController::class, 'index'])->name('consultaSolicitudBeca');
@@ -199,6 +203,11 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
     Route::get('/consultaPagos',[PagoController::class, 'index'])->name('consultaPagos');
     Route::get('/pagos/{referencia}',[PagoController::class, 'show'])->name('pagos.show');
     Route::get('/pagos/{referencia}/recibo',[PagoController::class, 'descargarRecibo'])->name('pagos.recibo');
+
+    // VALIDACION DE PAGOS
+    Route::get('/validar/pagos', [PagoController::class, 'vistaValidarPagos'])->name('pagos.validar');
+    Route::post('/validar/pagos/archivo', [PagoController::class, 'validarArchivo'])->name('pagos.validarArchivo');
+    Route::post('/pagos/validar/{referencia}', [PagoController::class, 'validarPago'])->name('pagos.validarPago');
 
 
 

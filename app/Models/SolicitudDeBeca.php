@@ -21,6 +21,16 @@ class SolicitudDeBeca extends Model
         'idEstatus'
     ];
 
+
+    protected $casts = [
+        'fechaDeSolicitud'  => 'date',
+        'fechaDeConclusion' => 'date',
+    ];
+
+    // =====================
+    // RELACIONES
+    // =====================
+
     public function estudiante()
     {
         return $this->belongsTo(
@@ -61,5 +71,4 @@ class SolicitudDeBeca extends Model
     {
         return $query->where('idEstudiante', $idEstudiante);
     }
-
 }
