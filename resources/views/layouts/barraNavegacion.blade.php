@@ -77,8 +77,8 @@
         @endif
 
         {{-- HORARIOS --}}
-        @admin
-        <li class="subnav-item"><a href="#">Horarios</a></li>
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(2, 3, 4, 5, 6, 7))
+        <li class="subnav-item"><a href="{{ route('apartadoHorarios') }}">Horarios</a></li>
         @endadmin
 
         {{-- CALIFICACIONES --}}
