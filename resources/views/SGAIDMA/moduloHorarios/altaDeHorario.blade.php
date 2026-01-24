@@ -66,12 +66,14 @@
                             <tr>
                                 @foreach($dias as $dia)
                                     <td>
-                                        <div class="horario-columna" data-dia="{{ $dia->idDiaSemana }}"></div>
-                                        <button type="button"
-                                            class="btn-boton-formulario2 btn-boton-formulario2--auto"
-                                            onclick="agregarFila('{{ $dia->idDiaSemana }}')">
-                                            Agregar
-                                        </button>
+                                        <div class="horario-columna-wrap">
+                                            <div class="horario-columna" data-dia="{{ $dia->idDiaSemana }}"></div>
+                                            <button type="button"
+                                                class="btn-boton-formulario2 btn-boton-formulario2--auto horario-columna-accion"
+                                                onclick="agregarFila('{{ $dia->idDiaSemana }}')">
+                                                Agregar
+                                            </button>
+                                        </div>
                                     </td>
                                 @endforeach
                             </tr>
@@ -142,13 +144,14 @@
                 </select>
             </div>
 
-            <div class="form-group">
+            <div class="form-group horario-fila-acciones">
                 <button type="button" class="btn-boton-formulario2 btn-boton-formulario2--auto btn-guardar" disabled>
                     Guardar
                 </button>
                 <button type="button" class="btn-boton-formulario2 btn-boton-formulario2--auto btn-cancelar2 btn-eliminar">
                     Quitar
                 </button>
+                <span class="horario-etiqueta-guardado" hidden>Guardado</span>
             </div>
         </div>
     </template>
@@ -174,7 +177,7 @@
                 opciones.forEach(item => {
                     const option = document.createElement('option');
                     option.value = item.idBloque;
-                    option.textContent = `Bloque ${item.numeroBloque}`;
+                    option.textContent = `BLOQUE ${item.numeroBloque} ${item.nombreModalidad}`;
                     if (oldBloque && String(oldBloque) === String(item.idBloque)) {
                         option.selected = true;
                     }
@@ -214,6 +217,7 @@
             const aula = row.querySelector('.input-aula');
             const guardar = row.querySelector('.btn-guardar');
             const eliminar = row.querySelector('.btn-eliminar');
+            const etiqueta = row.querySelector('.horario-etiqueta-guardado');
 
             const validar = () => {
                 const ok = asignatura.value && inicio.value && fin.value && inicio.value < fin.value;
@@ -243,6 +247,9 @@
                     el.setAttribute('disabled', 'disabled');
                 });
                 guardar.setAttribute('disabled', 'disabled');
+                if (etiqueta) {
+                    etiqueta.hidden = false;
+                }
             });
 
             eliminar.addEventListener('click', function () {

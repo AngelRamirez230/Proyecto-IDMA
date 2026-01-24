@@ -175,6 +175,41 @@
     overflow: auto;
 }
 
+.horario-columna {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+}
+
+.horario-columna-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.horario-columna-accion {
+    width: 140px;
+}
+
+.horario-fila-acciones {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+}
+
+.horario-fila-acciones .btn-boton-formulario2 {
+    width: 140px;
+}
+
+.horario-etiqueta-guardado {
+    font-weight: 600;
+    color: #79272C;
+    font-size: 13px;
+}
+
 .horarios-bloque {
     grid-column: 1 / -1;
 }
