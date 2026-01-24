@@ -69,6 +69,23 @@
             <x-error-field field="idConceptoDePago" />
         </div>
 
+
+        {{-- FECHA DE EMISIÓN--}}
+        <div class="form-group2">
+            <label>Fecha de emisión de pago:</label>
+            <input
+                type="date"
+                name="fechaEmisionDePago"
+                class="input-chico2"
+                value="{{ old('fechaEmisionDePago') }}"
+                min="{{ now()->toDateString() }}"
+                required
+            >
+            <x-error-field field="fechaLimiteDePago" />
+        </div>
+
+
+
         {{-- FECHA LIMITE --}}
         <div class="form-group2">
             <label>Fecha límite de pago:</label>
@@ -77,10 +94,12 @@
                 name="fechaLimiteDePago"
                 class="input-chico2"
                 value="{{ old('fechaLimiteDePago') }}"
+                min="{{ now()->toDateString() }}"
                 required
             >
             <x-error-field field="fechaLimiteDePago" />
         </div>
+
 
 
         {{-- APORTACIÓN --}}
@@ -97,13 +116,6 @@
             <x-error-field field="aportacion" />
         </div>
 
-        {{-- SELECCIONAR TODOS --}}
-        <div class="form-group2" style="margin-bottom:50px;">
-            <label class="chk-label">
-                <input type="checkbox" id="selectAll" class="chk-grande">
-                <span>Seleccionar todos los estudiantes</span>
-            </label>
-        </div>
 
 
         <section class="consulta-tabla-contenedor">
@@ -111,7 +123,12 @@
 
                 <thead>
                     <tr class="tabla-encabezado">
-                        <th>Selecionar</th>
+                        <th style="text-align:center; white-space:nowrap;">
+                            <label style="display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;">
+                                <input type="checkbox" id="selectAll" class="chk-grande">
+                                <span>Seleccionar</span>
+                            </label>
+                        </th>
                         <th>Nombre del estudiante</th>
                         <th>Matrícula</th>
                         <th>Semestre</th>

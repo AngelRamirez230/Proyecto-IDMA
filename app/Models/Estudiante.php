@@ -73,5 +73,12 @@ class Estudiante extends Model
         );
     }
 
+    public function tienePlanActivo()
+    {
+        return $this->planesDePago()
+            ->where('idEstatus', 1) // 1 = ACTIVO
+            ->exists();
+    }
+
     
 }

@@ -19,7 +19,7 @@
         border-radius: 12px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         text-align: center;
-        max-width: 300px;
+        max-width: 100%;
         font-size: 18px;
         color: #333;
         animation: aparecer 0.3s ease-out;
