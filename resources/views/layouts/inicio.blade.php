@@ -179,6 +179,39 @@
     </div>
 </div>
 
+@if(auth()->check() && (int)auth()->user()->idtipoDeUsuario === 4)
+    <section class="consulta-tabla-contenedor">
+        <h2 class="consulta-titulo">Mis horarios</h2>
+
+        <table class="tabla">
+            <thead>
+                <tr class="tabla-encabezado">
+                    <th>Asignatura</th>
+                    <th>Horario</th>
+                    <th>Aula</th>
+                    <th>Grupo</th>
+                </tr>
+            </thead>
+            <tbody class="tabla-cuerpo">
+                @if(($horariosEstudiante ?? collect())->isEmpty())
+                    <tr>
+                        <td colspan="4" class="tablaVacia">No hay horarios registrados.</td>
+                    </tr>
+                @else
+                    @foreach($horariosEstudiante as $horario)
+                        <tr class="tabla-fila">
+                            <td>{{ $horario->asignatura ?? 'Sin asignatura' }}</td>
+                            <td>{{ ($horario->nombreDia ?? '') }} {{ $horario->horaInicio ?? '' }} - {{ $horario->horaFin ?? '' }}</td>
+                            <td>{{ $horario->nombreAula ?? 'Sin aula' }}</td>
+                            <td>{{ $horario->claveGrupo ?? 'Sin grupo' }}</td>
+                        </tr>
+                    @endforeach
+                @endif
+            </tbody>
+        </table>
+    </section>
+@endif
+
 
 
     @php

@@ -49,11 +49,13 @@ class HorarioController extends Controller
 
         $bloques = DB::table('Bloque as b')
             ->join('Ciclo_modalidad as cm', 'b.idCicloModalidad', '=', 'cm.idCicloModalidad')
+            ->join('Modalidad as m', 'cm.idModalidad', '=', 'm.idModalidad')
             ->select(
                 'b.idBloque',
                 'b.numeroBloque',
                 'b.idCicloModalidad',
-                'cm.idCicloEscolar'
+                'cm.idCicloEscolar',
+                'm.nombreModalidad'
             )
             ->where('b.idTipoDeEstatus', 1)
             ->orderBy('b.numeroBloque')
