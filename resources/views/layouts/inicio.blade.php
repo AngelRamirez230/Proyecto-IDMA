@@ -85,12 +85,12 @@
         @endif
 
         {{-- 3. DOCENTES --}}
-        @admin
-        <a href="#" class="card-btn">
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(2, 3, 4, 5, 6, 7))
+        <a href="{{ route('apartadoDocentes') }}" class="card-btn">
             <img src="/imagenes/IconoInicioDocentes.png" alt="">
             <span class="card-btn-title">Docentes</span>
         </a>
-        @endadmin
+        @endif
 
         {{-- 4. ASIGNATURAS --}}
         @admin

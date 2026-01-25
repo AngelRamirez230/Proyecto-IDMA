@@ -56,9 +56,9 @@
         @endif
 
         {{-- DOCENTES --}}
-        @admin
-        <li class="subnav-item"><a href="#">Docentes</a></li>
-        @endadmin
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(2, 3, 4, 5, 6, 7))
+        <li class="subnav-item"><a href="{{ route('apartadoDocentes') }}">Docentes</a></li>
+        @endif
 
         {{-- ASIGNATURAS --}}
         @admin

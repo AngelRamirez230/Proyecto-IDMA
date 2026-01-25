@@ -17,8 +17,10 @@ use App\Models\NivelAcademico;
 use App\Models\Docente;
 use App\Models\RangoDeHorario;
 use App\Models\DiaSemana;
+use App\Services\BitacoraService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
 class UsuarioController extends Controller
@@ -155,6 +157,8 @@ class UsuarioController extends Controller
             'idestatus'               => 1,
         ]);
 
+        $request->attributes->set('bitacora_usuario_afectado', $usuario->idUsuario);
+
         if ($rol === 2) {
             Empleado::create([
                 'idUsuario'        => $usuario->idUsuario,
@@ -206,6 +210,17 @@ class UsuarioController extends Controller
             }
         }
 
+        $responsableId = Auth::user()->idUsuario ?? null;
+        if ($responsableId) {
+            app(BitacoraService::class)->registrar(
+                BitacoraService::ACCION_CREAR,
+                (int) $responsableId,
+                (int) $usuario->idUsuario,
+                'shared.moduloUsuarios.altaDeUsuario'
+            );
+            $request->attributes->set('bitacora_registrada', true);
+        }
+
         return redirect()
             ->route('consultaUsuarios')
             ->with('success', 'Usuario creado correctamente');
@@ -213,6 +228,8 @@ class UsuarioController extends Controller
 
     public function consultaUsuarios(Request $request)
     {
+        $request->attributes->set('bitacora_nombre_vista', 'shared.moduloUsuarios.consultaDeUsuarios');
+
         $buscar = $request->input('buscarUsuario');
         $filtro = $request->input('filtro');
         $orden  = $request->input('orden');
@@ -288,6 +305,9 @@ class UsuarioController extends Controller
 
     public function show(Usuario $usuario)
     {
+        request()->attributes->set('bitacora_usuario_afectado', $usuario->idUsuario);
+        request()->attributes->set('bitacora_nombre_vista', 'shared.moduloUsuarios.detalleDeUsuario');
+
         $usuario->load([
             'tipoDeUsuario',
             'estatus',
@@ -312,6 +332,9 @@ class UsuarioController extends Controller
 
     public function edit(Usuario $usuario)
     {
+        request()->attributes->set('bitacora_usuario_afectado', $usuario->idUsuario);
+        request()->attributes->set('bitacora_nombre_vista', 'shared.moduloUsuarios.editarDeUsuario');
+
         $usuario->load([
             'sexo',
             'estadoCivil',
@@ -355,6 +378,9 @@ class UsuarioController extends Controller
 
     public function update(UsuarioRequest $request, Usuario $usuario)
     {
+        $request->attributes->set('bitacora_usuario_afectado', $usuario->idUsuario);
+        $request->attributes->set('bitacora_nombre_vista', 'shared.moduloUsuarios.editarDeUsuario');
+
         /*
         |----------------------------------------------------------
         | 1) LOCALIDAD DE NACIMIENTO
@@ -468,6 +494,9 @@ class UsuarioController extends Controller
 
     public function destroy(Usuario $usuario)
     {
+        request()->attributes->set('bitacora_usuario_afectado', $usuario->idUsuario);
+        request()->attributes->set('bitacora_nombre_vista', 'shared.moduloUsuarios.consultaDeUsuarios');
+
         // Evitar eliminar usuarios ya inactivos (opcional)
         if ((int) $usuario->idestatus === 8) {
             return redirect()
@@ -487,6 +516,9 @@ class UsuarioController extends Controller
 
     public function toggleEstatus(Usuario $usuario)
     {
+        request()->attributes->set('bitacora_usuario_afectado', $usuario->idUsuario);
+        request()->attributes->set('bitacora_nombre_vista', 'shared.moduloUsuarios.consultaDeUsuarios');
+
         $estatusActual = (int) $usuario->idestatus;
 
         // Reglas:

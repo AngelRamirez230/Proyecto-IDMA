@@ -10,7 +10,7 @@
     @include('layouts.barraNavegacion')
 
     <main class="apartado-general">
-        <a href="#" class="btn-boton btn-consulta-bitacoras">Consultar bitácoras del sistema</a>
+        <a href="{{ route('consultaBitacoras') }}" class="btn-boton btn-consulta-bitacoras">Consultar bitacoras del sistema</a>
     </main>
 
 </body>
