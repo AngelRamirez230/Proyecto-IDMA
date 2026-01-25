@@ -12,7 +12,7 @@
 
     <main class="apartado-general">
         @if(auth()->check() && (auth()->user()->esAdmin() || auth()->user()->esEmpleadoDe([2, 3, 4])))
-            <a href="{{ route('altaHorario') }}" class="btn-boton btn-alta-usuario">Alta de docente</a>
+            <a href="#" class="btn-boton btn-alta-usuario">Alta de docente</a>
         @endif
         <a href="#" class="btn-boton btn-consulta-usuario">Consulta de docentes</a>
     </main>

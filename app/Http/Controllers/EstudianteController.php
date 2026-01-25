@@ -28,6 +28,7 @@ class EstudianteController extends Controller
      */
     public function create()
     {
+        request()->attributes->set('bitacora_nombre_vista', 'shared.moduloEstudiantes.altaEstudiante');
 
         $mesActual = now()->month; 
         $añoActual = now()->year;
@@ -170,7 +171,9 @@ class EstudianteController extends Controller
         }
 
         /* ================= TRANSACCIÓN ================= */
-        DB::transaction(function () use ($request) {
+        $usuarioId = null;
+
+        DB::transaction(function () use ($request, &$usuarioId) {
 
                 /*
             |----------------------------------------------------------
@@ -253,7 +256,7 @@ class EstudianteController extends Controller
                 'idtipoDeUsuario'       => 4,
                 'idestatus'             => 1,
             ]);
-
+            $usuarioId = $usuario->idUsuario;
 
             $matriculaAlfanumerica = $this->generarMatriculaAlfanumerica(
                 $request->idGeneracion,
@@ -283,6 +286,11 @@ class EstudianteController extends Controller
                 'idEstatus'             => 1,
             ]);
         });
+
+        if ($usuarioId) {
+            $request->attributes->set('bitacora_usuario_afectado', $usuarioId);
+        }
+        $request->attributes->set('bitacora_nombre_vista', 'shared.moduloEstudiantes.altaEstudiante');
 
         return redirect()
             ->route('apartadoEstudiantes')
@@ -360,6 +368,8 @@ class EstudianteController extends Controller
 
     public function index(Request $request)
     {
+        $request->attributes->set('bitacora_nombre_vista', 'shared.moduloEstudiantes.consultaEstudiantes');
+
         $query = Estudiante::with([
             'usuario',
             'generacion',
@@ -421,6 +431,9 @@ class EstudianteController extends Controller
             'usuario.domicilio.localidad.municipio.entidad.pais',
         ])->findOrFail($id);
 
+        request()->attributes->set('bitacora_usuario_afectado', $estudiante->idUsuario);
+        request()->attributes->set('bitacora_nombre_vista', 'shared.moduloEstudiantes.modificacionEstudiante');
+
         return view('shared.moduloEstudiantes.modificacionEstudiante', [
             'estudiante'        => $estudiante,
             'usuario'           => $estudiante->usuario,
@@ -441,6 +454,9 @@ class EstudianteController extends Controller
         $estudiante = Estudiante::findOrFail($id);
         $usuario    = Usuario::findOrFail($estudiante->idUsuario);
 
+
+        $request->attributes->set('bitacora_usuario_afectado', $usuario->idUsuario);
+        $request->attributes->set('bitacora_nombre_vista', 'shared.moduloEstudiantes.modificacionEstudiante');
 
         if ($request->accion === 'guardar') {
 
@@ -557,7 +573,7 @@ class EstudianteController extends Controller
                 ]);
             });
 
-            return redirect()
+        return redirect()
                 ->route('consultaEstudiantes')
                 ->with('success', 'Estudiante actualizado correctamente.');
         }
@@ -597,3 +613,11 @@ class EstudianteController extends Controller
     }
 
 }
+
+
+
+
+
+
+
+

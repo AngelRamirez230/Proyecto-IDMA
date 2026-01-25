@@ -10,6 +10,7 @@ use App\Http\Middleware\RolUsuario;
 use App\Http\Middleware\RedirectManual;
 use App\Http\Middleware\NoCache;
 use App\Http\Middleware\SessionTimeout;
+use App\Http\Middleware\RegistrarBitacora;
 
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -35,6 +36,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'nocache'      => NoCache::class,
             'activity.timeout'  => SessionTimeout::class,
             'tipoUsuario' => \App\Http\Middleware\TipoUsuarioMiddleware::class,
+            'bitacora' => RegistrarBitacora::class,
 
         ]);
     })

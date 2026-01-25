@@ -18,6 +18,7 @@ use App\Http\Controllers\PagoController;
 use App\Http\Controllers\HorarioController;
 use App\Http\Controllers\PagoEstudianteController;
 use App\Http\Controllers\NotificacionController;
+use App\Http\Controllers\BitacoraController;
 
 
 
@@ -35,7 +36,7 @@ Route::middleware(['guest.manual', 'nocache'])->group(function () {
 });
 
 /*--------------------------RUTAS PROTEGIDAS (USUARIOS AUTENTICADOS)--------------------------*/
-Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(function () {
+Route::middleware(['auth.manual', 'nocache', 'activity.timeout', 'bitacora'])->group(function () {
 
 
     /*------------INICIO------------*/
@@ -131,9 +132,15 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout'])->group(functio
         return view('shared.moduloReportes.apartadoReportes');
     })->name('apartadoReportes');
 
+    /*----------- DOCENTES -----------*/
+    Route::get('/apartadoDocentes', function () {
+        return view('SGAIDMA.moduloDocentes.apartadoDocentes');
+    })->name('apartadoDocentes');
+
     Route::get('/apartadoBitacoras', function () {
         return view('shared.moduloReportes.apartadoBitacora');
     })->name('apartadoBitacoras');
+    Route::get('/consultaBitacoras', [BitacoraController::class, 'index'])->name('consultaBitacoras');
 
     /*----------- BECAS -----------*/
     Route::get('/apartadoBecas', function () {
