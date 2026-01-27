@@ -10,14 +10,14 @@
     @include('layouts.barraNavegacion')
 
     <main class="consulta">
-        <h1 class="consulta-titulo">Bitacoras del sistema</h1>
+        <h1 class="consulta-titulo">Bitácoras del sistema</h1>
 
         <section class="consulta-tabla-contenedor">
             <table class="tabla">
                 <thead>
                     <tr class="tabla-encabezado">
                         <th>Fecha</th>
-                        <th>Accion</th>
+                        <th>Acción</th>
                         <th>Responsable</th>
                         <th>Usuario afectado</th>
                         <th>Vista</th>
@@ -28,7 +28,7 @@
                     @if ($bitacoras->isEmpty())
                         <tr>
                             <td colspan="5" class="tablaVacia">
-                                No existen registros en la bitacora.
+                                No existen registros en la bitácora.
                             </td>
                         </tr>
                     @else
