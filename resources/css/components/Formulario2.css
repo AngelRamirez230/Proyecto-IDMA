@@ -326,6 +326,15 @@
 }
 
 
+.acciones-reporte {
+    display: flex;
+    justify-content: flex-end !important;   
+    align-items: center;
+    gap: 15px;
+    margin-top: 40px !important;
+    padding-left: 0 !important;             
+}
+
 @media screen and (max-width: 1024px) {
 
     .form-group2 {

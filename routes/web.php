@@ -19,6 +19,7 @@ use App\Http\Controllers\HorarioController;
 use App\Http\Controllers\PagoEstudianteController;
 use App\Http\Controllers\NotificacionController;
 use App\Http\Controllers\BitacoraController;
+use App\Http\Controllers\ReporteFinancieroController;
 
 
 
@@ -232,17 +233,11 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout', 'bitacora'])->g
 
 
     /*----------- REPORTES FINANZAS -----------*/
-    Route::get('/apartadoReporteFinanzas', function () {
-        return view('SGFIDMA.moduloReportesFinanzas.apartadoReportesFinanzas');
-    })->name('apartadoReportesFinanzas');
-
-    Route::get('/eleccionFechas', function () {
-        return view('SGFIDMA.moduloReportesFinanzas.eleccionDeFechas');
-    })->name('eleccionFechas');
-
-    Route::get('/reportePagosAprobados', function () {
-        return view('SGFIDMA.moduloReportesFinanzas.reportePagosAprobados');
-    })->name('reportePagosAprobados');
+    Route::get('/apartadoReporteFinanzas', function () {return view('SGFIDMA.moduloReportesFinanzas.apartadoReportesFinanzas');})->name('apartadoReportesFinanzas');
+    Route::get('/eleccionFechas/{tipo}', [ReporteFinancieroController::class, 'fechas'])->name('eleccionFechas');
+    Route::post('/reportes/vista-previa', [ReporteFinancieroController::class, 'vistaPrevia'])->name('reportes.vistaPrevia');
+    Route::post('/reportes/exportar-pdf', [ReporteFinancieroController::class, 'exportarPDF'])->name('reportes.pdf');
+    Route::post('/reportes/exportar-excel', [ReporteFinancieroController::class, 'exportarExcel'])->name('reportes.excel');
 
     /*----------- GRUPOS -----------*/
     Route::get('/apartadoGrupos', function () {
