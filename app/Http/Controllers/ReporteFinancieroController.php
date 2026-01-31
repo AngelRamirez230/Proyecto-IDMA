@@ -77,7 +77,7 @@ class ReporteFinancieroController extends Controller
         $pdf = Pdf::loadView(
             'SGFIDMA.moduloReportesFinanzas.reportePDF',
             compact('pagos', 'inicio', 'fin', 'tipo')
-        );
+        )->setPaper('A4', 'landscape');
 
         return $pdf->download('reporte_financiero.pdf');
     }

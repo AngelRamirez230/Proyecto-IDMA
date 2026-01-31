@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <style>
         @page {
-            margin: 20px 25px;
+            size: A4 landscape;
         }
         body {
             font-family: DejaVu Sans, sans-serif;
@@ -26,7 +26,11 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
-            table-layout: fixed; 
+            table-layout: fixed;
+        }
+
+        thead {
+            display: table-row-group; /* ← clave */
         }
 
         th, td {
@@ -35,6 +39,7 @@
             text-align: center;
             word-wrap: break-word;
         }
+
 
         th {
             background-color: #79272C;
@@ -67,36 +72,50 @@
 </p>
 
 <table>
+    <colgroup>
+        <col style="width: 150px;">
+        <col style="width: 75px;">
+        <col style="width: 120px;">
+        <col style="width: 80px;">
+        <col style="width: 80px;">
+        <col style="width: 75px;">
+        <col style="width: 70px;">
+    </colgroup>
+
     <thead>
         <tr>
             <th>Estudiante</th>
             <th>Referencia</th>
             <th>Concepto</th>
+            <th>Monto</th>
             <th>Fecha generación</th>
             <th>Fecha límite</th>
             <th>Fecha pago</th>
             <th>Estatus</th>
         </tr>
     </thead>
+
     <tbody>
         @foreach ($pagos as $pago)
-            <tr>
-                <td style="width: 25%;">
-                    {{ $pago->estudiante->usuario->primerNombre }}
-                    {{ $pago->estudiante->usuario->segundoNombre }}
-                    {{ $pago->estudiante->usuario->primerApellido }}
-                    {{ $pago->estudiante->usuario->segundoApellido }}
-                </td>
-                <td style="width: 12%;">{{ $pago->Referencia }}</td>
-                <td style="width: 20%;">{{ $pago->concepto->nombreConceptoDePago }}</td>
-                <td style="width: 11%;">{{ optional($pago->fechaGeneracionDePago)->format('d/m/Y') }}</td>
-                <td style="width: 11%;">{{ optional($pago->fechaLimiteDePago)->format('d/m/Y') }}</td>
-                <td style="width: 11%;">{{ $pago->fechaDePago?->format('d/m/Y') ?? '-' }}</td>
-                <td style="width: 10%;">{{ $pago->estatus->nombreTipoDeEstatus }}</td>
-            </tr>
+        <tr>
+            <td>
+                {{ $pago->estudiante->usuario->primerNombre }}
+                {{ $pago->estudiante->usuario->segundoNombre }}
+                {{ $pago->estudiante->usuario->primerApellido }}
+                {{ $pago->estudiante->usuario->segundoApellido }}
+            </td>
+            <td>{{ $pago->Referencia }}</td>
+            <td>{{ $pago->concepto->nombreConceptoDePago }}</td>
+            <td>${{ number_format($pago->montoAPagar, 2) }}</td>
+            <td>{{ $pago->fechaGeneracionDePago?->format('d/m/Y') ?? '-' }}</td>
+            <td>{{ $pago->fechaLimiteDePago?->format('d/m/Y') ?? '-' }}</td>
+            <td>{{ $pago->fechaDePago?->format('d/m/Y') ?? '-' }}</td>
+            <td>{{ $pago->estatus->nombreTipoDeEstatus }}</td>
+        </tr>
         @endforeach
     </tbody>
 </table>
+
 
 </body>
 </html>

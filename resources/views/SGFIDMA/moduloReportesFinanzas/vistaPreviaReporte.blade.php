@@ -62,6 +62,7 @@
                         <th>Nombre estudiante</th>
                         <th>Referencia</th>
                         <th>Concepto</th>
+                        <th>Monto</th>
                         <th>Fecha generación</th>
                         <th>Fecha límite</th>
                         <th>Fecha de pago</th>
@@ -91,6 +92,8 @@
                                 <td>{{ $pago->Referencia }}</td>
 
                                 <td>{{ $pago->concepto->nombreConceptoDePago }}</td>
+
+                                <td>${{ number_format($pago->montoAPagar, 2) }}</td>
 
                                 <td>
                                     {{ $pago->fechaGeneracionDePago?->format('d/m/Y') ?? '-' }}
