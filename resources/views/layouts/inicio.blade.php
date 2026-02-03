@@ -93,12 +93,12 @@
         @endif
 
         {{-- 4. ASIGNATURAS --}}
-        @admin
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(2, 3, 4, 5, 6, 7))
         <a href="{{ route('apartadoAsignaturas') }}" class="card-btn">
             <img src="/imagenes/IconoInicioAsignaturas.png" alt="">
             <span class="card-btn-title">Asignaturas</span>
         </a>
-        @endadmin
+        @endif
 
         {{-- 5. GRUPOS --}}
         @php
@@ -121,12 +121,12 @@
         @endif
 
         {{-- 7. CALIFICACIONES --}}
-        @admin
-        <a href="#" class="card-btn">
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(2, 3, 4, 5, 6, 7))
+        <a href="{{ route('apartadoCalificaciones') }}" class="card-btn">
             <img src="/imagenes/IconoInicioCalificaciones.png" alt="">
             <span class="card-btn-title">Calificaciones</span>
         </a>
-        @endadmin
+        @endif
 
         {{-- 8. BECAS --}}
         @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11) || Auth::user()->estudiante)

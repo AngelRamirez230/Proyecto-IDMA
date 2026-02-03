@@ -79,12 +79,12 @@
         {{-- HORARIOS --}}
         @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(2, 3, 4, 5, 6, 7))
         <li class="subnav-item"><a href="{{ route('apartadoHorarios') }}">Horarios</a></li>
-        @endadmin
+        @endif
 
         {{-- CALIFICACIONES --}}
-        @admin
-        <li class="subnav-item"><a href="#">Calificaciones</a></li>
-        @endadmin
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(2, 3, 4, 5, 6, 7))
+        <li class="subnav-item"><a href="{{ route('apartadoCalificaciones') }}">Calificaciones</a></li>
+        @endif
 
         {{-- BECAS --}}
         @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11) || Auth::user()->estudiante)
