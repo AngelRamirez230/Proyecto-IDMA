@@ -239,6 +239,9 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout', 'bitacora'])->g
     Route::post('/reportes/exportar-pdf', [ReporteFinancieroController::class, 'exportarPDF'])->name('reportes.pdf');
     Route::post('/reportes/exportar-excel', [ReporteFinancieroController::class, 'exportarExcel'])->name('reportes.excel');
 
+
+    Route::get('/reportes/kardex/seleccionar-estudiante',[ReporteFinancieroController::class, 'seleccionarEstudianteKardex'])->name('kardex.seleccionar.estudiante');
+
     /*----------- GRUPOS -----------*/
     Route::get('/apartadoGrupos', function () {
         $usuario = Auth::user();
