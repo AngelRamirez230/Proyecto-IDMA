@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consulta de horarios</title>
+    <title>Consulta de calificaciones</title>
     @vite(['resources/css/app.css'])
 </head>
-
 <body>
     @include('layouts.barraNavegacion')
 
     <main class="consulta">
-        <h1 class="consulta-titulo">Lista de horarios</h1>
+        <h1 class="consulta-titulo">Lista de calificaciones</h1>
 
         <section class="consulta-controles">
-            <form action="{{ route('consultaHorarios') }}" method="GET">
+            <form action="{{ route('consultaCalificaciones') }}" method="GET">
                 <div class="consulta-busqueda-group">
                     <img src="{{ asset('imagenes/IconoBusqueda.png') }}" alt="Buscar">
                     <input
@@ -32,11 +31,11 @@
             </form>
 
             <div class="consulta-selects">
-                <form action="{{ route('consultaHorarios') }}" method="GET" id="formFiltroHorarios">
+                <form action="{{ route('consultaCalificaciones') }}" method="GET" id="formFiltroCalificaciones">
                     <input type="hidden" name="buscarHorario" value="{{ $buscar ?? '' }}">
 
                     <select name="dia" class="select select-boton" onchange="this.form.submit()">
-                        <option value="" disabled {{ empty($dia) ? 'selected' : '' }}>Filtrar por dia</option>
+                        <option value="" disabled {{ empty($dia) ? 'selected' : '' }}>Filtrar por día</option>
                         <option value="">Ver todos</option>
                         @foreach ($dias as $diaItem)
                             <option value="{{ $diaItem->idDiaSemana }}" {{ (string)($dia ?? '') === (string)$diaItem->idDiaSemana ? 'selected' : '' }}>
@@ -104,18 +103,11 @@
                                 </td>
                                 <td>
                                     <div class="tabla-acciones">
-                                        <form action="{{ route('horarios.destroy', $horario->idHorario) }}" method="POST" style="display:inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button
-                                                type="button"
-                                                class="accion-boton"
-                                                title="Eliminar"
-                                                onclick="mostrarPopupConfirmacionHorario('{{ $horario->asignatura ?? 'el horario' }}', this)"
-                                            >
-                                                <img src="{{ asset('imagenes/IconoEliminar.png') }}" alt="Eliminar" />
-                                            </button>
-                                        </form>
+                                        <a href="{{ route('calificaciones.edit', $horario->idHorario) }}"
+                                            class="accion-boton"
+                                            title="Editar">
+                                            <img src="{{ asset('imagenes/IconoEditar.png') }}" alt="Editar">
+                                        </a>
                                     </div>
                                 </td>
                             </tr>
@@ -129,37 +121,5 @@
             {!! $horarios->links() !!}
         </div>
     </main>
-
-    <script>
-        function mostrarPopupConfirmacionHorario(nombreHorario, boton) {
-            const form = boton.closest('form');
-
-            if (!form) {
-                console.error('No se encontro el formulario de eliminacion.');
-                return;
-            }
-
-            formularioAEliminar = form;
-
-            const popup = document.getElementById('popupConfirmacion');
-            const msg   = document.getElementById('mensajeConfirmacion');
-
-            if (!popup || !msg) {
-                console.error('No se encontro el popup global en barraNavegacion.');
-                return;
-            }
-
-            msg.textContent = `Deseas eliminar el horario de "${nombreHorario}"?`;
-            popup.style.display = 'flex';
-        }
-
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') {
-                if (typeof cerrarPopupConfirmacion === 'function') {
-                    cerrarPopupConfirmacion();
-                }
-            }
-        });
-    </script>
 </body>
 </html>

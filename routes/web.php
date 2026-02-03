@@ -19,6 +19,7 @@ use App\Http\Controllers\HorarioController;
 use App\Http\Controllers\PagoEstudianteController;
 use App\Http\Controllers\NotificacionController;
 use App\Http\Controllers\BitacoraController;
+use App\Http\Controllers\CalificacionesController;
 
 
 
@@ -91,9 +92,12 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout', 'bitacora'])->g
     Route::post('/generaciones/crear-dashboard',[GeneracionController::class, 'crearDesdeDashboard'])->name('generaciones.crearDashboard');
     Route::get('/consultaEstudiantes', [EstudianteController::class, 'index'])->name('consultaEstudiantes');
     Route::get('/estudiantes', [EstudianteController::class, 'index'])->name('estudiantes.index');
-    Route::get('/{id}/editar', [EstudianteController::class, 'edit'])->name('estudiantes.edit');
-    Route::put('/{id}', [EstudianteController::class, 'update'])->name('estudiantes.update');
-    Route::delete('/{id}', [EstudianteController::class, 'destroy'])->name('estudiantes.destroy');
+    Route::get('/estudiantes/{id}/editar', [EstudianteController::class, 'edit'])
+        ->name('estudiantes.edit');
+    Route::put('/estudiantes/{id}', [EstudianteController::class, 'update'])
+        ->name('estudiantes.update');
+    Route::delete('/estudiantes/{id}', [EstudianteController::class, 'destroy'])
+        ->name('estudiantes.destroy');
     
     /*----------- ASIGNATURAS -----------*/
     Route::get('/apartadoAsignaturas', function () {
@@ -136,6 +140,11 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout', 'bitacora'])->g
     Route::get('/apartadoDocentes', function () {
         return view('SGAIDMA.moduloDocentes.apartadoDocentes');
     })->name('apartadoDocentes');
+
+    /*----------- CALIFICACIONES -----------*/
+    Route::get('/apartadoCalificaciones', function () {
+        return view('SGAIDMA.moduloCalificaciones.apartadoCalificaciones');
+    })->name('apartadoCalificaciones');
 
     Route::get('/apartadoBitacoras', function () {
         return view('shared.moduloReportes.apartadoBitacora');
@@ -273,5 +282,11 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout', 'bitacora'])->g
     Route::get('/apartadoHorarios', [HorarioController::class, 'apartado'])->name('apartadoHorarios');
     Route::get('/altaHorario', [HorarioController::class, 'create'])->name('altaHorario');
     Route::post('/horarios', [HorarioController::class, 'store'])->name('horarios.store');
+    Route::get('/consultaHorarios', [HorarioController::class, 'index'])->name('consultaHorarios');
+    Route::delete('/horarios/{id}', [HorarioController::class, 'destroy'])->name('horarios.destroy');
+
+    /*----------- CALIFICACIONES -----------*/
+    Route::get('/consultaCalificaciones', [CalificacionesController::class, 'index'])->name('consultaCalificaciones');
+    Route::get('/calificaciones/{id}/editar', [CalificacionesController::class, 'edit'])->name('calificaciones.edit');
 
 });
