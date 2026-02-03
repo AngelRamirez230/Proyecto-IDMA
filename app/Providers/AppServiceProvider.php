@@ -6,6 +6,11 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Blade;
 
+use Carbon\Carbon;
+
+Carbon::setLocale('es');
+
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
