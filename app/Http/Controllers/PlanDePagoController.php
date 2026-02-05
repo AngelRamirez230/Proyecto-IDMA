@@ -19,141 +19,166 @@ class PlanDePagoController extends Controller
 {
     public function create()
     {
-        $conceptos = ConceptoDePago::whereIn('idConceptoDePago', [1, 2, 30])
-        ->where('idEstatus', 1)
-        ->get();
-        return view('SGFIDMA.moduloPlanDePago.altaPlan', compact('conceptos'));
+        try {
+
+            $conceptos = ConceptoDePago::whereIn('idConceptoDePago', [1, 2, 30])
+                ->where('idEstatus', 1)
+                ->get();
+
+            return view('SGFIDMA.moduloPlanDePago.altaPlan', compact('conceptos'));
+
+        } catch (\Throwable $e) {
+
+            \Log::error('Error al cargar vista de alta de plan de pago', [
+                'error' => $e->getMessage()
+            ]);
+
+            return redirect()
+                ->back()
+                ->with(
+                    'popupError',
+                    'Ocurrió un error al cargar la vista de alta de plan de pago.'
+                );
+        }
     }
+
 
     public function store(Request $request)
     {
-        $validator = Validator::make(
-            $request->all(),
-            [
-                // ======================
-                // PLAN DE PAGO
-                // ======================
-                'nombrePlan' => 'required|string|max:150',
-                'cantidades' => 'required|array',
-            ],
-            [
-                // ======================
-                // MENSAJES GENERALES
-                // ======================
-                'required' => 'El campo :attribute es obligatorio.',
-                'string'   => 'El campo :attribute debe ser texto.',
-                'max'      => 'El campo :attribute no debe exceder :max caracteres.',
-                'array'    => 'El campo :attribute no tiene un formato válido.',
-            ],
-            [
-                // ======================
-                // NOMBRES AMIGABLES
-                // ======================
-                'nombrePlan' => 'nombre del plan de pago',
-                'cantidades' => 'conceptos del plan de pago',
-            ]
-        );
+        try {
 
-        // ⛔ Si falla la validación
-        if ($validator->fails()) {
-            return back()
-                ->with('popupError', 'No se pudo crear el plan de pago. Verifica los datos ingresados.')
-                ->withErrors($validator)
-                ->withInput();
-        }
+            $validator = Validator::make(
+                $request->all(),
+                [
+                    // ======================
+                    // PLAN DE PAGO
+                    // ======================
+                    'nombrePlan' => 'required|string|max:150',
+                    'cantidades' => 'required|array',
+                ],
+                [
+                    // ======================
+                    // MENSAJES GENERALES
+                    // ======================
+                    'required' => 'El campo :attribute es obligatorio.',
+                    'string'   => 'El campo :attribute debe ser texto.',
+                    'max'      => 'El campo :attribute no debe exceder :max caracteres.',
+                    'array'    => 'El campo :attribute no tiene un formato válido.',
+                ],
+                [
+                    // ======================
+                    // NOMBRES AMIGABLES
+                    // ======================
+                    'nombrePlan' => 'nombre del plan de pago',
+                    'cantidades' => 'conceptos del plan de pago',
+                ]
+            );
 
-        // ======================
-        // VALIDAR DUPLICADOS
-        // ======================
-        $existe = PlanDePago::whereRaw(
-            'LOWER(nombrePlanDePago) = ?',
-            [mb_strtolower(trim($request->nombrePlan))]
-        )->exists();
-
-        if ($existe) {
-            return back()
-                ->with('popupError', 'Ya existe un plan de pago con ese nombre.')
-                ->withInput();
-        }
-
-        // Formatear nombre
-        $nombre = $this->mbUcwords($request->nombrePlan);
-
-        // ======================
-        // VALIDAR QUE HAYA CONCEPTOS
-        // ======================
-        $todasCero = collect($request->cantidades)->every(function ($cantidad) {
-            return intval($cantidad) <= 0;
-        });
-
-        if ($todasCero) {
-            return back()
-                ->with('popupError', 'El plan de pago debe tener conceptos seleccionados.')
-                ->withInput();
-        }
-
-
-        // ======================
-        // VALIDACIÓN DE REGLA DE NEGOCIO
-        // ======================
-
-        // Cantidades seleccionadas
-        $cantidades = collect($request->cantidades);
-
-        // IDs clave
-        $inscripcion     = intval($cantidades->get(1, 0));   // INSCRIPCIÓN
-        $reinscripcion   = intval($cantidades->get(30, 0));  // REINSCRIPCIÓN
-        $colegiaturas    = intval($cantidades->get(2, 0));   // COLEGIATURA
-
-        
-        if (
-            ($inscripcion > 0 && $reinscripcion > 0) ||
-            ($inscripcion === 0 && $reinscripcion === 0)
-        ) {
-            return back()
-                ->withErrors([
-                    'cantidades' => 'El plan debe incluir INSCRIPCIÓN o REINSCRIPCIÓN (solo uno de ellos).'
-                ])
-                ->withInput();
-        }
-
-        // 2️⃣ Debe haber exactamente 6 colegiaturas
-        if ($colegiaturas !== 6) {
-            return back()
-                ->withErrors([
-                    'cantidades' => 'El plan debe incluir exactamente 6 colegiaturas.'
-                ])
-                ->withInput();
-        }
-
-
-        // ======================
-        // CREAR PLAN DE PAGO
-        // ======================
-        $plan = PlanDePago::create([
-            'nombrePlanDePago' => $nombre,
-            'idEstatus' => 1
-        ]);
-
-        // ======================
-        // GUARDAR CONCEPTOS
-        // ======================
-        foreach ($request->cantidades as $idConcepto => $cantidad) {
-            $cantidad = intval($cantidad);
-
-            if ($cantidad > 0) {
-                PlanConcepto::create([
-                    'idPlanDePago' => $plan->idPlanDePago,
-                    'idConceptoDePago' => $idConcepto,
-                    'cantidad' => $cantidad
-                ]);
+            // ⛔ Validación
+            if ($validator->fails()) {
+                return back()
+                    ->with('popupError', 'No se pudo crear el plan de pago. Verifica los datos ingresados.')
+                    ->withErrors($validator)
+                    ->withInput();
             }
-        }
 
-        return redirect()
-            ->route('altaPlan')
-            ->with('success', 'Plan de pagos creado correctamente.');
+            // ======================
+            // VALIDAR DUPLICADOS
+            // ======================
+            $existe = PlanDePago::whereRaw(
+                'LOWER(nombrePlanDePago) = ?',
+                [mb_strtolower(trim($request->nombrePlan))]
+            )->exists();
+
+            if ($existe) {
+                return back()
+                    ->with('popupError', 'Ya existe un plan de pago con ese nombre.')
+                    ->withInput();
+            }
+
+            // Formatear nombre
+            $nombre = $this->mbUcwords($request->nombrePlan);
+
+            // ======================
+            // VALIDAR QUE HAYA CONCEPTOS
+            // ======================
+            $todasCero = collect($request->cantidades)->every(function ($cantidad) {
+                return intval($cantidad) <= 0;
+            });
+
+            if ($todasCero) {
+                return back()
+                    ->with('popupError', 'El plan de pago debe tener conceptos seleccionados.')
+                    ->withInput();
+            }
+
+            // ======================
+            // REGLAS DE NEGOCIO
+            // ======================
+            $cantidades = collect($request->cantidades);
+
+            $inscripcion   = intval($cantidades->get(1, 0));
+            $reinscripcion = intval($cantidades->get(30, 0));
+            $colegiaturas  = intval($cantidades->get(2, 0));
+
+            if (
+                ($inscripcion > 0 && $reinscripcion > 0) ||
+                ($inscripcion === 0 && $reinscripcion === 0)
+            ) {
+                return back()
+                    ->withErrors([
+                        'cantidades' => 'El plan debe incluir INSCRIPCIÓN o REINSCRIPCIÓN (solo uno de ellos).'
+                    ])
+                    ->withInput();
+            }
+
+            if ($colegiaturas !== 6) {
+                return back()
+                    ->withErrors([
+                        'cantidades' => 'El plan debe incluir exactamente 6 colegiaturas.'
+                    ])
+                    ->withInput();
+            }
+
+            // ======================
+            // CREAR PLAN
+            // ======================
+            $plan = PlanDePago::create([
+                'nombrePlanDePago' => $nombre,
+                'idEstatus' => 1
+            ]);
+
+            // ======================
+            // GUARDAR CONCEPTOS
+            // ======================
+            foreach ($request->cantidades as $idConcepto => $cantidad) {
+                $cantidad = intval($cantidad);
+
+                if ($cantidad > 0) {
+                    PlanConcepto::create([
+                        'idPlanDePago'     => $plan->idPlanDePago,
+                        'idConceptoDePago' => $idConcepto,
+                        'cantidad'         => $cantidad
+                    ]);
+                }
+            }
+
+            return redirect()
+                ->route('altaPlan')
+                ->with('success', 'Plan de pagos creado correctamente.');
+
+        } catch (\Throwable $e) {
+
+            \Log::error('Error al crear plan de pago', [
+                'error' => $e->getMessage()
+            ]);
+
+            return redirect()
+                ->back()
+                ->with('popupError', 'Ocurrió un error al crear el plan de pago. Intenta más tarde.');
+        }
     }
+
 
     private function mbUcwords($string, $encoding = 'UTF-8')
     {
@@ -174,166 +199,303 @@ class PlanDePagoController extends Controller
 
     public function index(Request $request)
     {
-        $buscar = $request->buscarPlan;
-        $filtro = $request->filtro;
-        $orden  = $request->orden;
+        try {
 
-        $plan = PlanDePago::with('estatus');
+            $buscar = $request->buscarPlan;
+            $filtro = $request->filtro;
+            $orden  = $request->orden;
 
-        
-        if (!empty($buscar)) {
-            $plan->where('nombrePlanDePago', 'LIKE', '%' . $buscar . '%');
+            $plan = PlanDePago::with('estatus');
+
+            // ======================
+            // BUSCAR
+            // ======================
+            if (!empty($buscar)) {
+                $plan->where('nombrePlanDePago', 'LIKE', '%' . $buscar . '%');
+            }
+
+            // ======================
+            // FILTRO
+            // ======================
+            if ($filtro == 'activas') {
+                $plan->where('idEstatus', 1);
+            } elseif ($filtro == 'suspendidas') {
+                $plan->where('idEstatus', 2);
+            }
+
+            // ======================
+            // ORDEN
+            // ======================
+            if ($orden == 'alfabetico') {
+                $plan->orderBy('nombrePlanDePago', 'ASC');
+            }
+
+            // ======================
+            // PAGINACIÓN
+            // ======================
+            $planes = $plan->paginate(10)->withQueryString();
+
+            return view(
+                'SGFIDMA.moduloPlanDePago.consultaPlanDePago',
+                compact('planes', 'buscar', 'filtro', 'orden')
+            );
+
+        } catch (\Throwable $e) {
+
+            \Log::error('Error al cargar consulta de planes de pago', [
+                'error' => $e->getMessage()
+            ]);
+
+            return redirect()
+                ->back()
+                ->with(
+                    'popupError',
+                    'Ocurrió un error al cargar los planes de pago.'
+                );
         }
-
-        
-        if ($filtro == 'activas') {
-            $plan->where('idEstatus', 1);
-        } elseif ($filtro == 'suspendidas') {
-            $plan->where('idEstatus', 2);
-        }
-
-        
-        if ($orden == 'alfabetico') {
-            $plan->orderBy('nombrePlanDePago', 'ASC');
-        }
-
-        
-        $planes = $plan->paginate(5)->withQueryString();
-
-        return view('SGFIDMA.moduloPlanDePago.consultaPlanDePago', compact('planes', 'buscar', 'filtro', 'orden'));
     }
+
 
 
     public function edit($id)
     {
-        $plan = PlanDePago::with('conceptos')->findOrFail($id);
+        try {
 
-        // Obtener todos los conceptos activos
-        $conceptos = ConceptoDePago::whereIn('idConceptoDePago', [1, 2, 30])
-        ->where('idEstatus', 1)
-        ->get();
+            $plan = PlanDePago::with('conceptos')->findOrFail($id);
 
-        // Convertir cantidades actuales en un arreglo [idConcepto => cantidad]
-        $cantidadesActuales = $plan->conceptos->pluck('cantidad', 'idConceptoDePago')->toArray();
+            // Obtener todos los conceptos activos
+            $conceptos = ConceptoDePago::whereIn('idConceptoDePago', [1, 2, 30])
+                ->where('idEstatus', 1)
+                ->get();
 
-        return view('SGFIDMA.moduloPlanDePago.modificacionPlan', compact('plan', 'conceptos', 'cantidadesActuales'));
+            // Convertir cantidades actuales en un arreglo [idConcepto => cantidad]
+            $cantidadesActuales = $plan->conceptos
+                ->pluck('cantidad', 'idConceptoDePago')
+                ->toArray();
+
+            return view(
+                'SGFIDMA.moduloPlanDePago.modificacionPlan',
+                compact('plan', 'conceptos', 'cantidadesActuales')
+            );
+
+        } catch (\Throwable $e) {
+
+            \Log::error('Error al cargar edición de plan de pago', [
+                'id_plan' => $id,
+                'error'   => $e->getMessage()
+            ]);
+
+            return redirect()
+                ->back()
+                ->with(
+                    'popupError',
+                    'No se pudo cargar la información del plan de pago.'
+                );
+        }
     }
+
 
     public function update(Request $request, $id)
     {
-        $plan = PlanDePago::findOrFail($id);
+        try {
+            $plan = PlanDePago::findOrFail($id);
 
-        // Si solo cambia estatus
-        if ($request->accion === 'Suspender/Habilitar') {
+            /*
+            ==================================================
+            CAMBIO DE ESTATUS
+            ==================================================
+            */
+            if ($request->accion === 'Suspender/Habilitar') {
 
-            // Verificar si hay estudiantes activos con este plan
-            $tieneEstudianteActivo = $plan->estudiantes()
-                                        ->where('idEstatus', 1) // 1 = activo
-                                        ->exists();
+                $tieneEstudiantesActivos = $plan->estudiantes()
+                    ->where('idEstatus', 1) // 1 = activo
+                    ->exists();
 
-            // Intento de suspender
-            if ($plan->idEstatus == 1 && $tieneEstudianteActivo) {
-                return redirect()->route('consultaPlan')
-                    ->with('popupError', 'No se puede suspender este plan por que existen estudiantes con este plan asignado.');
+                if ($plan->idEstatus == 1 && $tieneEstudiantesActivos) {
+                    return redirect()
+                        ->route('consultaPlan')
+                        ->with('popupError', 'No se puede suspender este plan porque existen estudiantes con este plan asignado.');
+                }
+
+                $estatusAnterior = $plan->idEstatus;
+                $plan->idEstatus = ($plan->idEstatus == 1) ? 2 : 1;
+                $plan->save();
+
+                $mensaje = ($estatusAnterior == 1)
+                    ? "El plan de pago {$plan->nombrePlanDePago} ha sido suspendido."
+                    : "El plan de pago {$plan->nombrePlanDePago} ha sido activado.";
+
+                return redirect()->route('consultaPlan')->with('success', $mensaje);
             }
 
-            // Cambiar estatus normalmente
-            $estatusAnterior = $plan->idEstatus;
-            $plan->idEstatus = ($plan->idEstatus == 1) ? 2 : 1;
-            $plan->save();
+            /*
+            ==================================================
+            VALIDACIÓN DEL NOMBRE
+            ==================================================
+            */
+            $request->validate([
+                'nombrePlan' => 'required|string|max:150',
+            ]);
 
-            $mensaje = ($estatusAnterior == 1)
-                ? "El plan de pago {$plan->nombrePlanDePago} ha sido suspendido."
-                : "El plan de pago {$plan->nombrePlanDePago} ha sido activado.";
+            $nombreFormateado = $this->mbUcwords($request->nombrePlan);
 
-            return redirect()->route('consultaPlan')->with('success', $mensaje);
-        }
+            $existe = PlanDePago::whereRaw(
+                    'LOWER(nombrePlanDePago) = ?',
+                    [mb_strtolower($nombreFormateado)]
+                )
+                ->where('idPlanDePago', '!=', $id)
+                ->exists();
 
+            if ($existe) {
+                return back()
+                    ->with('popupError', 'Ya existe un plan de pago con ese nombre.')
+                    ->withInput();
+            }
 
-        // Validación del nombre
-        $request->validate([
-            'nombrePlan' => 'required|string|max:150',
-        ]);
+            /*
+            ==================================================
+            VERIFICAR USO DEL PLAN POR ESTUDIANTES
+            ==================================================
+            */
 
-        $nombreFormateado = $this->mbUcwords($request->nombrePlan);
+            // Estudiantes activos actualmente
+            $tieneEstudiantesActivos = $plan->estudiantes()
+                ->where('idEstatus', 1)
+                ->exists();
 
-        // Verificar duplicado sin contar el actual
-        $existe = PlanDePago::whereRaw('LOWER(nombrePlanDePago) = ?', [mb_strtolower($nombreFormateado)])
-                            ->where('idPlanDePago', '!=', $id)
-                            ->exists();
+            // Historial (estudiantes que ya no están activos)
+            $tieneHistorial = $plan->estudiantes()
+                ->where('idEstatus', '!=', 1)
+                ->exists();
 
-        if ($existe) {
-            return back()
-                ->with('popupError', 'Ya existe un plan de pago con ese nombre.')
-                ->withInput();
-        }
+            /*
+            🔴 CASO 1
+            Tiene estudiantes activos Y también historial
+            ➜ No se puede modificar nada
+            */
+            if ($tieneEstudiantesActivos && $tieneHistorial) {
+                return redirect()
+                    ->route('consultaPlan')
+                    ->with(
+                        'popupError',
+                        'No se puede modificar este plan de pago porque tiene estudiantes asignados actualmente y también cuenta con historial. Solo puede ser suspendido.'
+                    );
+            }
 
-        // ==============================
-        // VERIFICAR SI ALGÚN ESTUDIANTE ACTIVO USA ESTE PLAN
-        // ==============================
-        $tieneEstudianteActivo = $plan->estudiantes()
-                                    ->where('idEstatus', 1) // 1 = activo
-                                    ->exists();
+            /*
+            🟡 CASO 2
+            Tiene estudiantes activos pero SIN historial
+            ➜ Solo se permite cambiar el nombre
+            */
+            if ($tieneEstudiantesActivos && !$tieneHistorial) {
+                $plan->nombrePlanDePago = $nombreFormateado;
+                $plan->save();
 
-        // Si tiene estudiantes activos, solo se permite cambiar el nombre
-        if ($tieneEstudianteActivo) {
+                return redirect()
+                    ->route('consultaPlan')
+                    ->with(
+                        'success',
+                        'El nombre del plan se actualizó correctamente. No se pueden modificar los conceptos porque el plan tiene estudiantes asignados.'
+                    );
+            }
+
+            /*
+            🟢 CASO 3
+            No tiene estudiantes activos
+            ➜ Se permite modificar nombre y conceptos
+            */
+
+            $request->validate([
+                'cantidades' => 'required|array',
+            ]);
+
+            $todasCero = collect($request->cantidades)
+                ->every(fn ($c) => intval($c) <= 0);
+
+            if ($todasCero) {
+                return back()
+                    ->with('popupError', 'Debes seleccionar al menos un concepto.')
+                    ->withInput();
+            }
+
+            // Actualizar nombre
             $plan->nombrePlanDePago = $nombreFormateado;
             $plan->save();
 
-            return redirect()->route('consultaPlan')->with('success', 'El nombre del plan se actualizó correctamente, pero no se pueden modificar los conceptos porque el plan tiene estudiantes activos.');
-        }
+            // Reemplazar conceptos
+            $plan->conceptos()->delete();
 
-        // Validación de conceptos solo si NO hay estudiantes activos
-        $request->validate([
-            'cantidades' => 'required|array',
-        ]);
+            foreach ($request->cantidades as $idConcepto => $cantidad) {
+                $cantidad = intval($cantidad);
+                if ($cantidad > 0) {
+                    PlanConcepto::create([
+                        'idPlanDePago'     => $plan->idPlanDePago,
+                        'idConceptoDePago' => $idConcepto,
+                        'cantidad'         => $cantidad
+                    ]);
+                }
+            }
 
-        $todasCero = collect($request->cantidades)->every(fn($c) => intval($c) <= 0);
+            return redirect()
+                ->route('consultaPlan')
+                ->with('success', 'Plan de pagos actualizado correctamente.');
 
-        if ($todasCero) {
+        } catch (\Throwable $e) {
+
+            // report($e); // ← opcional para logs
+
             return back()
-                ->with('popupError', 'Debes seleccionar al menos un concepto.')
+                ->with('popupError', 'Ocurrió un error al actualizar el plan de pagos. Intenta nuevamente.')
                 ->withInput();
         }
-
-        // Actualizar nombre
-        $plan->nombrePlanDePago = $nombreFormateado;
-        $plan->save();
-
-        // Eliminar conceptos anteriores y registrar nuevos
-        $plan->conceptos()->delete();
-
-        foreach ($request->cantidades as $idConcepto => $cantidad) {
-            $cantidad = intval($cantidad);
-            if ($cantidad > 0) {
-                PlanConcepto::create([
-                    'idPlanDePago' => $plan->idPlanDePago,
-                    'idConceptoDePago' => $idConcepto,
-                    'cantidad' => $cantidad
-                ]);
-            }
-        }
-
-        return redirect()->route('consultaPlan')->with('success', 'Plan de pagos actualizado correctamente.');
     }
+
 
 
 
 
     public function destroy($id)
     {
-        $plan = PlanDePago::findOrFail($id);
+        try {
 
-        // Verificar si el plan tiene conceptos asignados
-        $estaEnUso = PlanConcepto::where('idPlanDePago', $id)->exists();
+            $plan = PlanDePago::findOrFail($id);
 
+            // ==============================
+            // VERIFICAR SI ALGÚN ESTUDIANTE TIENE O TUVO ESTE PLAN
+            // ==============================
+            $tieneHistorial = $plan->estudiantes()->exists();
 
-        $plan->conceptos()->delete();
+            if ($tieneHistorial) {
+                return back()->with(
+                    'popupError',
+                    'No se puede eliminar este plan de pago porque existen o existieron estudiantes con este plan asignado. Solo puede ser suspendido si no existen estudiantes con este plan asignado en este momento.'
+                );
+            }
 
-        $plan->delete();
+            // ==============================
+            // ELIMINAR CONCEPTOS ASOCIADOS
+            // ==============================
+            $plan->conceptos()->delete();
 
-        return back()->with('success', 'Plan eliminado correctamente.');
+            // ==============================
+            // ELIMINAR PLAN
+            // ==============================
+            $plan->delete();
+
+            return back()->with('success', 'Plan eliminado correctamente.');
+
+        } catch (\Throwable $e) {
+
+            return back()->with(
+                'popupError',
+                'Ocurrió un error al intentar eliminar el plan de pago. Intenta nuevamente.'
+            );
+
+            // Para depuración:
+            // report($e);
+        }
     }
+
 
 
 
