@@ -161,7 +161,7 @@ class BecaController extends Controller
                 $query->orderBy('porcentajeDeDescuento', 'asc');
             }
 
-            $becas = $query->paginate(5)->withQueryString();
+            $becas = $query->paginate(10)->withQueryString();
 
             return view(
                 'SGFIDMA.moduloBecas.consultaDeBeca',

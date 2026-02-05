@@ -13,75 +13,100 @@ class ConceptoController extends Controller
     // Mostrar formulario de alta de concepto
     public function create()
     {
-        $unidades = TipoDeUnidad::all();
-        return view('SGFIDMA.moduloConceptosDePago.altaDeConcepto', compact('unidades'));
+        try {
+
+            $unidades = TipoDeUnidad::all();
+
+            return view(
+                'SGFIDMA.moduloConceptosDePago.altaDeConcepto',
+                compact('unidades')
+            );
+
+        } catch (\Throwable $e) {
+
+            \Log::error('Error al cargar formulario de alta de concepto de pago', [
+                'error' => $e->getMessage()
+            ]);
+
+            return redirect()->back()
+                ->with('popupError', 'Ocurrió un error al cargar el formulario de alta del concepto de pago.');
+        }
     }
+
 
     // Guardar concepto
     public function store(Request $request)
     {
-        
-        $validator = Validator::make(
-            $request->all(),
-            [
-                // ======================
-                // CONCEPTO DE PAGO
-                // ======================
-                'nombreConcepto' => 'required|string|max:150',
-                'costo'          => 'required|numeric|min:0|max:9999999.99',
-                'unidad'         => 'required|exists:tipo_de_unidad,idTipoDeUnidad',
-            ],
-            [
-                // ======================
-                // MENSAJES GENERALES
-                // ======================
-                'required' => 'El campo :attribute es obligatorio.',
-                'string'   => 'El campo :attribute debe ser texto.',
-                'numeric'  => 'El campo :attribute debe ser un número válido.',
-                'min'      => 'El campo :attribute debe ser mayor o igual a :min.',
-                'max'      => 'El campo :attribute no debe exceder :max.',
-                'exists'   => 'La opción seleccionada en :attribute no es válida.',
-            ],
-            [
-                // ======================
-                // NOMBRES AMIGABLES
-                // ======================
-                'nombreConcepto' => 'nombre del concepto de pago',
-                'costo'          => 'costo',
-                'unidad'         => 'unidad',
-            ]
-        );
+        try {
 
-        if ($validator->fails()) {
-            return back()
-                ->with('popupError', 'No se pudo crear el concepto de pago. Verifica los datos ingresados.')
-                ->withErrors($validator)
+            $validator = Validator::make(
+                $request->all(),
+                [
+                    'nombreConcepto' => 'required|string|max:150',
+                    'costo'          => 'required|numeric|min:0|max:9999999.99',
+                    'unidad'         => 'required|exists:tipo_de_unidad,idTipoDeUnidad',
+                ],
+                [
+                    'required' => 'El campo :attribute es obligatorio.',
+                    'string'   => 'El campo :attribute debe ser texto.',
+                    'numeric'  => 'El campo :attribute debe ser un número válido.',
+                    'min'      => 'El campo :attribute debe ser mayor o igual a :min.',
+                    'max'      => 'El campo :attribute no debe exceder :max.',
+                    'exists'   => 'La opción seleccionada en :attribute no es válida.',
+                ],
+                [
+                    'nombreConcepto' => 'nombre del concepto de pago',
+                    'costo'          => 'costo',
+                    'unidad'         => 'unidad',
+                ]
+            );
+
+            if ($validator->fails()) {
+                return back()
+                    ->with('popupError', 'No se pudo crear el concepto de pago. Verifica los datos ingresados.')
+                    ->withErrors($validator)
+                    ->withInput();
+            }
+
+            // Convertir a tipo oración con acentos
+            $nombre = $this->mbUcwords($request->nombreConcepto);
+
+            // Validar duplicados
+            $existe = ConceptoDePago::whereRaw(
+                'LOWER(nombreConceptoDePago) = ?',
+                [mb_strtolower($request->nombreConcepto)]
+            )->exists();
+
+            if ($existe) {
+                return back()
+                    ->with('popupError', 'Ya existe un concepto con ese nombre.')
+                    ->withInput();
+            }
+
+            // Guardar concepto
+            ConceptoDePago::create([
+                'nombreConceptoDePago' => $nombre,
+                'costo'     => $request->costo,
+                'idUnidad'  => $request->unidad,
+                'idEstatus' => 1,
+            ]);
+
+            return redirect()->back()
+                ->with('success', 'Concepto de pago creado correctamente.');
+
+        } catch (\Throwable $e) {
+
+            \Log::error('Error al crear concepto de pago', [
+                'data'  => $request->all(),
+                'error' => $e->getMessage()
+            ]);
+
+            return redirect()->back()
+                ->with('popupError', 'Ocurrió un error al crear el concepto de pago. Intenta nuevamente.')
                 ->withInput();
         }
-
-        // Convertir a tipo oración con acentos
-        $nombre = $this->mbUcwords($request->nombreConcepto);
-
-        // Validar duplicados (ignorando mayúsculas/minúsculas)
-        $existe = ConceptoDePago::whereRaw('LOWER(nombreConceptoDePago) = ?', [mb_strtolower($request->nombreConcepto)])
-                                 ->exists();
-
-        if ($existe) {
-            return back()
-                ->with('popupError', 'Ya existe un concepto con ese nombre')
-                ->withInput();
-        }
-
-        // Guardar concepto
-        ConceptoDePago::create([
-            'nombreConceptoDePago' => $nombre,
-            'costo' => $request->costo,
-            'idUnidad' => $request->unidad,
-            'idEstatus' => 1,
-        ]);
-
-        return redirect()->back()->with('success', 'Concepto de pago creado correctamente');
     }
+
 
     // Convertir a tipo oración con acentos
     private function mbUcwords($string, $encoding = 'UTF-8')
@@ -103,173 +128,265 @@ class ConceptoController extends Controller
 
     public function index(Request $request)
     {
-        $orden = $request->orden;
-        $filtro = $request->filtro;
-        $buscar = $request->buscarConcepto;
-        // Trae todos los conceptos con sus relaciones
-        $concepto = ConceptoDePago::with(['unidad', 'estatus']);
+        try {
 
-        /*
-        ==================================================
-        RESTRICCIÓN PARA ESTUDIANTES
-        ==================================================
-        */
-        if (Auth::check() && Auth::user()->idtipoDeUsuario == 4) { // ← estudiante
-            $concepto->whereNotIn('idConceptoDePago', [1, 2, 30]);
+            $orden  = $request->orden;
+            $filtro = $request->filtro;
+            $buscar = $request->buscarConcepto;
+
+            // Trae todos los conceptos con sus relaciones
+            $concepto = ConceptoDePago::with(['unidad', 'estatus']);
+
+            /*
+            ==================================================
+            RESTRICCIÓN PARA ESTUDIANTES
+            ==================================================
+            */
+            if (Auth::check() && Auth::user()->idtipoDeUsuario == 4) { // estudiante
+                $concepto->whereNotIn('idConceptoDePago', [1, 2, 30]);
+            }
+
+            // Aplicar búsqueda
+            if ($request->filled('buscarConcepto')) {
+                $concepto->where('nombreConceptoDePago', 'LIKE', '%' . $buscar . '%');
+            }
+
+            // Aplicar filtro
+            if ($filtro === 'activas') {
+                $concepto->where('idEstatus', 1);
+
+            } elseif ($filtro === 'suspendidas') {
+                $concepto->where('idEstatus', 2);
+
+            } elseif ($filtro === 'servicio') {
+                $concepto->where('idUnidad', 1);
+
+            } elseif ($filtro === 'pieza') {
+                $concepto->where('idUnidad', 2);
+            }
+
+            // Aplicar orden
+            if ($orden === 'alfabetico') {
+                $concepto->orderBy('nombreConceptoDePago', 'asc');
+
+            } elseif ($orden === 'costo_mayor') {
+                $concepto->orderBy('costo', 'desc');
+
+            } elseif ($orden === 'costo_menor') {
+                $concepto->orderBy('costo', 'asc');
+            }
+
+            $conceptos = $concepto->paginate(10)->withQueryString();
+
+            return view(
+                'SGFIDMA.moduloConceptosDePago.consultaDeConceptos',
+                compact('conceptos', 'filtro', 'orden', 'buscar')
+            );
+
+        } catch (\Throwable $e) {
+
+            \Log::error('Error al cargar conceptos de pago', [
+                'request' => $request->all(),
+                'error'   => $e->getMessage()
+            ]);
+
+            return redirect()->back()
+                ->with('popupError', 'Ocurrió un error al cargar los conceptos de pago. Intenta más tarde.');
         }
-
-        //Aplicar buscar
-        if ($request->filled('buscarConcepto')) {
-            $concepto->where('nombreConceptoDePago', 'LIKE', '%' . $buscar . '%');
-        }
-
-        //Aplicar filtro
-        if ($filtro === 'activas') {
-            $concepto->where('idEstatus', 1);
-        } elseif ($filtro === 'suspendidas') {
-            $concepto->where('idEstatus', 2);
-        } elseif ($filtro === 'todas') {
-
-        } elseif($filtro === 'servicio'){
-            $concepto->where('idUnidad', 1);
-
-        } elseif($filtro === 'pieza'){
-            $concepto->where('idUnidad', 2);
-        }
-
-        // Aplicar orden
-        if ($orden === 'alfabetico') {
-            $concepto->orderBy('nombreConceptoDePago', 'asc');
-        } elseif ($orden === 'costo_mayor') {
-            $concepto->orderBy('costo', 'desc');
-        } elseif ($orden === 'costo_menor') {
-            $concepto->orderBy('costo', 'asc');
-        }
-
-
-        $conceptos = $concepto->paginate(5)->withQueryString();
-
-        
-
-        // Retorna la vista
-        return view('SGFIDMA.moduloConceptosDePago.consultaDeConceptos', compact('conceptos','filtro','orden','buscar'));
     }
+
 
 
     public function edit($idConceptoDePago)
     {
-        // Buscar el concepto por su ID
-        $concepto = ConceptoDePago::findOrFail($idConceptoDePago);
+        try {
 
-        // Traer unidades para el select
-        $unidades = TipoDeUnidad::all();
+            // Buscar el concepto por su ID
+            $concepto = ConceptoDePago::findOrFail($idConceptoDePago);
 
-        return view('SGFIDMA.moduloConceptosDePago.modificacionConcepto', compact('concepto', 'unidades'));
+            // Traer unidades para el select
+            $unidades = TipoDeUnidad::all();
+
+            return view(
+                'SGFIDMA.moduloConceptosDePago.modificacionConcepto',
+                compact('concepto', 'unidades')
+            );
+
+        } catch (\Throwable $e) {
+
+            \Log::error('Error al cargar edición de concepto de pago', [
+                'idConceptoDePago' => $idConceptoDePago,
+                'error'            => $e->getMessage()
+            ]);
+
+            return redirect()->back()
+                ->with('popupError', 'Ocurrió un error al cargar la información del concepto de pago.');
+        }
     }
+
 
 
     public function update(Request $request, $idConceptoDePago)
     {
-        // Buscar el concepto
-        $concepto = ConceptoDePago::findOrFail($idConceptoDePago);
+        try {
 
-        if ($request->accion === 'guardar') {
+            // Buscar el concepto
+            $concepto = ConceptoDePago::findOrFail($idConceptoDePago);
 
-            $validator = Validator::make(
-                $request->all(),
-                [
-                    // ======================
-                    // CONCEPTO DE PAGO
-                    // ======================
-                    'costo'          => 'required|numeric|min:0|max:9999999.99',
-                    'unidad'         => 'required|exists:tipo_de_unidad,idTipoDeUnidad',
-                ],
-                [
-                    // ======================
-                    // MENSAJES GENERALES
-                    // ======================
-                    'required' => 'El campo :attribute es obligatorio.',
-                    'string'   => 'El campo :attribute debe ser texto.',
-                    'numeric'  => 'El campo :attribute debe ser un número válido.',
-                    'min'      => 'El campo :attribute debe ser mayor o igual a :min.',
-                    'max'      => 'El campo :attribute no debe exceder :max.',
-                    'exists'   => 'La opción seleccionada en :attribute no es válida.',
-                ],
-                [
-                    // ======================
-                    // NOMBRES AMIGABLES
-                    // ======================
-                    'costo'          => 'costo',
-                    'unidad'         => 'unidad',
-                ]
-            );
+            if ($request->accion === 'guardar') {
 
-            if ($validator->fails()) {
-                return back()
-                    ->with('popupError', 'No se pudo actualizar el concepto de pago. Verifica los datos ingresados.')
-                    ->withErrors($validator)
-                    ->withInput();
-            }
+                $validator = Validator::make(
+                    $request->all(),
+                    [
+                        'costo'  => 'required|numeric|min:0|max:9999999.99',
+                        'unidad' => 'required|exists:tipo_de_unidad,idTipoDeUnidad',
+                    ],
+                    [
+                        'required' => 'El campo :attribute es obligatorio.',
+                        'numeric'  => 'El campo :attribute debe ser un número válido.',
+                        'min'      => 'El campo :attribute debe ser mayor o igual a :min.',
+                        'max'      => 'El campo :attribute no debe exceder :max.',
+                        'exists'   => 'La opción seleccionada en :attribute no es válida.',
+                    ],
+                    [
+                        'costo'  => 'costo',
+                        'unidad' => 'unidad',
+                    ]
+                );
 
+                if ($validator->fails()) {
+                    return back()
+                        ->with('popupError', 'No se pudo actualizar el concepto de pago. Verifica los datos ingresados.')
+                        ->withErrors($validator)
+                        ->withInput();
+                }
 
+                // Guardar cambios
+                $concepto->costo    = $request->costo;
+                $concepto->idUnidad = $request->unidad;
+                $concepto->save();
 
-
-            // Guardar cambios
-            $concepto->costo = $request->costo;
-            $concepto->idUnidad = $request->unidad; 
-            $concepto->save();
-
-            return redirect()->route('consultaConcepto')->with('success', 'Concepto de pago actualizado correctamente.');
-        }
-
-        elseif ($request->accion === 'Suspender/Habilitar') {
-
-            // Guardar estatus anterior
-            $estatusAnterior = $concepto->idEstatus;
-
-            $estaEnUso = \App\Models\PlanConcepto::where('idConceptoDePago', $idConceptoDePago)->exists();
-
-            if ($estaEnUso) {
                 return redirect()
                     ->route('consultaConcepto')
-                    ->with('popupError', "El concepto {$concepto->nombreConceptoDePago} no puede suspenderse porque está siendo usado en un plan de pago.");
+                    ->with('success', 'Concepto de pago actualizado correctamente.');
             }
 
+            elseif ($request->accion === 'Suspender/Habilitar') {
 
-            // Alternar estatus
-            $concepto->idEstatus = ($concepto->idEstatus == 1) ? 2 : 1;
-            $concepto->save();
+                // Guardar estatus anterior
+                $estatusAnterior = $concepto->idEstatus;
 
-            // Mensaje según acción
-            $mensaje = ($estatusAnterior == 1)
-                ? "El concepto {$concepto->nombreConceptoDePago} ha sido suspendido."
-                : "El concepto {$concepto->nombreConceptoDePago} ha sido activado.";
+                $estaEnUso = \App\Models\PlanConcepto::where(
+                    'idConceptoDePago',
+                    $idConceptoDePago
+                )->exists();
 
-            return redirect()->route('consultaConcepto')->with('success', $mensaje);
+                if ($estaEnUso) {
+                    return redirect()
+                        ->route('consultaConcepto')
+                        ->with(
+                            'popupError',
+                            "El concepto {$concepto->nombreConceptoDePago} no puede suspenderse porque está siendo usado en un plan de pago."
+                        );
+                }
+
+                // Alternar estatus
+                $concepto->idEstatus = ($concepto->idEstatus == 1) ? 2 : 1;
+                $concepto->save();
+
+                // Mensaje según acción
+                $mensaje = ($estatusAnterior == 1)
+                    ? "El concepto {$concepto->nombreConceptoDePago} ha sido suspendido."
+                    : "El concepto {$concepto->nombreConceptoDePago} ha sido activado.";
+
+                return redirect()
+                    ->route('consultaConcepto')
+                    ->with('success', $mensaje);
+            }
+
+        } catch (\Throwable $e) {
+
+            \Log::error('Error al actualizar concepto de pago', [
+                'idConceptoDePago' => $idConceptoDePago,
+                'request'          => $request->all(),
+                'error'            => $e->getMessage()
+            ]);
+
+            return redirect()->route('consultaConcepto')
+                ->with('popupError', 'No se pudo realizar la actualización del concepto de pago.');
         }
     }
+
 
     public function destroy($idConceptoDePago)
     {
-        // Buscar el concepto
-        $concepto = ConceptoDePago::findOrFail($idConceptoDePago);
+        try {
 
-        // Verificar si está siendo usado en algún plan de pago
-        $estaEnUso = \App\Models\PlanConcepto::where('idConceptoDePago', $idConceptoDePago)->exists();
+            // Buscar el concepto
+            $concepto = ConceptoDePago::findOrFail($idConceptoDePago);
 
-        if ($estaEnUso) {
+            // ===============================
+            // VALIDAR USO EN PLANES DE PAGO
+            // ===============================
+            $estaEnPlan = \App\Models\PlanConcepto::where(
+                'idConceptoDePago',
+                $idConceptoDePago
+            )->exists();
+
+            if ($estaEnPlan) {
+                return redirect()
+                    ->route('consultaConcepto')
+                    ->with(
+                        'popupError',
+                        "El concepto {$concepto->nombreConceptoDePago} no puede eliminarse porque está siendo usado en un plan de pago."
+                    );
+            }
+
+            // ===============================
+            // VALIDAR USO EN PAGOS
+            // ===============================
+            $estaEnPagos = \App\Models\Pago::where(
+                'idConceptoDePago',
+                $idConceptoDePago
+            )->exists();
+
+            if ($estaEnPagos) {
+                return redirect()
+                    ->route('consultaConcepto')
+                    ->with(
+                        'popupError',
+                        "El concepto {$concepto->nombreConceptoDePago} no puede eliminarse porque existen pagos registrados con este concepto."
+                    );
+            }
+
+            // ===============================
+            // ELIMINAR
+            // ===============================
+            $concepto->delete();
+
             return redirect()
                 ->route('consultaConcepto')
-                ->with('popupError', "El concepto {$concepto->nombreConceptoDePago} no puede eliminarse porque está siendo usado en un plan de pago.");
+                ->with(
+                    'success',
+                    "El concepto {$concepto->nombreConceptoDePago} ha sido eliminado correctamente."
+                );
+
+        } catch (\Throwable $e) {
+
+            \Log::error('Error al eliminar concepto de pago', [
+                'idConceptoDePago' => $idConceptoDePago,
+                'error'            => $e->getMessage()
+            ]);
+
+            return redirect()
+                ->route('consultaConcepto')
+                ->with(
+                    'popupError',
+                    'Ocurrió un error al intentar eliminar el concepto de pago, se sugiere solo suspenderlo.'
+                );
         }
-
-        // Si no está en uso, eliminarlo
-        $concepto->delete();
-
-        return redirect()
-            ->route('consultaConcepto')
-            ->with('success', "El concepto {$concepto->nombreConceptoDePago} ha sido eliminado.");
     }
+
 
 
 
