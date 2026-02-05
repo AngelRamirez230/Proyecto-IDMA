@@ -213,21 +213,31 @@
 @endif
 
 
-
+@estudiante
     @php
-        $pagosOrdenados = collect($pagos);
+        // 1. Obtener conceptos del plan asignado
+        $conceptosDelPlan = $planAsignado
+            ->planDePago
+            ->conceptos
+            ->pluck('idConceptoDePago')
+            ->toArray();
 
-        // Inscripción o reinscripción (solo uno de los dos existirá)
-        $principal = $pagosOrdenados->first(fn ($p) =>
+        // 2. Filtrar pagos: solo del plan y no vencidos
+        $pagosFiltrados = collect($pagos)
+            ->whereIn('idConceptoDePago', $conceptosDelPlan)
+            ->where('fechaLimiteDePago', '>=', now());
+
+        // 3. Inscripción / reinscripción (solo uno)
+        $principal = $pagosFiltrados->first(fn ($p) =>
             in_array($p->idConceptoDePago, [1, 30])
         );
 
-        // Mensualidades ordenadas por fecha límite
-        $mensualidades = $pagosOrdenados
+        // 4. Mensualidades ordenadas por fecha
+        $mensualidades = $pagosFiltrados
             ->where('idConceptoDePago', 2)
             ->sortBy('fechaLimiteDePago');
 
-        // Unir todo
+        // 5. Orden final
         $pagosOrdenadosFinal = collect();
 
         if ($principal) {
@@ -238,7 +248,8 @@
     @endphp
 
 
-    @if($pagos->count())
+
+    @if($planAsignado && $pagosOrdenadosFinal->count())
         @if($planAsignado)
 
             <section class="consulta">
@@ -319,7 +330,7 @@
 
     @endif
 
-
+@endestudiante
 
 
 
