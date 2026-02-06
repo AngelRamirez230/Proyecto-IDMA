@@ -131,7 +131,7 @@
 
             // Cambiar texto del popup
             document.getElementById('mensajeConfirmacion').innerText =
-                `¿Estás seguro de eliminar la beca "${nombreBeca}"?`;
+                `¿Estás seguro de eliminar el plan de pago "${nombreBeca}"?`;
 
             // Mostrar popup
             document.getElementById('popupConfirmacion').style.display = 'flex';

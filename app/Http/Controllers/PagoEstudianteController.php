@@ -6,12 +6,14 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 // MODELOS
 use App\Models\Pago;
 use App\Models\Estudiante;
 use App\Models\ConceptoDePago;
 use App\Models\Notificacion;
+use App\Services\ReferenciaBancariaAztecaService;
 
 class PagoEstudianteController extends Controller
 {
@@ -20,78 +22,95 @@ class PagoEstudianteController extends Controller
     // =============================
     public function create(Request $request)
     {
-        $buscar = $request->buscar;
-        $filtro = $request->filtro;
-        $orden  = $request->orden;
+        try {
 
-        // =============================
-        // QUERY BASE
-        // =============================
-        $query = Estudiante::with('usuario');
+            $buscar = $request->buscar;
+            $filtro = $request->filtro;
+            $orden  = $request->orden;
 
-        // =============================
-        // BUSCADOR
-        // =============================
-        if ($request->filled('buscar')) {
+            // =============================
+            // QUERY BASE
+            // =============================
+            $query = Estudiante::with('usuario');
 
-            $buscar = trim($buscar);
+            // =============================
+            // BUSCADOR
+            // =============================
+            if ($request->filled('buscar')) {
 
-            $query->whereHas('usuario', function ($u) use ($buscar) {
-                $u->where('primerNombre', 'LIKE', "%{$buscar}%")
-                ->orWhere('segundoNombre', 'LIKE', "%{$buscar}%")
-                ->orWhere('primerApellido', 'LIKE', "%{$buscar}%")
-                ->orWhere('segundoApellido', 'LIKE', "%{$buscar}%")
-                ->orWhereRaw(
-                    "REPLACE(
-                        TRIM(
-                            CONCAT(
-                                primerNombre, ' ',
-                                IFNULL(segundoNombre, ''), ' ',
-                                primerApellido, ' ',
-                                IFNULL(segundoApellido, '')
-                            )
-                        ),
-                        '  ', ' '
-                    ) LIKE ?",
-                    ["%{$buscar}%"]
+                $buscar = trim($buscar);
+
+                $query->whereHas('usuario', function ($u) use ($buscar) {
+                    $u->where('primerNombre', 'LIKE', "%{$buscar}%")
+                        ->orWhere('segundoNombre', 'LIKE', "%{$buscar}%")
+                        ->orWhere('primerApellido', 'LIKE', "%{$buscar}%")
+                        ->orWhere('segundoApellido', 'LIKE', "%{$buscar}%")
+                        ->orWhereRaw(
+                            "REPLACE(
+                                TRIM(
+                                    CONCAT(
+                                        primerNombre, ' ',
+                                        IFNULL(segundoNombre, ''), ' ',
+                                        primerApellido, ' ',
+                                        IFNULL(segundoApellido, '')
+                                    )
+                                ),
+                                '  ', ' '
+                            ) LIKE ?",
+                            ["%{$buscar}%"]
+                        );
+                });
+            }
+
+            // =============================
+            // FILTRO POR ESTATUS
+            // =============================
+            if ($filtro === 'nuevoIngreso') {
+                $query->where('grado', 1);
+            }
+
+            if ($filtro === 'inscritos') {
+                $query->where('grado', '>', 1);
+            }
+
+            // =============================
+            // ORDENAMIENTO
+            // =============================
+            if ($orden === 'alfabetico') {
+                $query->join('usuario', 'usuario.idUsuario', '=', 'estudiante.idUsuario')
+                    ->orderBy('usuario.primerNombre')
+                    ->orderBy('usuario.primerApellido')
+                    ->orderBy('usuario.segundoApellido')
+                    ->select('estudiante.*');
+            }
+
+            // =============================
+            // PAGINACIÓN
+            // =============================
+            $estudiantes = $query
+                ->paginate(10)
+                ->withQueryString();
+
+            return view('SGFIDMA.moduloPagos.asignarPagoEstudiante', [
+                'estudiantes' => $estudiantes,
+                'conceptos'   => ConceptoDePago::where('idEstatus', 1)->get(),
+                'buscar'      => $buscar,
+            ]);
+
+        } catch (\Throwable $e) {
+            Log::error('Error al cargar formulario de asignación de pagos', [
+                'error' => $e->getMessage(),
+                'line'  => $e->getLine(),
+                'file'  => $e->getFile(),
+            ]);
+
+            return redirect()
+                ->back()
+                ->with(
+                    'popupError',
+                    'Ocurrió un error al cargar la información. Intente nuevamente o contacte al administrador.'
                 );
-            });
         }
-
-        // =============================
-        // FILTRO POR ESTATUS
-        // =============================
-        if ($filtro === 'nuevoIngreso') {
-            $query->where('grado', 1);
-        }
-
-        if ($filtro === 'inscritos') {
-            $query->where('grado', '>', 1);
-        }
-
-        // =============================
-        // ORDENAMIENTO
-        // =============================
-        if ($orden === 'alfabetico') {
-            $query->join('usuario', 'usuario.idUsuario', '=', 'estudiante.idUsuario')
-                ->orderBy('usuario.primerNombre')
-                ->orderBy('usuario.primerApellido')
-                ->orderBy('usuario.segundoApellido')
-                ->select('estudiante.*');
-        }
-
-        // =============================
-        // PAGINACIÓN
-        // =============================
-        $estudiantes = $query
-            ->paginate(10)
-            ->withQueryString();
-
-        return view('SGFIDMA.moduloPagos.asignarPagoEstudiante', [
-            'estudiantes' => $estudiantes,
-            'conceptos'   => ConceptoDePago::where('idEstatus', 1)->get(),
-            'buscar'      => $buscar,
-        ]);
     }
 
 
@@ -222,56 +241,13 @@ class PagoEstudianteController extends Controller
                     // =============================
                     // GENERAR REFERENCIA
                     // =============================
-                    $anioBase = 2013;
-                    $anioCond = ($fechaLimitePago->year - $anioBase) * 372;
-                    $mesCond  = ($fechaLimitePago->month - 1) * 31;
-                    $diaCond  = ($fechaLimitePago->day - 1);
-                    $fechaCondensada = $anioCond + $mesCond + $diaCond;
-
-                    $prefijo = '0007777';
-                    $matricula = $estudiante->matriculaNumerica;
-
-                    $conceptoFormateado = str_pad(
-                        $concepto->idConceptoDePago,
-                        2,
-                        '0',
-                        STR_PAD_LEFT
+                    $referenciaFinal = ReferenciaBancariaAztecaService::generar(
+                        $estudiante,
+                        $concepto,
+                        $costoFinal,
+                        $fechaLimitePago
                     );
 
-                    $monto = number_format($costoFinal, 2, '', '');
-                    $monto = str_pad($monto, 10, '0', STR_PAD_LEFT);
-
-                    $ponderadores = [7, 3, 1];
-                    $digitos = str_split($monto);
-                    $suma = 0;
-
-                    foreach ($digitos as $i => $digito) {
-                        $indice = (count($digitos) - 1 - $i) % 3;
-                        $suma += ((int)$digito) * $ponderadores[$indice];
-                    }
-
-                    $importeCondensado = $suma % 10;
-                    $constante = '2';
-
-                    $referenciaInicial =
-                        $prefijo .
-                        $matricula .
-                        $conceptoFormateado .
-                        $fechaCondensada .
-                        $importeCondensado .
-                        $constante;
-
-                    $ponderadores97 = [11, 13, 17, 19, 23];
-                    $digitosRef = str_split($referenciaInicial);
-                    $suma = 0;
-
-                    foreach ($digitosRef as $i => $digito) {
-                        $pos = (count($digitosRef) - 1 - $i) % count($ponderadores97);
-                        $suma += ((int)$digito) * $ponderadores97[$pos];
-                    }
-
-                    $remanente = str_pad(($suma % 97) + 1, 2, '0', STR_PAD_LEFT);
-                    $referenciaFinal = $referenciaInicial . $remanente;
 
                     // =============================
                     // VERIFICAR DUPLICADO
@@ -346,13 +322,29 @@ class PagoEstudianteController extends Controller
     }
 
 
-    public function detallesReferencias()
+   public function detallesReferencias()
     {
-        return view('SGFIDMA.moduloPagos.detallesGeneracionDeReferencias', [
-            'creados'    => session('creados', []),
-            'duplicados' => session('duplicados', []),
-            'omitidos'   => session('omitidos', []),
-        ]);
-    }
+        try {
 
+            return view('SGFIDMA.moduloPagos.detallesGeneracionDeReferencias', [
+                'creados'    => session('creados', []),
+                'duplicados' => session('duplicados', []),
+                'omitidos'   => session('omitidos', []),
+            ]);
+
+        } catch (\Throwable $e) {
+            Log::error('Error al cargar detalles de generación de referencias', [
+                'error' => $e->getMessage(),
+                'line'  => $e->getLine(),
+                'file'  => $e->getFile(),
+            ]);
+
+            return redirect()
+                ->route('admin.pagos.create') 
+                ->with(
+                    'popupError',
+                    'Ocurrió un error al mostrar los detalles de las referencias.'
+                );
+        }
+    }
 }

@@ -75,40 +75,40 @@
 
         </section>
 
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+            <div class="detalle-usuario__header">
 
-        <div class="detalle-usuario__header">
+                <!-- BOTÓN SUBIR TXT -->
+                <form action="{{ route('pagos.validarArchivo') }}" method="POST" enctype="multipart/form-data" class="upload-form">
+                    @csrf
+                    <div class="upload-container">
 
-            <!-- BOTÓN SUBIR TXT -->
-            <form action="{{ route('pagos.validarArchivo') }}" method="POST" enctype="multipart/form-data" class="upload-form">
-                @csrf
-                <div class="upload-container">
+                        <label for="archivoTxt" class="btn-upload">
+                            Seleccionar archivo
+                        </label>
 
-                    <label for="archivoTxt" class="btn-upload">
-                        Seleccionar archivo
-                    </label>
+                        <input 
+                            type="file" 
+                            name="archivoTxt" 
+                            id="archivoTxt" 
+                            accept=".txt,.xlsx,.xls" 
+                            required 
+                            class="upload-input-hidden"
+                        >
 
-                    <input 
-                        type="file" 
-                        name="archivoTxt" 
-                        id="archivoTxt" 
-                        accept=".txt,.xlsx,.xls" 
-                        required 
-                        class="upload-input-hidden"
-                    >
+                        <span id="archivoNombre" class="archivo-nombre">
+                            Ningún documento seleccionado
+                        </span>
 
-                    <span id="archivoNombre" class="archivo-nombre">
-                        Ningún documento seleccionado
-                    </span>
+                        <!-- Botón validar -->
+                        <button type="submit" class="btn-boton-formulario2 btn-accion">
+                            Validar pagos
+                        </button>
 
-                    <!-- Botón validar -->
-                    <button type="submit" class="btn-boton-formulario2 btn-accion">
-                        Validar pagos
-                    </button>
-
-                </div>
-            </form>
-        </div>
-
+                    </div>
+                </form>
+            </div>
+        @endif
         <!-- =========================
             TABLA
         ========================== -->
@@ -117,9 +117,12 @@
 
                 <thead>
                     <tr class="tabla-encabezado">
-                        <th>Nombre estudiante</th>
+                        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+                            <th>Nombre estudiante</th>
+                        @endif
                         <th>Referencia de pago</th>
                         <th>Concepto de pago</th>
+                        <th>Monto</th>
                         <th>Fecha límite de pago</th>
                         <th>Fecha de pago</th>
                         <th>Estatus</th>
@@ -138,17 +141,20 @@
                     @else
                         @foreach ($pagos as $pago)
                             <tr class="{{ $pago->idEstatus == 2 ? 'fila-suspendida' : '' }}">
-
-                                <td>
-                                    {{ $pago->estudiante->usuario->primerNombre }}
-                                    {{ $pago->estudiante->usuario->segundoNombre }}
-                                    {{ $pago->estudiante->usuario->primerApellido }}
-                                    {{ $pago->estudiante->usuario->segundoApellido }}
-                                </td>
+                                @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+                                    <td>
+                                        {{ $pago->estudiante->usuario->primerNombre }}
+                                        {{ $pago->estudiante->usuario->segundoNombre }}
+                                        {{ $pago->estudiante->usuario->primerApellido }}
+                                        {{ $pago->estudiante->usuario->segundoApellido }}
+                                    </td>
+                                @endif
 
                                 <td>{{ $pago->Referencia }}</td>
 
                                 <td>{{ $pago->concepto->nombreConceptoDePago }}</td>
+
+                                <td>${{ $pago->montoAPagar }}</td>
 
                                 <td>
                                     {{ $pago->fechaLimiteDePago?->format('d/m/Y') ?? '-' }}
