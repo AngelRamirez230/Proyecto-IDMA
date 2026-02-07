@@ -268,7 +268,7 @@ class PagoEstudianteController extends Controller
                             'fechaGeneracionDePago' => $fechaEmisionPago,
                             'fechaLimiteDePago'     => $fechaLimitePago,
                             'aportacion'            => $request->aportacion,
-                            'idEstatus'             => 3,
+                            'idEstatus'             => 10,
                         ]);
 
                         $referenciasCreadas[] = [

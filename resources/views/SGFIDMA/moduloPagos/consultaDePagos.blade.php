@@ -25,7 +25,11 @@
                     <input
                         type="text"
                         name="buscarPago"
-                        placeholder="Ingresa número de referencia o estudiante"
+                        placeholder="{{ 
+                            (Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+                            ? 'Ingresa número de referencia o estudiante'
+                            : 'Ingresa número de referencia'
+                        }}"
                         value="{{ $buscar ?? '' }}"
                         onkeydown="if(event.key === 'Enter') this.form.submit();"
                     >

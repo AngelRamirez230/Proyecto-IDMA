@@ -106,18 +106,14 @@
 
                         @php
                             $saldo = 0;
-                            $mostrarSaldo = true;
                         @endphp
 
                         @forelse ($kardex as $fila)
                             
                         
                             @php
-                                if ($mostrarSaldo && ($fila['estado'] ?? null) === 6 && !empty($fila['monto'])) {
+                                if (($fila['estado'] ?? null) === 11 && !empty($fila['monto'])) {
                                     $saldo += $fila['monto'];
-                                } else {
-                                    // en cuanto encuentra una fila no pagada, se corta
-                                    $mostrarSaldo = false;
                                 }
                             @endphp
 
@@ -146,7 +142,7 @@
 
                                 {{-- CANTIDAD --}}
                                 <td>
-                                    @if (($fila['estado'] ?? null) === 6)
+                                    @if (($fila['estado'] ?? null) === 11)
                                         ${{ number_format($fila['monto'], 2) }}
                                     @else
                                         -
@@ -155,7 +151,7 @@
 
                                 {{-- MONTO --}}
                                 <td>
-                                    @if (($fila['estado'] ?? null) === 6)
+                                    @if (($fila['estado'] ?? null) === 11)
                                         ${{ number_format($fila['monto'], 2) }}
                                     @else
                                         -
@@ -164,7 +160,7 @@
 
                                 {{-- FECHA --}}
                                 <td>
-                                    @if (($fila['estado'] ?? null) === 6 && !empty($fila['fechaPago']))
+                                    @if (($fila['estado'] ?? null) === 11 && !empty($fila['fechaPago']))
                                         {{ \Carbon\Carbon::parse($fila['fechaPago'])->format('d/m/Y') }}
                                     @else
                                         -
@@ -173,7 +169,7 @@
 
                                 {{-- FORMA DE PAGO --}}
                                 <td colspan="3">
-                                    @if (($fila['estado'] ?? null) === 6)
+                                    @if (($fila['estado'] ?? null) === 11)
                                         {{ $fila['formaPago'] ?? '-' }}
                                     @else
                                         -
@@ -182,11 +178,7 @@
 
                                 {{-- SALDO / ESTADO --}}
                                 <td>
-                                    @if ($mostrarSaldo)
-                                        ${{ number_format($saldo, 2) }}
-                                    @else
-                                        -
-                                    @endif
+                                    {{ $saldo > 0 ? '$' . number_format($saldo, 2) : '-' }}
                                 </td>
 
                             </tr>

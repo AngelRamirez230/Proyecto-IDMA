@@ -30,7 +30,9 @@ class PagoController extends Controller
             $estudiante = $usuario->estudiante;
 
             if (!$estudiante) {
-                throw new \Exception('Estudiante no encontrado');
+                return redirect()
+                    ->back()
+                    ->with('popupError', 'Estudiante no encontrado.');
             }
 
 
@@ -89,13 +91,13 @@ class PagoController extends Controller
             // =============================
             $pagoPendiente = Pago::where('idEstudiante', $estudiante->idEstudiante)
                 ->where('idConceptoDePago', $concepto->idConceptoDePago)
-                ->where('idEstatus', 3) // Pendiente
+                ->where('idEstatus', 10) // Pendiente
                 ->first();
 
             if ($pagoPendiente) {
-                throw new \Exception(
-                    'Ya cuentas con un pago pendiente para este concepto'
-                );
+                return redirect()
+                    ->back()
+                    ->with('popupError', 'Ya cuentas con un pago pendiente para este concepto.');
             }
 
 
@@ -115,8 +117,11 @@ class PagoController extends Controller
             // VALIDAR DUPLICADO
             // =============================
             if (Pago::where('Referencia', $referenciaFinal)->exists()) {
-                throw new \Exception('Referencia duplicada');
+                return redirect()
+                    ->back()
+                    ->with('popupError', 'La referencia bancaria ya existe.');
             }
+
 
 
             // =============================
@@ -129,7 +134,7 @@ class PagoController extends Controller
                 'fechaGeneracionDePago' => now(),
                 'fechaLimiteDePago'     => $fechaLimitePago,
                 'aportacion'            => null,
-                'idEstatus'             => 3,
+                'idEstatus'             => 10,
                 'idEstudiante'          => $estudiante->idEstudiante,
             ]);
 
@@ -163,7 +168,7 @@ class PagoController extends Controller
 
             return redirect()
                 ->back()
-                ->with('popupError', $e->getMessage());
+                ->with('popupError', 'No se pudo generar la referencia de pago. Intente mas tarde');
         }
     }
 
@@ -227,16 +232,16 @@ class PagoController extends Controller
             $filtro = $request->filtro;
             $buscar = $request->buscarPago;
 
+            $usuario = Auth::user();
+
             $query = Pago::with([
                 'estudiante.usuario',
                 'concepto',
                 'estatus'
             ]);
 
-            $usuario = Auth::user();
-
             // =============================
-            // RESTRICCIÓN POR ROL
+            // RESTRICCIÓN POR ROL (ESTUDIANTE)
             // =============================
             if ($usuario->estudiante) {
                 $query->where('idEstudiante', $usuario->estudiante->idEstudiante)
@@ -250,46 +255,53 @@ class PagoController extends Controller
 
                 $buscar = trim($buscar);
 
-                $query->where(function ($q) use ($buscar) {
+                $query->where(function ($q) use ($buscar, $usuario) {
 
-                    $q->where('Referencia', 'LIKE', "%{$buscar}%")
-                    ->orWhereHas('estudiante.usuario', function ($u) use ($buscar) {
+                    
+                    $q->where('Referencia', 'LIKE', "%{$buscar}%");
 
-                        $u->where('primerNombre', 'LIKE', "%{$buscar}%")
-                            ->orWhere('segundoNombre', 'LIKE', "%{$buscar}%")
-                            ->orWhere('primerApellido', 'LIKE', "%{$buscar}%")
-                            ->orWhere('segundoApellido', 'LIKE', "%{$buscar}%")
-                            ->orWhereRaw(
-                                "REPLACE(
-                                    TRIM(
-                                        CONCAT(
-                                            primerNombre, ' ',
-                                            IFNULL(segundoNombre, ''), ' ',
-                                            primerApellido, ' ',
-                                            IFNULL(segundoApellido, '')
-                                        )
-                                    ),
-                                    '  ', ' '
-                                ) LIKE ?",
-                                ["%{$buscar}%"]
-                            );
-                    });
+    
+                    if (!$usuario->estudiante) {
+
+                        $q->orWhereHas('estudiante.usuario', function ($u) use ($buscar) {
+
+                            $u->where('primerNombre', 'LIKE', "%{$buscar}%")
+                                ->orWhere('segundoNombre', 'LIKE', "%{$buscar}%")
+                                ->orWhere('primerApellido', 'LIKE', "%{$buscar}%")
+                                ->orWhere('segundoApellido', 'LIKE', "%{$buscar}%")
+                                ->orWhereRaw(
+                                    "REPLACE(
+                                        TRIM(
+                                            CONCAT(
+                                                primerNombre, ' ',
+                                                IFNULL(segundoNombre, ''), ' ',
+                                                primerApellido, ' ',
+                                                IFNULL(segundoApellido, '')
+                                            )
+                                        ),
+                                        '  ', ' '
+                                    ) LIKE ?",
+                                    ["%{$buscar}%"]
+                                );
+                        });
+                    }
                 });
             }
 
+
             // =============================
-            // FILTRO
+            // FILTRO POR ESTATUS
             // =============================
             if ($filtro === 'pendientes') {
-                $query->where('idEstatus', 3);
+                $query->where('idEstatus', 10);
             } elseif ($filtro === 'aprobados') {
-                $query->where('idEstatus', 6);
+                $query->where('idEstatus', 11);
             } elseif ($filtro === 'rechazados') {
-                $query->where('idEstatus', 7);
+                $query->where('idEstatus', 12);
             }
 
             // =============================
-            // ORDEN
+            // ORDENAMIENTO
             // =============================
             if ($orden === 'alfabetico') {
                 $query->orderBy('idEstudiante');
@@ -297,6 +309,9 @@ class PagoController extends Controller
                 $query->orderBy('fechaGeneracionDePago', 'desc');
             } elseif ($orden === 'porcentaje_menor') {
                 $query->orderBy('fechaGeneracionDePago', 'asc');
+            } else {
+                // Orden por defecto
+                $query->orderBy('fechaGeneracionDePago', 'desc');
             }
 
             $pagos = $query->paginate(10)->withQueryString();
@@ -306,10 +321,12 @@ class PagoController extends Controller
                 compact('pagos', 'orden', 'filtro', 'buscar')
             );
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
 
             \Log::error('Error en consulta de pagos', [
-                'error' => $e->getMessage()
+                'mensaje' => $e->getMessage(),
+                'archivo' => $e->getFile(),
+                'linea'   => $e->getLine(),
             ]);
 
             return redirect()->back()->with(
@@ -318,6 +335,7 @@ class PagoController extends Controller
             );
         }
     }
+
 
 
     public function show($referencia)
@@ -360,7 +378,7 @@ class PagoController extends Controller
                     'concepto',
                     'estatus'
                 ])
-                ->where('idEstatus', 3)
+                ->where('idEstatus', 10)
                 ->paginate(10);
 
             return view(
@@ -446,7 +464,7 @@ class PagoController extends Controller
                     continue;
                 }
 
-                if ($pago->idEstatus == 6) continue;
+                if ($pago->idEstatus == 11) continue;
 
                 $pago->update([
                     'fechaDePago' => $fechaPago,
@@ -458,7 +476,7 @@ class PagoController extends Controller
                     'IVA' => $iva,
                     'ImporteNeto' => $importeNeto,
                     'tipoDeRegistro' => $tipoRegistro,
-                    'idEstatus' => 6,
+                    'idEstatus' => 11,
                 ]);
 
                 $pagosActualizados[] = $referencia;
@@ -574,7 +592,7 @@ class PagoController extends Controller
                     continue;
                 }
 
-                if ($pago->idEstatus == 6) continue;
+                if ($pago->idEstatus == 11) continue;
 
                 // ================================
                 // ACTUALIZAR
@@ -590,7 +608,7 @@ class PagoController extends Controller
                     'IVA' => $iva,
                     'ImporteNeto' => $importeNeto,
                     'tipoDeRegistro' => 'D',
-                    'idEstatus' => 6,
+                    'idEstatus' => 11,
                 ]);
 
                 $pagosActualizados[] = $referencia;

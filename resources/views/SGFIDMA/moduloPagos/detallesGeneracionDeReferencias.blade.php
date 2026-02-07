@@ -27,7 +27,7 @@
 
                 <form action="{{ route('admin.pagos.create') }}" method="get">
                     <button type="submit" class="popup-boton">
-                        Cerrar
+                        Volver
                     </button>
                 </form>
             </div>

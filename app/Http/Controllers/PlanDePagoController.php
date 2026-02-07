@@ -901,7 +901,7 @@ class PlanDePagoController extends Controller
                                     'fechaGeneracionDePago' => $primerMes->copy()->day(1),
                                     'fechaLimiteDePago'     => $fechaLimite,
                                     'aportacion'            => $aportacionTexto,
-                                    'idEstatus'             => 3
+                                    'idEstatus'             => 10
                                 ]);
 
                                 $creados[$idEstudiante]['pagos'][] = [
@@ -1004,7 +1004,7 @@ class PlanDePagoController extends Controller
                                         'aportacion'            => 'MES DE ' . strtoupper(
                                             $mes->locale('es')->translatedFormat('F')
                                         ),
-                                        'idEstatus'             => 3
+                                        'idEstatus'             => 10
                                     ]);
 
                                     $creados[$idEstudiante]['pagos'][] = [
