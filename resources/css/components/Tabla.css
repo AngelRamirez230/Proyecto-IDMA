@@ -328,8 +328,24 @@ font-size: 18px;
     margin-top: 50px;
 }
 
+.tabla-secundaria2 {
+    margin-top: 50px;
+    margin-left: auto;
+    margin-right: 20px;
+}
+
 .tabla-pequena {
-    width: 60%;
+    width: 50%;
+}
+
+.tabla-pequena2 {
+    width: 40%;
+}
+
+.estado-cuenta-tablas {
+    display: flex;
+    align-items: flex-start;
+    padding-bottom: 40px               
 }
 
 @media (max-width: 1024px) {

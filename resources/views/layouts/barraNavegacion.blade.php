@@ -121,6 +121,13 @@
         </li>
         @endif
 
+        {{-- ESTADOS DE CUENTA --}}
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11) || Auth::user()->estudiante)
+        <li class="subnav-item">
+            <a href="{{ route('apartadoEstadoDeCuenta') }}">Estados de cuenta</a>
+        </li>
+        @endif
+
         {{-- BITÁCORAS --}}
         @admin
         <li class="subnav-item">

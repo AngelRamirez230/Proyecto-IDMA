@@ -129,6 +129,11 @@
     font-family: inherit;
 }
 
+
+.titulo-centrado {
+    text-align: center;
+}
+
 @media (max-width: 768px) {
 
     .subir-documento {

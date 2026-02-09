@@ -168,7 +168,15 @@
         </a>
         @endif
 
-        {{-- 13. BITÁCORAS --}}
+        {{-- 11. Estados de cuenta --}}
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11) || Auth::user()->estudiante)
+        <a href="{{ route('apartadoEstadoDeCuenta') }}" class="card-btn">
+            <img src="/imagenes/IconoInicioEstadoDeCuenta.png" alt="">
+            <span class="card-btn-title">Estados de cuenta</span>
+        </a>
+        @endif
+
+        {{-- 14. BITÁCORAS --}}
         @admin
         <a href="{{ route('apartadoBitacoras') }}" class="card-btn">
             <img src="/imagenes/IconoBitacorasdelsistema.png" alt="">

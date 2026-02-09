@@ -21,7 +21,7 @@ use App\Http\Controllers\NotificacionController;
 use App\Http\Controllers\BitacoraController;
 use App\Http\Controllers\CalificacionesController;
 use App\Http\Controllers\ReporteFinancieroController;
-
+use App\Http\Controllers\EstadoDeCuentaController;
 
 
 /*--------------------------RUTAS PARA INVITADOS (LOGIN)--------------------------*/
@@ -250,6 +250,18 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout', 'bitacora'])->g
 
 
     Route::get('/reportes/kardex/seleccionar-estudiante',[ReporteFinancieroController::class, 'seleccionarEstudianteKardex'])->name('kardex.seleccionar.estudiante');
+
+
+    /*----------- ESTADOS DE CUENTA -----------*/
+    Route::get('/apartadoEstadosDeCuenta', function () {
+        return view('SGFIDMA.moduloEstadoDeCuenta.apartadoEstadoDeCuenta');
+    })->name('apartadoEstadoDeCuenta');
+
+    Route::get('/estados-de-cuenta/seleccionar-estudiante',[EstadoDeCuentaController::class, 'seleccionarEstudiante'])->name('estadosCuenta.seleccionarEstudiante');
+    Route::post('/estado-de-cuenta/vista-previa',[EstadoDeCuentaController::class, 'vistaPreviaEstadoDeCuenta'])->name('estadoCuenta.vistaPrevia');
+    Route::get('/estado-de-cuenta/mi-estado',[EstadoDeCuentaController::class, 'miEstadoDeCuenta'])->name('estadoCuenta.miEstado');
+
+
 
     /*----------- GRUPOS -----------*/
     Route::get('/apartadoGrupos', function () {
