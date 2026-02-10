@@ -151,13 +151,7 @@ class EstadoDeCuentaController extends Controller
             // =========================
             $pagosAprobados  = $pagos->where('idEstatus', 11); // Aprobado
             $pagosPendientes = $pagos->where('idEstatus', 10); // Pendiente
-
-
-            $pagosNoPagados = $pagos->filter(function ($pago) {
-                return $pago->idEstatus != 11
-                    && $pago->fechaLimiteDePago
-                    && now()->gt($pago->fechaLimiteDePago);
-            });
+            $pagosNoPagados = $pagos->where('idEstatus', 12);// No pagado
 
             // =========================
             // IMPORTE TOTAL
@@ -172,27 +166,13 @@ class EstadoDeCuentaController extends Controller
             // =========================
             // BECAS
             // =========================
-            $becasTotal = $pagos->sum(function ($pago) {
-
-                $costoConcepto = $pago->concepto->costo ?? 0;
-                $montoAPagar   = $pago->montoAPagar ?? 0;
-
-                if ($montoAPagar < $costoConcepto) {
-                    return $costoConcepto - $montoAPagar;
-                }
-
-                return 0;
-            });
+            $becasTotal = $pagos->sum('descuentoDeBeca');
 
 
             // =========================
             // DESCUENTOS
             // =========================
-            $descuentosTotal = $pagos->sum(function ($pago) {
-
-                // LÓGICA IRÁ AQUÍ
-                return 0;
-            });
+            $descuentosTotal = $pagos->sum('descuentoDePago');
 
 
             // =========================
@@ -227,9 +207,22 @@ class EstadoDeCuentaController extends Controller
             // =========================
             $abonoARecargos = $pagos->sum(function ($pago) {
 
-                // LÓGICA IRÁ AQUÍ
+                // Solo pagos con recargo
+                if (
+                    $pago->referenciaOriginal &&
+                    $pago->idEstatus == 11 &&
+                    $pago->pagoOriginal
+                ) {
+                    $montoDerivado = $pago->montoAPagar ?? 0;
+                    $montoOriginal = $pago->pagoOriginal->montoAPagar ?? 0;
+
+                    // El recargo es la diferencia
+                    return max($montoDerivado - $montoOriginal, 0);
+                }
+
                 return 0;
             });
+
 
 
             // =========================
@@ -237,9 +230,18 @@ class EstadoDeCuentaController extends Controller
             // =========================
             $saldoPendiente = $pagos->sum(function ($pago) {
 
-                // LÓGICA IRÁ AQUÍ
+                $conceptosValidos = [1, 2, 30];
+
+                if (
+                    $pago->idEstatus == 10 &&
+                    in_array($pago->idConceptoDePago, $conceptosValidos)
+                ) {
+                    return $pago->montoAPagar ?? 0;
+                }
+
                 return 0;
             });
+
 
 
             // =========================
@@ -247,9 +249,18 @@ class EstadoDeCuentaController extends Controller
             // =========================
             $saldoVencido = $pagos->sum(function ($pago) {
 
-                // LÓGICA IRÁ AQUÍ
+                $conceptosValidos = [1, 2, 30];
+
+                if (
+                    $pago->idEstatus == 12 &&
+                    in_array($pago->idConceptoDePago, $conceptosValidos)
+                ) {
+                    return $pago->montoAPagar ?? 0;
+                }
+
                 return 0;
             });
+
 
 
             // =========================
@@ -257,9 +268,22 @@ class EstadoDeCuentaController extends Controller
             // =========================
             $recargosTotal = $pagos->sum(function ($pago) {
 
-                // LÓGICA IRÁ AQUÍ
+                // El pago debe ser un pago que sustituye a otro
+                if (
+                    $pago->referenciaOriginal &&
+                    $pago->pagoOriginal
+                ) {
+
+                    $montoNuevo    = $pago->montoAPagar ?? 0;
+                    $montoOriginal = $pago->pagoOriginal->montoAPagar ?? 0;
+
+                    // El recargo es solo la diferencia
+                    return max($montoNuevo - $montoOriginal, 0);
+                }
+
                 return 0;
             });
+
 
 
             // =========================
@@ -345,5 +369,35 @@ class EstadoDeCuentaController extends Controller
             );
         }
     }
+
+
+
+    private function generarSemestresPorGeneracion($generacion)
+    {
+        $semestres = [];
+
+        $añoInicio = $generacion->añoDeInicio;
+        $añoFin    = $generacion->añoDeFinalizacion;
+
+        for ($year = $añoInicio; $year <= $añoFin; $year++) {
+
+            // Marzo - Agosto
+            $semestres[] = [
+                'nombre' => "Marzo–Agosto {$year}",
+                'inicio' => Carbon::create($year, 3, 1)->startOfDay(),
+                'fin'    => Carbon::create($year, 8, 31)->endOfDay(),
+            ];
+
+            // Septiembre - Febrero
+            $semestres[] = [
+                'nombre' => "Septiembre {$year} – Febrero " . ($year + 1),
+                'inicio' => Carbon::create($year, 9, 1)->startOfDay(),
+                'fin'    => Carbon::create($year + 1, 2, 28)->endOfDay(),
+            ];
+        }
+
+        return $semestres;
+    }
+
 
 }

@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Estudiante;
 use App\Models\ConceptoDePago;
-use App\Models\Estatus;
+use App\Models\TipoDeEstatus;
 use App\Models\TipoDePago;
 
 class Pago extends Model
@@ -18,10 +18,19 @@ class Pago extends Model
 
     public $timestamps = false;
 
+    // =============================
+    // CAMPOS ASIGNABLES
+    // =============================
     protected $fillable = [
         'Referencia',
         'fechaDePago',
         'idConceptoDePago',
+        'costoConceptoOriginal',
+        'nombreBeca',
+        'porcentajeDeDescuento',
+        'descuentoDeBeca',
+        'descuentoDePago',
+        'referenciaOriginal',
         'montoAPagar',
         'numeroDeOperaciónBAZ',
         'numeroDeSucursal',
@@ -35,16 +44,23 @@ class Pago extends Model
         'fechaLimiteDePago',
         'aportacion',
         'idEstatus',
-        'idEstudiante'
+        'idEstudiante',
     ];
 
-
+    // =============================
+    // CASTS
+    // =============================
     protected $casts = [
-        'fechaDePago' => 'datetime',
+        'fechaDePago'           => 'datetime',
         'fechaGeneracionDePago' => 'datetime',
         'fechaLimiteDePago'     => 'datetime',
-    ];
 
+        'costoConceptoOriginal' => 'decimal:2',
+        'porcentajeDeDescuento' => 'decimal:2',
+        'descuentoDeBeca'       => 'decimal:2',
+        'descuentoDePago'       => 'decimal:2',
+        'montoAPagar'           => 'decimal:2',
+    ];
 
     // =============================
     // RELACIONES
@@ -77,7 +93,6 @@ class Pago extends Model
         );
     }
 
-
     public function tipoDePago()
     {
         return $this->belongsTo(
@@ -87,4 +102,31 @@ class Pago extends Model
         );
     }
 
+    // =============================
+    // RELACIÓN RECURSIVA (RECARGOS)
+    // =============================
+
+    /**
+     * Pago original (sin recargo)
+     */
+    public function pagoOriginal()
+    {
+        return $this->belongsTo(
+            self::class,
+            'referenciaOriginal',
+            'Referencia'
+        );
+    }
+
+    /**
+     * Pagos derivados (con recargo)
+     */
+    public function recargos()
+    {
+        return $this->hasMany(
+            self::class,
+            'referenciaOriginal',
+            'Referencia'
+        );
+    }
 }
