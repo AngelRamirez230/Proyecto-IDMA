@@ -200,7 +200,7 @@ class EstadoDeCuentaController extends Controller
                 $p->referenciaOriginal &&
                 $p->pagoOriginal
                     ? max(
-                        ($p->pagoOriginal->montoAPagar ?? 0) - ($p->montoAPagar ?? 0),
+                       ($p->montoAPagar ?? 0) - ($p->pagoOriginal->montoAPagar ?? 0),
                         0
                     )
                     : 0
