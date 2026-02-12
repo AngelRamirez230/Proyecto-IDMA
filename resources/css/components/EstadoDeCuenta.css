@@ -1,0 +1,40 @@
+.oculto {
+    display: none;
+}
+
+.bloque-ciclo {
+    margin-bottom: 25px;
+    border-radius: 0px;
+    overflow: hidden; 
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+
+.bloque-ciclo:hover {
+    transform: scale(1.02); 
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.btn-ciclo {
+    width: 100%;
+    padding: 14px 18px;
+    background: #FFB300;
+    color: #79272C;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    border-radius: 0px; 
+    transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+
+.bloque-ciclo:hover .btn-ciclo {
+    background-color: #79272C; 
+    color: #ffffff;           
+}
+
+.contenido-ciclo {
+    padding: 15px;
+    background: #f9fafb;
+}

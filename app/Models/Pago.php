@@ -7,6 +7,7 @@ use App\Models\Estudiante;
 use App\Models\ConceptoDePago;
 use App\Models\TipoDeEstatus;
 use App\Models\TipoDePago;
+use App\Models\CicloModalidad;
 
 class Pago extends Model
 {
@@ -23,6 +24,7 @@ class Pago extends Model
     // =============================
     protected $fillable = [
         'Referencia',
+        'idCicloModalidad', 
         'fechaDePago',
         'idConceptoDePago',
         'costoConceptoOriginal',
@@ -102,13 +104,19 @@ class Pago extends Model
         );
     }
 
+    public function cicloModalidad()
+    {
+        return $this->belongsTo(
+            CicloModalidad::class,
+            'idCicloModalidad',
+            'idCicloModalidad'
+        );
+    }
+
     // =============================
     // RELACIÓN RECURSIVA (RECARGOS)
     // =============================
 
-    /**
-     * Pago original (sin recargo)
-     */
     public function pagoOriginal()
     {
         return $this->belongsTo(
@@ -118,9 +126,6 @@ class Pago extends Model
         );
     }
 
-    /**
-     * Pagos derivados (con recargo)
-     */
     public function recargos()
     {
         return $this->hasMany(

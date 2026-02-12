@@ -17,4 +17,22 @@ class CicloModalidad extends Model
         'fechaFin',
         'idTipoDeEstatus',
     ];
+
+     public function pagos()
+    {
+        return $this->hasMany(
+            Pago::class,
+            'idCicloModalidad',
+            'idCicloModalidad'
+        );
+    }
+
+    public function cicloEscolar()
+    {
+        return $this->belongsTo(
+            CicloEscolar::class,
+            'idCicloEscolar',
+            'idCicloEscolar'
+        );
+    }
 }

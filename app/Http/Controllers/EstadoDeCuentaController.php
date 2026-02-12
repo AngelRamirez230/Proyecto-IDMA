@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 
 
 use App\Models\Estudiante;
+use App\Models\CicloModalidad;
 use App\Models\Pago;
 use App\Models\Usuario;
 use Carbon\Carbon;
@@ -119,229 +120,154 @@ class EstadoDeCuentaController extends Controller
     }
 
 
-    public function vistaPreviaEstadoDeCuenta(Request $request)
+
+    private function generarEstadoDeCuenta(int $idEstudiante)
     {
-        try {
+        Carbon::setLocale('es');
 
-            $request->validate([
-                'estudiante_id' => 'required|exists:Estudiante,idEstudiante',
-            ]);
+        $conceptosValidos = [1, 2, 30];
 
-            Carbon::setLocale('es');
+        $estudiante = Estudiante::with([
+            'usuario',
+            'planDeEstudios.licenciatura',
+            'generacion'
+        ])->findOrFail($idEstudiante);
 
-            // =========================
-            // ESTUDIANTE
-            // =========================
-            $estudiante = Estudiante::with([
-                'usuario',
-                'planDeEstudios.licenciatura',
-                'generacion'
-            ])->findOrFail($request->estudiante_id);
+        $pagosPorCiclo = Pago::with([
+            'concepto',
+            'estatus',
+            'tipoDePago',
+            'cicloModalidad.cicloEscolar',
+            'pagoOriginal'
+        ])
+            ->where('idEstudiante', $idEstudiante)
+            ->orderBy('fechaLimiteDePago')
+            ->get()
+            ->groupBy('idCicloModalidad');
 
-            // =========================
-            // PAGOS DEL ESTUDIANTE
-            // =========================
-            $pagos = Pago::with(['concepto', 'estatus', 'tipoDePago'])
-                ->where('idEstudiante', $estudiante->idEstudiante)
-                ->orderBy('fechaLimiteDePago')
-                ->get();
+        $estadoCuentaPorCiclo = [];
 
-            // =========================
-            // CLASIFICACIÓN
-            // =========================
-            $pagosAprobados  = $pagos->where('idEstatus', 11); // Aprobado
-            $pagosPendientes = $pagos->where('idEstatus', 10); // Pendiente
-            $pagosNoPagados = $pagos->where('idEstatus', 12);// No pagado
+        foreach ($pagosPorCiclo as $idCiclo => $pagos) {
 
-            // =========================
-            // IMPORTE TOTAL
-            // =========================
+            $cicloModalidad = $pagos->first()->cicloModalidad;
+
+            $nombreCiclo = $cicloModalidad && $cicloModalidad->cicloEscolar
+                ? $cicloModalidad->cicloEscolar->nombreCicloEscolar
+                : 'Ciclo sin definir';
+
             $importeTotal = $pagos
-            ->whereIn('idConceptoDePago', [1, 2, 30])
-            ->sum(function ($pago) {
-                return $pago->concepto->costo ?? 0;
-            });
+                ->whereIn('idConceptoDePago', $conceptosValidos)
+                ->sum(fn ($p) => $p->concepto->costo ?? 0);
 
+            $becasTotal = $pagos
+                ->where('idConceptoDePago', 2)
+                ->sum('descuentoDeBeca');
 
-            // =========================
-            // BECAS
-            // =========================
-            $becasTotal = $pagos->sum('descuentoDeBeca');
-
-
-            // =========================
-            // DESCUENTOS
-            // =========================
             $descuentosTotal = $pagos->sum('descuentoDePago');
 
+            $saldoAPagar = max($importeTotal - $becasTotal - $descuentosTotal, 0);
 
-            // =========================
-            // SALDO A PAGAR
-            // =========================
-            $saldoAPagar = max(
-                ($importeTotal - $becasTotal - $descuentosTotal),
-                0
+            $abonosASaldo = $pagos->sum(fn ($p) =>
+                $p->idEstatus == 11 && in_array($p->idConceptoDePago, $conceptosValidos)
+                    ? ($p->montoAPagar ?? 0)
+                    : 0
             );
 
+            $saldoPendiente = $pagos->sum(fn ($p) =>
+                $p->idEstatus == 10 && in_array($p->idConceptoDePago, $conceptosValidos)
+                    ? ($p->montoAPagar ?? 0)
+                    : 0
+            );
 
-            // =========================
-            // ABONOS A SALDO
-            // =========================
-            $abonosASaldo = $pagos->sum(function ($pago) {
+            $saldoVencido = $pagos->sum(fn ($p) =>
+                $p->idEstatus == 12 && in_array($p->idConceptoDePago, $conceptosValidos)
+                    ? ($p->montoAPagar ?? 0)
+                    : 0
+            );
 
-               $conceptosValidos = [1, 2, 30];
+            $recargosTotal = $pagos->sum(fn ($p) =>
+                $p->referenciaOriginal && $p->pagoOriginal
+                    ? max(
+                        ($p->montoAPagar ?? 0) -
+                        ($p->pagoOriginal->montoAPagar ?? 0),
+                        0
+                    )
+                    : 0
+            );
 
-                if (
-                    $pago->idEstatus == 11 &&
-                    in_array($pago->idConceptoDePago, $conceptosValidos)
-                ) {
-                    return $pago->montoAPagar ?? 0;
-                }
+            $abonoARecargos = $pagos->sum(fn ($p) =>
+                $p->idEstatus == 11 &&
+                $p->referenciaOriginal &&
+                $p->pagoOriginal
+                    ? max(
+                        ($p->pagoOriginal->montoAPagar ?? 0) - ($p->montoAPagar ?? 0),
+                        0
+                    )
+                    : 0
+            );
 
-                return 0;
-            });
-
-
-            // =========================
-            // ABONO A RECARGOS
-            // =========================
-            $abonoARecargos = $pagos->sum(function ($pago) {
-
-                // Solo pagos con recargo
-                if (
-                    $pago->referenciaOriginal &&
-                    $pago->idEstatus == 11 &&
-                    $pago->pagoOriginal
-                ) {
-                    $montoDerivado = $pago->montoAPagar ?? 0;
-                    $montoOriginal = $pago->pagoOriginal->montoAPagar ?? 0;
-
-                    // El recargo es la diferencia
-                    return max($montoDerivado - $montoOriginal, 0);
-                }
-
-                return 0;
-            });
-
-
-
-            // =========================
-            // SALDO PENDIENTE
-            // =========================
-            $saldoPendiente = $pagos->sum(function ($pago) {
-
-                $conceptosValidos = [1, 2, 30];
-
-                if (
-                    $pago->idEstatus == 10 &&
-                    in_array($pago->idConceptoDePago, $conceptosValidos)
-                ) {
-                    return $pago->montoAPagar ?? 0;
-                }
-
-                return 0;
-            });
-
-
-
-            // =========================
-            // SALDO VENCIDO
-            // =========================
-            $saldoVencido = $pagos->sum(function ($pago) {
-
-                $conceptosValidos = [1, 2, 30];
-
-                if (
-                    $pago->idEstatus == 12 &&
-                    in_array($pago->idConceptoDePago, $conceptosValidos)
-                ) {
-                    return $pago->montoAPagar ?? 0;
-                }
-
-                return 0;
-            });
-
-
-
-            // =========================
-            // RECARGOS
-            // =========================
-            $recargosTotal = $pagos->sum(function ($pago) {
-
-                // El pago debe ser un pago que sustituye a otro
-                if (
-                    $pago->referenciaOriginal &&
-                    $pago->pagoOriginal
-                ) {
-
-                    $montoNuevo    = $pago->montoAPagar ?? 0;
-                    $montoOriginal = $pago->pagoOriginal->montoAPagar ?? 0;
-
-                    // El recargo es solo la diferencia
-                    return max($montoNuevo - $montoOriginal, 0);
-                }
-
-                return 0;
-            });
-
-
-
-            // =========================
-            // SALDO ACTUAL
-            // =========================
             $saldoActual = max(
-                ($saldoAPagar - $abonosASaldo + $recargosTotal),
+                $saldoVencido +
+                $recargosTotal,
                 0
             );
 
 
+            $pagosAprobados  = $pagos->where('idEstatus', 11);
+            $pagosPendientes = $pagos->where('idEstatus', 10);
+            $pagosNoPagados  = $pagos->where('idEstatus', 12);
+
+            $estadoCuentaPorCiclo[$idCiclo] = [
+                'nombreCiclo'      => $nombreCiclo,
+                'cicloModalidad'   => $cicloModalidad,
+                'pagos'            => $pagos,
+                'pagosAprobados'   => $pagosAprobados,
+                'pagosPendientes'  => $pagosPendientes,
+                'pagosNoPagados'   => $pagosNoPagados,
+
+                'importeTotal'     => $importeTotal,
+                'becasTotal'       => $becasTotal,
+                'descuentosTotal'  => $descuentosTotal,
+                'saldoAPagar'      => $saldoAPagar,
+                'abonosASaldo'     => $abonosASaldo,
+                'abonoARecargos'   => $abonoARecargos,
+                'saldoPendiente'   => $saldoPendiente,
+                'saldoVencido'     => $saldoVencido,
+                'recargosTotal'    => $recargosTotal,
+                'saldoActual'      => $saldoActual,
+            ];
 
 
-
-            return view(
-                'SGFIDMA.moduloEstadoDeCuenta.generarEstadoDeCuenta',
-                [
-                    'estudiante'      => $estudiante,
-                    'pagosAprobados'  => $pagosAprobados,
-                    'pagosPendientes' => $pagosPendientes,
-                    'pagosNoPagados'  => $pagosNoPagados,
-                    'tipo'            => 'estado_cuenta',
-                    'inicio'          => $pagos->min('fechaGeneracionDePago'),
-                    'fin'             => $pagos->max('fechaGeneracionDePago'),
-                    'importeTotal'    => $importeTotal,
-                    'becasTotal'        => $becasTotal,
-                    'descuentosTotal'   => $descuentosTotal,
-                    'saldoAPagar'       => $saldoAPagar,
-                    'abonosASaldo'      => $abonosASaldo,
-                    'abonoARecargos'    => $abonoARecargos,
-                    'saldoPendiente'    => $saldoPendiente,
-                    'saldoVencido'      => $saldoVencido,
-                    'recargosTotal'     => $recargosTotal,
-                    'saldoActual'       => $saldoActual,
-
-                ]
-            );
-
-        } catch (\Throwable $e) {
-
-            \Log::error('Error al generar vista previa del estado de cuenta', [
-                'estudiante_id' => $request->estudiante_id ?? null,
-                'error' => $e->getMessage(),
-            ]);
-
-            return redirect()->back()->with(
-                'popupError',
-                'Ocurrió un error al generar el estado de cuenta.'
-            );
         }
+
+        return compact('estudiante', 'estadoCuentaPorCiclo');
     }
+
+
+
+    public function vistaPreviaEstadoDeCuenta(Request $request)
+    {
+        $request->validate([
+            'estudiante_id' => 'required|exists:Estudiante,idEstudiante',
+        ]);
+
+        $data = $this->generarEstadoDeCuenta($request->estudiante_id);
+
+        return view(
+            'SGFIDMA.moduloEstadoDeCuenta.generarEstadoDeCuenta',
+            array_merge($data, [
+                'tipo' => 'estado_cuenta'
+            ])
+        );
+    }
+
+
 
 
 
     public function miEstadoDeCuenta()
     {
         try {
-            
 
             $usuario = auth()->user();
 
@@ -349,10 +275,14 @@ class EstadoDeCuentaController extends Controller
                 abort(403, 'No eres estudiante');
             }
 
-            // Reutiliza TODA tu lógica existente
-            return $this->vistaPreviaEstadoDeCuenta(
-                new Request([
-                    'estudiante_id' => $usuario->estudiante->idEstudiante
+            $data = $this->generarEstadoDeCuenta(
+                $usuario->estudiante->idEstudiante
+            );
+
+            return view(
+                'SGFIDMA.moduloEstadoDeCuenta.generarEstadoDeCuenta',
+                array_merge($data, [
+                    'tipo' => 'mi_estado_cuenta'
                 ])
             );
 
@@ -371,33 +301,6 @@ class EstadoDeCuentaController extends Controller
     }
 
 
-
-    private function generarSemestresPorGeneracion($generacion)
-    {
-        $semestres = [];
-
-        $añoInicio = $generacion->añoDeInicio;
-        $añoFin    = $generacion->añoDeFinalizacion;
-
-        for ($year = $añoInicio; $year <= $añoFin; $year++) {
-
-            // Marzo - Agosto
-            $semestres[] = [
-                'nombre' => "Marzo–Agosto {$year}",
-                'inicio' => Carbon::create($year, 3, 1)->startOfDay(),
-                'fin'    => Carbon::create($year, 8, 31)->endOfDay(),
-            ];
-
-            // Septiembre - Febrero
-            $semestres[] = [
-                'nombre' => "Septiembre {$year} – Febrero " . ($year + 1),
-                'inicio' => Carbon::create($year, 9, 1)->startOfDay(),
-                'fin'    => Carbon::create($year + 1, 2, 28)->endOfDay(),
-            ];
-        }
-
-        return $semestres;
-    }
 
 
 }
