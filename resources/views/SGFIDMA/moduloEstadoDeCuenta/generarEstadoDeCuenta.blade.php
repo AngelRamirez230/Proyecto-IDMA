@@ -164,17 +164,70 @@
                     <h1 class="titulo-form2 titulo-centrado" >DETALLES DE MOVIMIENTOS</h1>
 
                     <section class="consulta-tabla-contenedor">
-                        <h3 class="consulta-subtitulo">Pagos pendientes</h3>
+                        
 
                         <table class="tabla">
                             <thead>
                                 <tr class="tabla-encabezado">
+                                    <th colspan="9" >NO PAGADOS</th>
+                                </tr>
+                            </thead>
+                            <thead>
+                                <tr class="tabla-encabezado">
                                     <th>Referencia</th>
                                     <th>Concepto</th>
-                                    <th>Monto</th>
                                     <th>Fecha límite</th>
-                                    <th>Fecha de pago</th>
-                                    <th>Estatus</th>
+                                    <th>Importe total</th>
+                                    <th>Beca (-)</th>
+                                    <th>Descuento (-)</th>
+                                    <th>Recargo (+)</th>
+                                    <th>Total a pagar</th>
+                                    <th>Referencia original</th>
+                                </tr>
+                            </thead>
+
+                            <tbody class="tabla-cuerpo">
+                                @forelse ($ciclo['pagosNoPagados'] as $pago)
+                                    <tr>
+                                        <td>{{ $pago->Referencia }}</td>
+                                        <td>{{ $pago->concepto->nombreConceptoDePago }}</td>
+                                        <td>{{ $pago->fechaLimiteDePago?->format('d/m/Y') ?? '-' }}</td>
+                                        <td>${{ number_format($pago->costo_concepto_mostrar, 2) }}</td>
+                                        <td>${{  number_format($pago->descuentoDeBeca, 2) }}</td>
+                                        <td>${{  number_format($pago->descuentoDePago, 2) }}</td>
+                                        <td>${{ number_format($pago->recargo_concepto, 2) }}</td>
+                                        <td>${{ number_format($pago->montoAPagar, 2) }}</td>
+                                        <td>{{ $pago->referenciaOriginal ?? '-'}}</td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="9" class="tablaVacia">No hay pagos no pagados.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </section>
+
+                    <section class="consulta-tabla-contenedor">
+
+                        <table class="tabla">
+
+                            <thead>
+                                <tr class="tabla-encabezado">
+                                    <th colspan="9" >PAGOS PENDIENTES</th>
+                                </tr>
+                            </thead>
+                            <thead>
+                                <tr class="tabla-encabezado">
+                                    <th>Referencia</th>
+                                    <th>Concepto</th>
+                                    <th>Fecha límite</th>
+                                    <th>Importe total</th>
+                                    <th>Beca (-)</th>
+                                    <th>Descuento (-)</th>
+                                    <th>Recargo (+)</th>
+                                    <th>Total a pagar</th>
+                                    <th>Referencia original</th>
                                 </tr>
                             </thead>
 
@@ -183,14 +236,17 @@
                                     <tr>
                                         <td>{{ $pago->Referencia }}</td>
                                         <td>{{ $pago->concepto->nombreConceptoDePago }}</td>
-                                        <td>${{ number_format($pago->montoAPagar, 2) }}</td>
                                         <td>{{ $pago->fechaLimiteDePago?->format('d/m/Y') ?? '-' }}</td>
-                                        <td>{{ $pago->fechaDePago?->format('d/m/Y') ?? '-' }}</td>
-                                        <td>{{ $pago->estatus->nombreTipoDeEstatus }}</td>
+                                        <td>${{ number_format($pago->costo_concepto_mostrar, 2) }}</td>
+                                        <td>${{  number_format($pago->descuentoDeBeca, 2) }}</td>
+                                        <td>${{  number_format($pago->descuentoDePago, 2) }}</td>
+                                        <td>${{ number_format($pago->recargo_concepto, 2) }}</td>
+                                        <td>${{ number_format($pago->montoAPagar, 2) }}</td>
+                                        <td>{{ $pago->referenciaOriginal ?? '-'}}</td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="tablaVacia">No hay pagos pendientes.</td>
+                                        <td colspan="9" class="tablaVacia">No hay pagos pendientes.</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -199,18 +255,23 @@
 
 
                     <section class="consulta-tabla-contenedor">
-                        <h3 class="consulta-subtitulo">Pagos aprobados</h3>
 
                         <table class="tabla">
+                            <thead>
+                                <tr class="tabla-encabezado">
+                                    <th colspan="8" >PAGOS APROBADOS</th>
+                                </tr>
+                            </thead>
                             <thead>
                                 <tr class="tabla-encabezado">
                                     <th>Referencia</th>
                                     <th>Concepto</th>
                                     <th>Aportación</th>
-                                    <th>Monto</th>
-                                    <th>Fecha límite</th>
                                     <th>Fecha de pago</th>
-                                    <th>Estatus</th>
+                                    <th>Método de pago</th>
+                                    <th>Abono a saldo</th>
+                                    <th>Abono a recargos</th>
+                                    <th>Total</th>
                                 </tr>
                             </thead>
 
@@ -220,54 +281,21 @@
                                         <td>{{ $pago->Referencia }}</td>
                                         <td>{{ $pago->concepto->nombreConceptoDePago }}</td>
                                         <td>{{ $pago->aportacion ?? $pago->concepto->nombreConceptoDePago }}</td>
-                                        <td>${{ number_format($pago->montoAPagar, 2) }}</td>
-                                        <td>{{ $pago->fechaLimiteDePago?->format('d/m/Y') ?? '-' }}</td>
                                         <td>{{ $pago->fechaDePago?->format('d/m/Y') ?? '-' }}</td>
-                                        <td>{{ $pago->estatus->nombreTipoDeEstatus }}</td>
+                                        <td>{{ $pago->tipoDePago->nombreTipoDePago ?? '-' }}</td>
+                                        <td>${{ number_format($pago->abono_saldo, 2) }}</td>
+                                        <td>${{ number_format($pago->abono_recargo, 2) }}</td>
+                                        <td>${{ number_format($pago->montoAPagar, 2) }}</td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="tablaVacia">No hay pagos aprobados.</td>
+                                        <td colspan="8" class="tablaVacia">No hay pagos aprobados.</td>
                                     </tr>
                                 @endforelse
                             </tbody>
                         </table>
                     </section>
 
-
-                    <section class="consulta-tabla-contenedor">
-                        <h3 class="consulta-subtitulo">No pagados</h3>
-
-                        <table class="tabla">
-                            <thead>
-                                <tr class="tabla-encabezado">
-                                    <th>Referencia</th>
-                                    <th>Concepto</th>
-                                    <th>Monto</th>
-                                    <th>Fecha límite</th>
-                                    <th>Fecha de pago</th>
-                                    <th>Estatus</th>
-                                </tr>
-                            </thead>
-
-                            <tbody class="tabla-cuerpo">
-                                @forelse ($ciclo['pagosNoPagados'] as $pago)
-                                    <tr>
-                                        <td>{{ $pago->Referencia }}</td>
-                                        <td>{{ $pago->concepto->nombreConceptoDePago }}</td>
-                                        <td>${{ number_format($pago->montoAPagar, 2) }}</td>
-                                        <td>{{ $pago->fechaLimiteDePago?->format('d/m/Y') ?? '-' }}</td>
-                                        <td>{{ $pago->fechaDePago?->format('d/m/Y') ?? '-' }}</td>
-                                        <td>{{ $pago->estatus->nombreTipoDeEstatus }}</td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="6" class="tablaVacia">No hay pagos no pagados.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </section>
                 </div>
             </div>
 

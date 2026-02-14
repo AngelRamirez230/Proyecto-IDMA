@@ -167,11 +167,21 @@ class EstadoDeCuentaController extends Controller
 
             $saldoAPagar = max($importeTotal - $becasTotal - $descuentosTotal, 0);
 
-            $abonosASaldo = $pagos->sum(fn ($p) =>
-                $p->idEstatus == 11 && in_array($p->idConceptoDePago, $conceptosValidos)
-                    ? ($p->montoAPagar ?? 0)
-                    : 0
-            );
+            $abonosASaldo = $pagos->sum(function ($p) use ($conceptosValidos) {
+                if ($p->idEstatus != 11) {
+                    return 0;
+                }
+
+                if ($p->referenciaOriginal && $p->pagoOriginal) {
+                    return $p->pagoOriginal->montoAPagar ?? 0;
+                }
+
+                if (in_array($p->idConceptoDePago, $conceptosValidos)) {
+                    return $p->montoAPagar ?? 0;
+                }
+
+                return 0;
+            });
 
             $saldoPendiente = $pagos->sum(fn ($p) =>
                 $p->idEstatus == 10 && in_array($p->idConceptoDePago, $conceptosValidos)
@@ -207,10 +217,18 @@ class EstadoDeCuentaController extends Controller
             );
 
             $saldoActual = max(
-                $saldoVencido +
-                $recargosTotal,
+                (
+                    $importeTotal
+                    - $becasTotal
+                    - $descuentosTotal
+                )
+                + $recargosTotal
+                - $abonosASaldo
+                - $abonoARecargos,
                 0
             );
+
+            
 
 
             $pagosAprobados  = $pagos->where('idEstatus', 11);

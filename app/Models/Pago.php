@@ -134,4 +134,49 @@ class Pago extends Model
             'Referencia'
         );
     }
+
+
+    public function getAbonoSaldoAttribute()
+    {
+        if (!$this->referenciaOriginal) {
+            return $this->montoAPagar ?? 0;
+        }
+
+        return $this->pagoOriginal->montoAPagar ?? 0;
+    }
+
+    public function getAbonoRecargoAttribute()
+    {
+        if (!$this->referenciaOriginal) {
+            return 0;
+        }
+
+        $montoOriginal = $this->pagoOriginal->montoAPagar ?? 0;
+        $montoRecargo  = $this->montoAPagar ?? 0;
+
+        return max($montoRecargo - $montoOriginal, 0);
+    }
+
+    public function getCostoConceptoMostrarAttribute()
+    {
+        if ($this->referenciaOriginal && $this->pagoOriginal) {
+            return $this->pagoOriginal->costoConceptoOriginal ?? 0;
+        }
+
+        return $this->costoConceptoOriginal ?? 0;
+    }
+
+
+    public function getRecargoConceptoAttribute()
+    {
+        if (!$this->referenciaOriginal || !$this->pagoOriginal) {
+            return 0;
+        }
+
+        $costoActual   = $this->costoConceptoOriginal ?? 0;
+        $costoOriginal = $this->pagoOriginal->costoConceptoOriginal ?? 0;
+
+        return max($costoActual - $costoOriginal, 0);
+    }
+
 }
