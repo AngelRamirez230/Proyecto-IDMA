@@ -13,19 +13,12 @@ class CicloModalidad extends Model
     protected $fillable = [
         'idModalidad',
         'idCicloEscolar',
+        'idLicenciatura',
         'fechaInicio',
         'fechaFin',
         'idTipoDeEstatus',
     ];
 
-     public function pagos()
-    {
-        return $this->hasMany(
-            Pago::class,
-            'idCicloModalidad',
-            'idCicloModalidad'
-        );
-    }
 
     public function cicloEscolar()
     {

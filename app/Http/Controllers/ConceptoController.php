@@ -142,8 +142,8 @@ class ConceptoController extends Controller
             RESTRICCIÓN PARA ESTUDIANTES
             ==================================================
             */
-            if (Auth::check() && Auth::user()->idtipoDeUsuario == 4) { // estudiante
-                $concepto->whereNotIn('idConceptoDePago', [1, 2, 30]);
+            if (Auth::check() && Auth::user()->idtipoDeUsuario == 4) { 
+                $concepto->whereNotIn('idConceptoDePago', [1,2,30,19,22,23,28,29,31,32,33,34,35,36,37]);
             }
 
             // Aplicar búsqueda

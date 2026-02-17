@@ -36,6 +36,9 @@ class PagoController extends Controller
             }
 
 
+
+
+
             // =============================
             // CONCEPTO DE PAGO
             // =============================
@@ -95,6 +98,7 @@ class PagoController extends Controller
                 ->first();
 
             if ($pagoPendiente) {
+                DB::rollBack();
                 return redirect()
                     ->back()
                     ->with('popupError', 'Ya cuentas con un pago pendiente para este concepto.');
@@ -123,20 +127,31 @@ class PagoController extends Controller
             }
 
 
+            if ($estudiante->cicloModalidad->idTipoDeEstatus != 1) {
+                DB::rollBack();
+                return redirect()
+                    ->back()
+                    ->with('popupError', 'El estudiante tiene un ciclo escolar que no está activo.');
+            }
+
+
 
             // =============================
             // GUARDAR PAGO
             // =============================
             Pago::create([
-                'Referencia'            => $referenciaFinal,
-                'idConceptoDePago'      => $concepto->idConceptoDePago,
-                'montoAPagar'           => $costoFinal,
-                'fechaGeneracionDePago' => now(),
-                'fechaLimiteDePago'     => $fechaLimitePago,
-                'aportacion'            => null,
-                'idEstatus'             => 10,
-                'idEstudiante'          => $estudiante->idEstudiante,
+                'Referencia'              => $referenciaFinal,
+                'idCicloModalidad'        => $estudiante->idCicloModalidad,
+                'idConceptoDePago'        => $concepto->idConceptoDePago,
+                'costoConceptoOriginal'   => $concepto->costo,              
+                'montoAPagar'             => $costoFinal,                   
+                'fechaGeneracionDePago'   => now(),
+                'fechaLimiteDePago'       => $fechaLimitePago,
+                'aportacion'              => null,
+                'idEstatus'               => 10,
+                'idEstudiante'            => $estudiante->idEstudiante,
             ]);
+
 
             DB::commit();
 

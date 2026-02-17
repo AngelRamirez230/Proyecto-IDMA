@@ -193,8 +193,8 @@
                                         <td>{{ $pago->concepto->nombreConceptoDePago }}</td>
                                         <td>{{ $pago->fechaLimiteDePago?->format('d/m/Y') ?? '-' }}</td>
                                         <td>${{ number_format($pago->costo_concepto_mostrar, 2) }}</td>
-                                        <td>${{  number_format($pago->descuentoDeBeca, 2) }}</td>
-                                        <td>${{  number_format($pago->descuentoDePago, 2) }}</td>
+                                        <td>${{ number_format($pago->descuentoDeBeca, 2) }}</td>
+                                        <td>${{ number_format($pago->descuentoDePago, 2) }}</td>
                                         <td>${{ number_format($pago->recargo_concepto, 2) }}</td>
                                         <td>${{ number_format($pago->montoAPagar, 2) }}</td>
                                         <td>{{ $pago->referenciaOriginal ?? '-'}}</td>
@@ -282,7 +282,12 @@
                                         <td>{{ $pago->concepto->nombreConceptoDePago }}</td>
                                         <td>{{ $pago->aportacion ?? $pago->concepto->nombreConceptoDePago }}</td>
                                         <td>{{ $pago->fechaDePago?->format('d/m/Y') ?? '-' }}</td>
-                                        <td>{{ $pago->tipoDePago->nombreTipoDePago ?? '-' }}</td>
+                                        <td>
+                                            {{
+                                                $pago->idTipoDePago == 1 ? 'Efectivo' :
+                                                ($pago->idTipoDePago == 3 ? 'Transferencia' : '-')
+                                            }}
+                                        </td>
                                         <td>${{ number_format($pago->abono_saldo, 2) }}</td>
                                         <td>${{ number_format($pago->abono_recargo, 2) }}</td>
                                         <td>${{ number_format($pago->montoAPagar, 2) }}</td>
@@ -295,6 +300,64 @@
                             </tbody>
                         </table>
                     </section>
+
+
+
+                    <section class="consulta-tabla-contenedor">
+
+                    <table class="tabla">
+                        <thead>
+                            <tr class="tabla-encabezado">
+                                <th colspan="7">OTROS PAGOS</th>
+                            </tr>
+                        </thead>
+                        <thead>
+                            <tr class="tabla-encabezado">
+                                <th>Referencia</th>
+                                <th>Concepto</th>
+                                <th>Fecha límite</th>
+                                <th>Fecha de pago</th>
+                                <th>Método de pago</th>
+                                <th>Total</th>
+                                <th>Estatus</th>
+                            </tr>
+                        </thead>
+
+                        <tbody class="tabla-cuerpo">
+                            @forelse ($ciclo['otrosPagos'] as $pago)
+                                <tr>
+                                    <td>{{ $pago->Referencia }}</td>
+
+                                    <td>{{ $pago->concepto->nombreConceptoDePago }}</td>
+
+                                    <td>{{ $pago->fechaLimiteDePago?->format('d/m/Y') ?? '-' }}</td>
+
+                                    <td>{{ $pago->fechaDePago?->format('d/m/Y') ?? '-' }}</td>
+
+                                    <td>
+                                        {{
+                                            $pago->idTipoDePago == 1 ? 'Efectivo' :
+                                            ($pago->idTipoDePago == 3 ? 'Transferencia' : '-')
+                                        }}
+                                    </td>
+                                    
+
+                                    <td>${{ number_format($pago->montoAPagar, 2) }}</td>
+
+                                    <td>{{ $pago->estatus->nombreTipoDeEstatus ?? '-' }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="tablaVacia">
+                                        No hay otros pagos registrados.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+
+                </section>
+
 
                 </div>
             </div>

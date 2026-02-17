@@ -178,7 +178,7 @@
                                                 Ver detalles
                                         </a>
 
-                                        @if($pago->idEstatus == 3)
+                                        @if($pago->idEstatus == 10)
                                             <a href="{{ route('pagos.recibo', $pago->Referencia) }}"
                                                 class="btn-boton-formulario2 btn-accion"
                                                 title="Descargar recibo">

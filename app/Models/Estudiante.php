@@ -21,6 +21,7 @@ class Estudiante extends Model
         'idGeneracion',
         'idPlanDeEstudios',
         'idTipoDeInscripcion',
+        'idCicloModalidad',
         'idEstatus',
     ];
 
@@ -78,6 +79,15 @@ class Estudiante extends Model
         return $this->planesDePago()
             ->where('idEstatus', 1) // 1 = ACTIVO
             ->exists();
+    }
+
+    public function cicloModalidad()
+    {
+        return $this->belongsTo(
+            CicloModalidad::class,
+            'idCicloModalidad',
+            'idCicloModalidad'
+        );
     }
 
     

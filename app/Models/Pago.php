@@ -113,6 +113,8 @@ class Pago extends Model
         );
     }
 
+
+
     // =============================
     // RELACIÓN RECURSIVA (RECARGOS)
     // =============================

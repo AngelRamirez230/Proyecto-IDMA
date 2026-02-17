@@ -126,6 +126,8 @@ class EstadoDeCuentaController extends Controller
         Carbon::setLocale('es');
 
         $conceptosValidos = [1, 2, 30];
+        $conceptosEstadoCuenta = [1,2,30,19,22,23,28,29,31,32,33,34,35,36,37];
+
 
         $estudiante = Estudiante::with([
             'usuario',
@@ -150,6 +152,10 @@ class EstadoDeCuentaController extends Controller
         foreach ($pagosPorCiclo as $idCiclo => $pagos) {
 
             $cicloModalidad = $pagos->first()->cicloModalidad;
+
+            $pagosEstadoCuenta = $pagos->whereIn('idConceptoDePago', $conceptosEstadoCuenta);
+
+            $otrosPagos = $pagos->whereNotIn('idConceptoDePago', $conceptosEstadoCuenta);
 
             $nombreCiclo = $cicloModalidad && $cicloModalidad->cicloEscolar
                 ? $cicloModalidad->cicloEscolar->nombreCicloEscolar
@@ -231,14 +237,17 @@ class EstadoDeCuentaController extends Controller
             
 
 
-            $pagosAprobados  = $pagos->where('idEstatus', 11);
-            $pagosPendientes = $pagos->where('idEstatus', 10);
-            $pagosNoPagados  = $pagos->where('idEstatus', 12);
+            $pagosAprobados  = $pagosEstadoCuenta->where('idEstatus', 11);
+            $pagosPendientes = $pagosEstadoCuenta->where('idEstatus', 10);
+            $pagosNoPagados  = $pagosEstadoCuenta->where('idEstatus', 12);
 
             $estadoCuentaPorCiclo[$idCiclo] = [
                 'nombreCiclo'      => $nombreCiclo,
                 'cicloModalidad'   => $cicloModalidad,
-                'pagos'            => $pagos,
+
+                'pagos'            => $pagosEstadoCuenta,
+                'otrosPagos'       => $otrosPagos,
+
                 'pagosAprobados'   => $pagosAprobados,
                 'pagosPendientes'  => $pagosPendientes,
                 'pagosNoPagados'   => $pagosNoPagados,
@@ -254,6 +263,7 @@ class EstadoDeCuentaController extends Controller
                 'recargosTotal'    => $recargosTotal,
                 'saldoActual'      => $saldoActual,
             ];
+
 
 
         }
