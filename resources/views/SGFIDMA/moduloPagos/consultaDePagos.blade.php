@@ -66,10 +66,10 @@
                         <option value="alfabetico" {{ ($orden ?? '') == 'alfabetico' ? 'selected' : '' }}>
                             Alfabéticamente (A-Z)
                         </option>
-                        <option value="porcentaje_mayor" {{ ($orden ?? '') == 'porcentaje_mayor' ? 'selected' : '' }}>
+                        <option value="mas_reciente" {{ ($orden ?? '') == 'mas_reciente' ? 'selected' : '' }}>
                             Más reciente
                         </option>
-                        <option value="porcentaje_menor" {{ ($orden ?? '') == 'porcentaje_menor' ? 'selected' : '' }}>
+                        <option value="mas_antiguo" {{ ($orden ?? '') == 'mas_antiguo' ? 'selected' : '' }}>
                             Más antiguo
                         </option>
                     </select>

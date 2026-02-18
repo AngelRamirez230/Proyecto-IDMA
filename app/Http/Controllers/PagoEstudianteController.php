@@ -13,10 +13,54 @@ use App\Models\Pago;
 use App\Models\Estudiante;
 use App\Models\ConceptoDePago;
 use App\Models\Notificacion;
+use App\Models\CicloModalidad;
+
 use App\Services\ReferenciaBancariaAztecaService;
 
 class PagoEstudianteController extends Controller
 {
+    
+
+    public function obtenerCiclosPorEstudiantes(Request $request)
+    {
+        $idsEstudiantes = $request->estudiantes;
+
+        if (!$idsEstudiantes || count($idsEstudiantes) == 0) {
+            return response()->json([]);
+        }
+
+        // Obtener ciclos donde cada estudiante tiene pagos
+        $ciclosPorEstudiante = Pago::whereIn('idEstudiante', $idsEstudiantes)
+            ->select('idEstudiante', 'idCicloModalidad')
+            ->distinct()
+            ->get()
+            ->groupBy('idEstudiante');
+
+        $interseccion = null;
+
+        foreach ($ciclosPorEstudiante as $ciclos) {
+            $ids = $ciclos->pluck('idCicloModalidad')->toArray();
+
+            if ($interseccion === null) {
+                $interseccion = $ids;
+            } else {
+                $interseccion = array_intersect($interseccion, $ids);
+            }
+        }
+
+        if (empty($interseccion)) {
+            return response()->json([]);
+        }
+
+        $ciclos = CicloModalidad::with(['cicloEscolar','modalidad'])
+            ->whereIn('idCicloModalidad', $interseccion)
+            ->orderByDesc('fechaInicio')
+            ->get();
+
+        return response()->json($ciclos);
+    }
+
+    
     // =============================
     // FORMULARIO
     // =============================
@@ -94,6 +138,9 @@ class PagoEstudianteController extends Controller
             return view('SGFIDMA.moduloPagos.asignarPagoEstudiante', [
                 'estudiantes' => $estudiantes,
                 'conceptos'   => ConceptoDePago::where('idEstatus', 1)->get(),
+                'ciclos'      => CicloModalidad::with(['cicloEscolar','modalidad'])
+                                    ->orderByDesc('fechaInicio')
+                                    ->get(),
                 'buscar'      => $buscar,
             ]);
 
@@ -131,6 +178,7 @@ class PagoEstudianteController extends Controller
                 'estudiantes'        => 'required|array|min:1',
                 'estudiantes.*'      => 'exists:estudiante,idEstudiante',
                 'aportacion'         => 'required|string|max:100',
+                'idCicloModalidad' => 'required|exists:ciclo_modalidad,idCicloModalidad',
             ],
             [
                 'required' => 'El campo :attribute es obligatorio.',
@@ -172,6 +220,33 @@ class PagoEstudianteController extends Controller
 
 
         try {
+
+
+            // =============================
+            // VALIDAR QUE TODOS TENGAN O HAYAN TENIDO EL CICLO
+            // =============================
+
+            foreach ($request->estudiantes as $idEstudiante) {
+
+                // Ciclo actual del estudiante
+                $cicloActual = Estudiante::where('idEstudiante', $idEstudiante)
+                    ->value('idCicloModalidad');
+
+                // Verificar si tuvo ese ciclo en pagos
+                $tuvoCiclo = Pago::where('idEstudiante', $idEstudiante)
+                    ->where('idCicloModalidad', $request->idCicloModalidad)
+                    ->exists();
+
+                // Si NO es su ciclo actual y NUNCA lo tuvo → error
+                if ($cicloActual != $request->idCicloModalidad && !$tuvoCiclo) {
+                    return back()->with(
+                        'popupError',
+                        'Uno o más estudiantes nunca han tenido asignado el ciclo seleccionado.'
+                    )->withInput();
+                }
+            }
+
+
 
             // =============================
             // TRANSACCIÓN
@@ -264,15 +339,17 @@ class PagoEstudianteController extends Controller
                             'Referencia'            => $referenciaFinal,
                             'idEstudiante'          => $estudiante->idEstudiante,
                             'idConceptoDePago'      => $concepto->idConceptoDePago,
-                            'montoAPagar'            => $costoFinal,
+                            'idCicloModalidad'      => $request->idCicloModalidad,
+                            'montoAPagar'           => $costoFinal,
                             'fechaGeneracionDePago' => $fechaEmisionPago,
                             'fechaLimiteDePago'     => $fechaLimitePago,
                             'aportacion'            => $request->aportacion,
                             'idEstatus'             => 10,
                         ]);
 
+
                         $referenciasCreadas[] = [
-                            'estudiante' => $estudiante->usuario->primerNombre . ' ' . $estudiante->usuario->primerApellido,
+                            'estudiante' => $estudiante->usuario->primerNombre . ' ' . $estudiante->usuario->segundoNombre . ' ' . $estudiante->usuario->primerApellido . ' ' . $estudiante->usuario->segundoApellido,
                             'referencia' => $referenciaFinal,
                             'concepto'   => $concepto->nombreConceptoDePago,
                             'fecha'      => $fechaLimitePago->format('Y-m-d'),
@@ -294,7 +371,7 @@ class PagoEstudianteController extends Controller
                         ]);
                     } else {
                         $referenciasDuplicadas[] = [
-                            'estudiante' => $estudiante->usuario->primerNombre . ' ' . $estudiante->usuario->primerApellido,
+                            'estudiante' => $estudiante->usuario->primerNombre . ' ' . $estudiante->usuario->segundoNombre . ' ' . $estudiante->usuario->primerApellido . ' ' . $estudiante->usuario->segundoApellido,
                             'referencia' => $referenciaFinal,
                             'concepto'   => $concepto->nombreConceptoDePago,
                             'fecha'      => $fechaLimitePago->format('Y-m-d'),

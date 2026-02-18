@@ -320,9 +320,9 @@ class PagoController extends Controller
             // =============================
             if ($orden === 'alfabetico') {
                 $query->orderBy('idEstudiante');
-            } elseif ($orden === 'porcentaje_mayor') {
+            } elseif ($orden === 'mas_reciente') {
                 $query->orderBy('fechaGeneracionDePago', 'desc');
-            } elseif ($orden === 'porcentaje_menor') {
+            } elseif ($orden === 'mas_antiguo') {
                 $query->orderBy('fechaGeneracionDePago', 'asc');
             } else {
                 // Orden por defecto

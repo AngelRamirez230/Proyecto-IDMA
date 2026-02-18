@@ -28,4 +28,14 @@ class CicloModalidad extends Model
             'idCicloEscolar'
         );
     }
+
+    public function modalidad()
+    {
+        return $this->belongsTo(
+            Modalidad::class,
+            'idModalidad',
+            'idModalidad'
+        );
+    }
+
 }

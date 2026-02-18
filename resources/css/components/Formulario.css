@@ -294,6 +294,26 @@
     padding: 10px 16px;
 }
 
+
+/* =========================
+   BLOQUE HORIZONTAL PAGOS
+========================= */
+.bloque-horizontal-pagos{
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px 40px;
+    margin-bottom: 20px;
+    margin-top: 15px;
+}
+
+
+/* En móvil se apilan */
+@media screen and (max-width: 950px){
+    .bloque-horizontal-pagos{
+        flex-direction: column;
+    }
+}
+
 /* =======================
    RESPONSIVE: 1 columna
 ======================= */

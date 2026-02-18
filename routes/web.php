@@ -221,6 +221,7 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout', 'bitacora'])->g
     Route::get('/consultaPagos',[PagoController::class, 'index'])->name('consultaPagos');
     Route::get('/pagos/{referencia}',[PagoController::class, 'show'])->name('pagos.show');
     Route::get('/pagos/{referencia}/recibo',[PagoController::class, 'descargarRecibo'])->name('pagos.recibo');
+    
 
     // VALIDACION DE PAGOS
     Route::get('/validar/pagos', [PagoController::class, 'vistaValidarPagos'])->name('pagos.validar');
@@ -235,6 +236,7 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout', 'bitacora'])->g
     Route::get('/admin/pagos/asignar',[PagoEstudianteController::class, 'create'])->name('admin.pagos.create');
     Route::post('/admin/pagos/asignar',[PagoEstudianteController::class, 'store'])->name('admin.pagos.store');
     Route::get('/admin/pagos/detalles-referencias',[PagoEstudianteController::class, 'detallesReferencias'])->name('pagos.detalles-referencias');
+    Route::post('/admin/pagos/ciclos-por-estudiantes', [PagoController::class, 'obtenerCiclosPorEstudiantes'])->name('admin.pagos.ciclosPorEstudiantes');
 
     /*----------- NOTIFICACIONES -----------*/
 
