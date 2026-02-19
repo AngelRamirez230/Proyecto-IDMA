@@ -169,7 +169,9 @@ class EstadoDeCuentaController extends Controller
                 ->where('idConceptoDePago', 2)
                 ->sum('descuentoDeBeca');
 
-            $descuentosTotal = $pagos->sum('descuentoDePago');
+            $descuentosTotal = $pagos
+                ->whereIn('idConceptoDePago', $conceptosValidos)
+                ->sum('descuentoDePago' ?? 0);
 
             $saldoAPagar = max($importeTotal - $becasTotal - $descuentosTotal, 0);
 

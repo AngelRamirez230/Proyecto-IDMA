@@ -594,6 +594,7 @@ class PlanDePagoController extends Controller
                 'planDeEstudios.licenciatura'
             ]);
 
+
             // =============================
             // BUSCADOR (nombre completo o matrícula)
             // =============================
@@ -771,6 +772,9 @@ class PlanDePagoController extends Controller
                 $estudiante = Estudiante::with(['usuario'])
                     ->findOrFail($idEstudiante);
 
+                $ciclo = $estudiante->cicloModalidad;
+
+
                 // 🔹 Inicializar SIEMPRE
                 $creados[$idEstudiante]['estudiante']    = $nombreCompleto;
                 $duplicados[$idEstudiante]['estudiante'] = $nombreCompleto;
@@ -797,6 +801,20 @@ class PlanDePagoController extends Controller
                     ];
 
                     continue; 
+                }
+
+
+                // =============================
+                // VALIDAR CICLO ACTIVO
+                // =============================
+                if (!$ciclo || $ciclo->idTipoDeEstatus != 1) {
+
+                    $noAplicados[] = [
+                        'estudiante' => $nombreCompleto,
+                        'motivo'     => 'El estudiante no tiene un ciclo escolar activo.'
+                    ];
+
+                    continue;
                 }
 
 
@@ -865,25 +883,34 @@ class PlanDePagoController extends Controller
                             ? 'INSCRIPCIÓN'
                             : 'REINSCRIPCIÓN';
 
+                        $costoOriginal   = $concepto->costo;
+                        $montoFinal      = $costoOriginal;
+                        $descuentoManual = 0;
+
                         $referencia = ReferenciaBancariaAztecaService::generar(
                             $estudiantePlan->estudiante,
                             $concepto,
-                            $concepto->costo,
+                            $montoFinal,
                             $fechaLimite
                         );
 
 
                         DB::transaction(function () use (
                             $referencia,
+                            $ciclo,
                             $idEstudiante,
                             $concepto,
                             $primerMes,
                             $fechaLimite,
                             $aportacionTexto,
+                            $costoOriginal,
+                            $montoFinal,
+                            $descuentoManual,
                             &$seCrearonPagos,
                             &$creados,
                             &$duplicados
                         ) {
+
 
                             $pagoExistente = Pago::where('Referencia', $referencia)
                                 ->where('idEstudiante', $idEstudiante)
@@ -894,15 +921,22 @@ class PlanDePagoController extends Controller
                                 $seCrearonPagos = true;
 
                                 Pago::create([
-                                    'Referencia'            => $referencia,
-                                    'idEstudiante'          => $idEstudiante,
-                                    'idConceptoDePago'      => $concepto->idConceptoDePago,
-                                    'montoAPagar'           => $concepto->costo,
-                                    'fechaGeneracionDePago' => $primerMes->copy()->day(1),
-                                    'fechaLimiteDePago'     => $fechaLimite,
-                                    'aportacion'            => $aportacionTexto,
-                                    'idEstatus'             => 10
+                                    'Referencia'               => $referencia,
+                                    'idCicloModalidad'         => $ciclo->idCicloModalidad,
+                                    'idEstudiante'             => $idEstudiante,
+                                    'idConceptoDePago'         => $concepto->idConceptoDePago,
+
+                                    'costoConceptoOriginal'    => $costoOriginal,
+                                    'descuentoDePago'          => $descuentoManual,
+
+                                    'montoAPagar'              => $montoFinal,
+
+                                    'fechaGeneracionDePago'    => $primerMes->copy()->day(1),
+                                    'fechaLimiteDePago'        => $fechaLimite,
+                                    'aportacion'               => $aportacionTexto,
+                                    'idEstatus'                => 10
                                 ]);
+
 
                                 $creados[$idEstudiante]['pagos'][] = [
                                     'referencia' => $referencia,
@@ -941,7 +975,13 @@ class PlanDePagoController extends Controller
                             // =============================
                             // MONTO (BECAS SOLO DE 2ª A 6ª)
                             // =============================
-                            $montoFinal = $concepto->costo;
+                            $costoOriginal      = $concepto->costo;
+                            $montoFinal         = $costoOriginal;
+                            $porcentajeBeca     = 0;
+                            $descuentoBeca      = 0;
+                            $nombreBeca         = null;
+                            $descuentoManual    = 0;
+
 
                             if ($contadorMes > 1) {
 
@@ -952,10 +992,15 @@ class PlanDePagoController extends Controller
                                     ->first();
 
                                 if ($solicitudBeca && $solicitudBeca->beca) {
-                                    $porcentaje = $solicitudBeca->beca->porcentajeDeDescuento;
-                                    $montoFinal -= ($concepto->costo * $porcentaje) / 100;
+
+                                    $porcentajeBeca = $solicitudBeca->beca->porcentajeDeDescuento;
+                                    $descuentoBeca  = ($costoOriginal * $porcentajeBeca) / 100;
+                                    $nombreBeca     = optional($solicitudBeca->beca)->nombreDeBeca;
+
+                                    $montoFinal -= $descuentoBeca;
                                 }
                             }
+
 
                             // =============================
                             // REFERENCIA
@@ -971,9 +1016,15 @@ class PlanDePagoController extends Controller
 
                             DB::transaction(function () use (
                                 $referencia,
+                                $ciclo,
                                 $idEstudiante,
                                 $concepto,
                                 $montoFinal,
+                                $costoOriginal,
+                                $porcentajeBeca,
+                                $descuentoBeca,
+                                $nombreBeca,
+                                $descuentoManual,
                                 $fechaGeneracion,
                                 $fechaLimite,
                                 $mes,
@@ -982,6 +1033,7 @@ class PlanDePagoController extends Controller
                                 &$duplicados,
                                 $estudiantePlan
                             ) {
+
 
                                 // =============================
                                 // VALIDAR DUPLICADO (IGUAL QUE INSCRIPCIÓN)
@@ -995,17 +1047,28 @@ class PlanDePagoController extends Controller
                                     $seCrearonPagos = true;
 
                                     Pago::create([
-                                        'Referencia'            => $referencia,
-                                        'idEstudiante'          => $idEstudiante,
-                                        'idConceptoDePago'      => $concepto->idConceptoDePago,
-                                        'montoAPagar'           => $montoFinal,
-                                        'fechaGeneracionDePago' => $fechaGeneracion,
-                                        'fechaLimiteDePago'     => $fechaLimite,
-                                        'aportacion'            => 'MES DE ' . strtoupper(
+                                        'Referencia'               => $referencia,
+                                        'idCicloModalidad'         => $ciclo->idCicloModalidad,
+                                        'idEstudiante'             => $idEstudiante,
+                                        'idConceptoDePago'         => $concepto->idConceptoDePago,
+
+                                        'costoConceptoOriginal'    => $costoOriginal,
+                                        'descuentoDePago'          => $descuentoManual,
+
+                                        'nombreBeca'               => $nombreBeca,
+                                        'porcentajeDeDescuento'    => $porcentajeBeca,
+                                        'descuentoDeBeca'          => $descuentoBeca,
+
+                                        'montoAPagar'              => $montoFinal,
+
+                                        'fechaGeneracionDePago'    => $fechaGeneracion,
+                                        'fechaLimiteDePago'        => $fechaLimite,
+                                        'aportacion'               => 'MES DE ' . strtoupper(
                                             $mes->locale('es')->translatedFormat('F')
                                         ),
-                                        'idEstatus'             => 10
+                                        'idEstatus'                => 10
                                     ]);
+
 
                                     $creados[$idEstudiante]['pagos'][] = [
                                         'referencia' => $referencia,

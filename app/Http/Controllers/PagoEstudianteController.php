@@ -179,6 +179,7 @@ class PagoEstudianteController extends Controller
                 'estudiantes.*'      => 'exists:estudiante,idEstudiante',
                 'aportacion'         => 'required|string|max:100',
                 'idCicloModalidad' => 'required|exists:ciclo_modalidad,idCicloModalidad',
+                'descuentoDePago' => 'nullable|numeric|min:0',
             ],
             [
                 'required' => 'El campo :attribute es obligatorio.',
@@ -223,32 +224,6 @@ class PagoEstudianteController extends Controller
 
 
             // =============================
-            // VALIDAR QUE TODOS TENGAN O HAYAN TENIDO EL CICLO
-            // =============================
-
-            foreach ($request->estudiantes as $idEstudiante) {
-
-                // Ciclo actual del estudiante
-                $cicloActual = Estudiante::where('idEstudiante', $idEstudiante)
-                    ->value('idCicloModalidad');
-
-                // Verificar si tuvo ese ciclo en pagos
-                $tuvoCiclo = Pago::where('idEstudiante', $idEstudiante)
-                    ->where('idCicloModalidad', $request->idCicloModalidad)
-                    ->exists();
-
-                // Si NO es su ciclo actual y NUNCA lo tuvo → error
-                if ($cicloActual != $request->idCicloModalidad && !$tuvoCiclo) {
-                    return back()->with(
-                        'popupError',
-                        'Uno o más estudiantes nunca han tenido asignado el ciclo seleccionado.'
-                    )->withInput();
-                }
-            }
-
-
-
-            // =============================
             // TRANSACCIÓN
             // =============================
             DB::transaction(function () use ($request,$concepto,$fechaLimitePago,$fechaEmisionPago,&$contadorReferencias,&$referenciasCreadas,&$referenciasDuplicadas,&$omitidosPorPlan) 
@@ -258,6 +233,31 @@ class PagoEstudianteController extends Controller
                 foreach ($request->estudiantes as $idEstudiante) {
 
                     $estudiante = Estudiante::with('usuario')->findOrFail($idEstudiante);
+
+
+
+                    // =============================
+                    // VALIDAR CICLO ESCOLAR
+                    // =============================
+                    $cicloActual = $estudiante->idCicloModalidad;
+
+                    $tuvoCiclo = Pago::where('idEstudiante', $idEstudiante)
+                        ->where('idCicloModalidad', $request->idCicloModalidad)
+                        ->exists();
+
+                    if ($cicloActual != $request->idCicloModalidad && !$tuvoCiclo) {
+
+                        $omitidosPorPlan[] = [
+                            'estudiante' => $estudiante->usuario->primerNombre . ' ' .
+                                            $estudiante->usuario->segundoNombre . ' ' .
+                                            $estudiante->usuario->primerApellido . ' ' .
+                                            $estudiante->usuario->segundoApellido,
+                            'concepto'   => $concepto->nombreConceptoDePago,
+                            'motivo'     => 'Nunca ha tenido asignado el ciclo escolar seleccionado',
+                        ];
+
+                        continue;
+                    }
 
 
                     // =============================
@@ -271,7 +271,10 @@ class PagoEstudianteController extends Controller
                     ) {
 
                         $omitidosPorPlan[] = [
-                            'estudiante' => $estudiante->usuario->primerNombre . ' ' . $estudiante->usuario->primerApellido,
+                            'estudiante' => $estudiante->usuario->primerNombre . ' ' .
+                                            $estudiante->usuario->segundoNombre . ' ' .
+                                            $estudiante->usuario->primerApellido . ' ' .
+                                            $estudiante->usuario->segundoApellido,
                             'concepto'   => $concepto->nombreConceptoDePago,
                             'motivo'     => 'Cuenta con plan de pago activo',
                         ];
@@ -283,13 +286,18 @@ class PagoEstudianteController extends Controller
                     // =============================
                     // CALCULAR MONTO FINAL
                     // =============================
-                    $costoFinal = $concepto->costo;
+                    $costoOriginal = $concepto->costo;
+                    $costoFinal    = $costoOriginal;
+
+                    $porcentajeBeca = 0;
+                    $descuentoBeca  = 0;
+                    $nombreBeca     = null;
 
                     // ¿Es mensualidad?
                     $esMensualidad = ($concepto->idConceptoDePago == 2);
 
                     // =============================
-                    // VALIDAR SI SE APLICA BECA
+                    // VALIDAR BECA
                     // =============================
                     $ignorarBeca = (
                         $fechaLimitePago->day == 15 &&
@@ -299,18 +307,35 @@ class PagoEstudianteController extends Controller
                     if ($esMensualidad && !$ignorarBeca) {
 
                         $solicitudBeca = $estudiante->solicitudesDeBeca()
-                            ->where('idEstatus', 6) // Aprobada
+                            ->where('idEstatus', 6)
                             ->with('beca')
                             ->first();
 
                         if ($solicitudBeca && $solicitudBeca->beca) {
 
-                            $porcentaje = $solicitudBeca->beca->porcentajeDeDescuento;
-                            $descuento  = ($concepto->costo * $porcentaje) / 100;
+                            $porcentajeBeca = $solicitudBeca->beca->porcentajeDeDescuento;
+                            $descuentoBeca  = ($costoOriginal * $porcentajeBeca) / 100;
+                            $nombreBeca     = optional($solicitudBeca->beca)->nombreDeBeca;
 
-                            $costoFinal = $concepto->costo - $descuento;
+                            $costoFinal -= $descuentoBeca;
                         }
                     }
+
+                    // =============================
+                    // DESCUENTO MANUAL
+                    // =============================
+                    $descuentoManual = $request->descuentoDePago ?? 0;
+
+                    // Evitar que el descuento sea mayor al monto actual
+                    if ($descuentoManual > $costoFinal) {
+                        $descuentoManual = $costoFinal;
+                    }
+
+                    $costoFinal -= $descuentoManual;
+
+                    // Evitar negativos
+                    $costoFinal = max($costoFinal, 0);
+
 
 
                     // =============================
@@ -336,20 +361,32 @@ class PagoEstudianteController extends Controller
                         // GUARDAR PAGO
                         // =============================
                         Pago::create([
-                            'Referencia'            => $referenciaFinal,
-                            'idEstudiante'          => $estudiante->idEstudiante,
-                            'idConceptoDePago'      => $concepto->idConceptoDePago,
-                            'idCicloModalidad'      => $request->idCicloModalidad,
-                            'montoAPagar'           => $costoFinal,
-                            'fechaGeneracionDePago' => $fechaEmisionPago,
-                            'fechaLimiteDePago'     => $fechaLimitePago,
-                            'aportacion'            => $request->aportacion,
-                            'idEstatus'             => 10,
+                            'Referencia'               => $referenciaFinal,
+                            'idEstudiante'             => $estudiante->idEstudiante,
+                            'idConceptoDePago'         => $concepto->idConceptoDePago,
+                            'idCicloModalidad'         => $request->idCicloModalidad,
+
+                            'costoConceptoOriginal'    => $costoOriginal,
+                            'nombreBeca'               => $nombreBeca,
+                            'porcentajeDeDescuento'    => $porcentajeBeca,
+                            'descuentoDeBeca'          => $descuentoBeca,
+                            'descuentoDePago'          => $descuentoManual,
+
+                            'montoAPagar'              => $costoFinal,
+
+                            'fechaGeneracionDePago'    => $fechaEmisionPago,
+                            'fechaLimiteDePago'        => $fechaLimitePago,
+                            'aportacion'               => $request->aportacion,
+                            'idEstatus'                => 10,
                         ]);
 
 
+
                         $referenciasCreadas[] = [
-                            'estudiante' => $estudiante->usuario->primerNombre . ' ' . $estudiante->usuario->segundoNombre . ' ' . $estudiante->usuario->primerApellido . ' ' . $estudiante->usuario->segundoApellido,
+                            'estudiante' => $estudiante->usuario->primerNombre . ' ' .
+                                            $estudiante->usuario->segundoNombre . ' ' .
+                                            $estudiante->usuario->primerApellido . ' ' .
+                                            $estudiante->usuario->segundoApellido,
                             'referencia' => $referenciaFinal,
                             'concepto'   => $concepto->nombreConceptoDePago,
                             'fecha'      => $fechaLimitePago->format('Y-m-d'),
@@ -371,7 +408,10 @@ class PagoEstudianteController extends Controller
                         ]);
                     } else {
                         $referenciasDuplicadas[] = [
-                            'estudiante' => $estudiante->usuario->primerNombre . ' ' . $estudiante->usuario->segundoNombre . ' ' . $estudiante->usuario->primerApellido . ' ' . $estudiante->usuario->segundoApellido,
+                            'estudiante' => $estudiante->usuario->primerNombre . ' ' .
+                                            $estudiante->usuario->segundoNombre . ' ' .
+                                            $estudiante->usuario->primerApellido . ' ' .
+                                            $estudiante->usuario->segundoApellido,
                             'referencia' => $referenciaFinal,
                             'concepto'   => $concepto->nombreConceptoDePago,
                             'fecha'      => $fechaLimitePago->format('Y-m-d'),
