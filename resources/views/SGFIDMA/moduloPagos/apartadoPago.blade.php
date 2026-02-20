@@ -14,6 +14,7 @@
         <a href="{{route('consultaPagos')}}" class="btn-boton btn-consulta-pago">Consultar pagos</a>
         <a href="{{route('admin.pagos.create')}}" class="btn-boton btn-asignar-pago">Asignar pago a estudiante(s)</a>
         <a href="{{route('pagos.validar')}}" class="btn-boton btn-validar-pago">Validar pagos</a>
+        <a href="{{ route('pagos.eliminar.vista') }}" class="btn-boton btn-eliminar-pago">Eliminar pagos</a>
         @endif
 
         @estudiante

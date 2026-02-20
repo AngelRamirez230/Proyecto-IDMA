@@ -77,7 +77,7 @@
 
 
                 {{-- CICLO --}}
-                <div class="form-group">
+                <div class="form-group" id="grupoCiclo">
                     <label>Ciclo escolar:</label>
                     <select name="idCicloModalidad" id="selectCiclo" class="select" required>
                         <option value="" disabled {{ old('idCicloModalidad') ? '' : 'selected' }}>
@@ -98,6 +98,9 @@
 
                     <x-error-field field="idCicloModalidad" />
                 </div>
+
+
+                <input type="hidden" id="hiddenCiclo">
 
 
 
@@ -158,6 +161,13 @@
                         value="{{ old('descuentoDePago') }}"
                     >
                     <x-error-field field="descuentoDePago" />
+                </div>
+
+                <div class="form-group" id="grupoReferenciaOriginal" style="display:none;">
+                    <label>Referencia original:</label>
+                    <select name="referenciaOriginal" id="selectReferenciaOriginal" class="select">
+                        <option value="">Seleccionar referencia</option>
+                    </select>
                 </div>
 
             </div>
@@ -344,6 +354,123 @@
 
                 });
             }
+        </script>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+
+                const selectConcepto = document.querySelector("select[name='idConceptoDePago']");
+                const grupoReferencia = document.getElementById("grupoReferenciaOriginal");
+                const selectReferencia = document.getElementById("selectReferenciaOriginal");
+
+                const conceptosConRecargo = [1,2,30];
+                const conceptosIndividuales = [19,22,23,28,29,31,32,33,34,35,36,37];
+
+                selectConcepto.addEventListener("change", function() {
+
+                    const conceptoId = parseInt(this.value);
+
+                    const estudiantesSeleccionados = Array.from(
+                        document.querySelectorAll('.chk-estudiante:checked')
+                    );
+
+                    // 🔹 SOLO 1 ESTUDIANTE para ciertos conceptos
+                    if (conceptosIndividuales.includes(conceptoId)) {
+                        if (estudiantesSeleccionados.length > 1) {
+                            alert("Solo puedes seleccionar un estudiante para este concepto.");
+                            this.value = "";
+                            return;
+                        }
+                    }
+
+                    if (conceptosConRecargo.includes(conceptoId) || conceptosIndividuales.includes(conceptoId)) {
+
+                        if (estudiantesSeleccionados.length !== 1) {
+                            alert("Debes seleccionar exactamente un estudiante.");
+                            this.value = "";
+                            return;
+                        }
+
+                        grupoReferencia.style.display = "block";
+
+                        const idEstudiante = estudiantesSeleccionados[0].value;
+
+                        fetch("{{ route('admin.pagos.referenciasVencidas') }}", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                            },
+                            body: JSON.stringify({
+                                idEstudiante: idEstudiante,
+                                idConceptoDePago: conceptoId
+                            })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+
+                            selectReferencia.innerHTML = '<option value="">Seleccionar referencia</option>';
+
+                            if (data.length === 0) {
+                                selectReferencia.innerHTML += '<option disabled>No hay referencias vencidas</option>';
+                                return;
+                            }
+
+                            data.forEach(ref => {
+                                const option = document.createElement("option");
+                                option.value = ref.Referencia;
+                                option.dataset.ciclo = ref.idCicloModalidad;
+                                option.text =
+                                    ref.Referencia +
+                                    " | Vence: " + ref.fechaLimiteDePago +
+                                    " | $" + ref.montoAPagar;
+                                selectReferencia.appendChild(option);
+                            });
+
+                            selectReferencia.addEventListener("change", function() {
+
+                                const selectedOption = this.options[this.selectedIndex];
+                                const cicloId = selectedOption.dataset.ciclo;
+
+                                if (cicloId) {
+
+                                    // Ocultar select visible
+                                    document.getElementById("grupoCiclo").style.display = "none";
+
+                                    // Quitar name al select visible
+                                    document.getElementById("selectCiclo")
+                                        .removeAttribute("name");
+
+                                    // Asignar name al hidden
+                                    const hidden = document.getElementById("hiddenCiclo");
+                                    hidden.value = cicloId;
+                                    hidden.setAttribute("name", "idCicloModalidad");
+                                }
+
+                            });
+                        });
+
+                    } else {
+
+                        grupoReferencia.style.display = "none";
+                        selectReferencia.innerHTML = '';
+
+                        // Mostrar select visible
+                        document.getElementById("grupoCiclo").style.display = "block";
+
+                        // Restaurar name al select
+                        document.getElementById("selectCiclo")
+                            .setAttribute("name", "idCicloModalidad");
+
+                        // Quitar name al hidden
+                        const hidden = document.getElementById("hiddenCiclo");
+                        hidden.removeAttribute("name");
+                        hidden.value = "";
+                    }
+
+                });
+
+            });
         </script>
 
 

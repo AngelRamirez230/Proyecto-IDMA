@@ -181,4 +181,23 @@ class Pago extends Model
         return max($costoActual - $costoOriginal, 0);
     }
 
+
+    public static function calcularRecargosDesdeColeccion($pagos)
+    {
+        return $pagos
+            ->whereNotNull('referenciaOriginal')
+            ->groupBy('referenciaOriginal')
+            ->map(function ($grupo) {
+
+                $ultimo = $grupo->sortByDesc('fechaLimiteDePago')->first();
+
+                return max(
+                    ($ultimo->montoAPagar ?? 0) -
+                    ($ultimo->pagoOriginal->montoAPagar ?? 0),
+                    0
+                );
+            })
+            ->sum();
+    }
+
 }

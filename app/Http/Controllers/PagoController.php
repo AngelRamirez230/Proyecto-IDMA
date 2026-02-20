@@ -653,4 +653,88 @@ class PagoController extends Controller
 
     }
 
+
+
+
+    public function vistaEliminar(Request $request)
+    {
+        try {
+
+            if (!auth()->user()->esAdmin() && !auth()->user()->esEmpleadoDe(11)) {
+                abort(403);
+            }
+
+            $query = Pago::with(['estudiante.usuario', 'concepto', 'estatus']);
+
+            // 🔹 SOLO pagos pendientes
+            $query->where('idEstatus', 10);
+
+            // 🔹 Buscador opcional
+            if ($request->filled('buscarPago')) {
+                $buscar = trim($request->buscarPago);
+
+                $query->where('Referencia', 'LIKE', "%{$buscar}%");
+            }
+
+            $pagos = $query->paginate(10)->withQueryString();
+
+            return view(
+                'SGFIDMA.moduloPagos.eliminarPago',
+                compact('pagos')
+            );
+
+        } catch (\Throwable $e) {
+
+            \Log::error('Error en vistaEliminar', [
+                'mensaje' => $e->getMessage(),
+                'archivo' => $e->getFile(),
+                'linea'   => $e->getLine()
+            ]);
+
+            return redirect()
+                ->route('apartadoPagos')
+                ->with(
+                    'popupError',
+                    'Ocurrió un error al cargar la vista de eliminación de pagos.'
+                );
+        }
+    }
+
+
+    public function destroy($referencia)
+    {
+        try {
+
+            $pago = Pago::findOrFail($referencia);
+
+            // 🔹 SOLO permitir eliminar si está pendiente
+            if ($pago->idEstatus != 10) {
+                return redirect()
+                    ->back()
+                    ->with('popupError', 'Solo se pueden eliminar pagos pendientes.');
+            }
+
+            $pago->delete();
+
+            return redirect()
+                ->back()
+                ->with('success', 'Pago eliminado correctamente.');
+
+        } catch (\Throwable $e) {
+
+            Log::error('Error al eliminar pago', [
+                'referencia' => $referencia,
+                'error' => $e->getMessage()
+            ]);
+
+            return redirect()
+                ->back()
+                ->with('popupError', 'No fue posible eliminar el pago.');
+        }
+    }
+
+
+
+
+
 }

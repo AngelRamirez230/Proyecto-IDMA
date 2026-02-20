@@ -161,6 +161,55 @@ class PagoEstudianteController extends Controller
     }
 
 
+    public function referenciasVencidas(Request $request)
+    {
+        $request->validate([
+            'idEstudiante'     => 'required|integer',
+            'idConceptoDePago' => 'required|integer'
+        ]);
+
+        // =============================
+        // MAPEO DE CONCEPTO → MES
+        // =============================
+        $mesPorConcepto = [
+            22 => 10, // Octubre
+            23 => 11, // Noviembre
+            28 => 12, // Diciembre
+            29 => 3,  // Marzo
+            31 => 1,  // Enero
+            32 => 2,  // Febrero
+            33 => 4,  // Abril
+            34 => 5,  // Mayo
+            35 => 6,  // Junio
+            36 => 7,  // Julio
+            37 => 8,  // Agosto
+            19 => 9,  // Septiembre
+        ];
+
+        $conceptoId = (int) $request->idConceptoDePago;
+
+        // Si no es concepto mensual individual
+        if (!isset($mesPorConcepto[$conceptoId])) {
+            return response()->json([]);
+        }
+
+        $mesEsperado = $mesPorConcepto[$conceptoId];
+
+        $referencias = Pago::where('idEstudiante', $request->idEstudiante)
+            ->where('idEstatus', 12) // vencidos
+            ->whereMonth('fechaLimiteDePago', $mesEsperado)
+            ->whereDay('fechaLimiteDePago', 15)
+            ->whereNotExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('Pago as p2')
+                    ->whereColumn('p2.referenciaOriginal', 'Pago.Referencia')
+                    ->where('p2.idEstatus', 10);
+            })
+            ->get(['Referencia', 'fechaLimiteDePago', 'montoAPagar', 'idCicloModalidad']);
+
+        return response()->json($referencias);
+    }
+
 
 
 
@@ -180,6 +229,20 @@ class PagoEstudianteController extends Controller
                 'aportacion'         => 'required|string|max:100',
                 'idCicloModalidad' => 'required|exists:ciclo_modalidad,idCicloModalidad',
                 'descuentoDePago' => 'nullable|numeric|min:0',
+                'referenciaOriginal' => [
+                                            'nullable',
+                                            'exists:Pago,Referencia',
+                                            function ($attribute, $value, $fail) use ($request) {
+
+                                                $existePendiente = Pago::where('referenciaOriginal', $value)
+                                                    ->where('idEstatus', 10)
+                                                    ->exists();
+
+                                                if ($existePendiente) {
+                                                    $fail('Ya existe un recargo pendiente para esa referencia.');
+                                                }
+                                            }
+                                        ],
             ],
             [
                 'required' => 'El campo :attribute es obligatorio.',
@@ -228,6 +291,16 @@ class PagoEstudianteController extends Controller
             // =============================
             DB::transaction(function () use ($request,$concepto,$fechaLimitePago,$fechaEmisionPago,&$contadorReferencias,&$referenciasCreadas,&$referenciasDuplicadas,&$omitidosPorPlan) 
             {
+
+                $idCicloFinal = $request->idCicloModalidad;
+
+                if ($request->referenciaOriginal) {
+                    $pagoOriginal = Pago::where('Referencia', $request->referenciaOriginal)->first();
+
+                    if ($pagoOriginal) {
+                        $idCicloFinal = $pagoOriginal->idCicloModalidad;
+                    }
+                }
 
 
                 foreach ($request->estudiantes as $idEstudiante) {
@@ -378,6 +451,7 @@ class PagoEstudianteController extends Controller
                             'fechaLimiteDePago'        => $fechaLimitePago,
                             'aportacion'               => $request->aportacion,
                             'idEstatus'                => 10,
+                            'referenciaOriginal'       => $request->referenciaOriginal,
                         ]);
 
 
