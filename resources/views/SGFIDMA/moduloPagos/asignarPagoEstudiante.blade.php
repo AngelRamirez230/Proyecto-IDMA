@@ -79,7 +79,7 @@
                 {{-- CICLO --}}
                 <div class="form-group" id="grupoCiclo">
                     <label>Ciclo escolar:</label>
-                    <select name="idCicloModalidad" id="selectCiclo" class="select" required>
+                    <select id="selectCiclo" class="select">
                         <option value="" disabled {{ old('idCicloModalidad') ? '' : 'selected' }}>
                             Seleccionar
                         </option>
@@ -100,7 +100,7 @@
                 </div>
 
 
-                <input type="hidden" id="hiddenCiclo">
+                <input type="hidden" id="hiddenCiclo" name="idCicloModalidad">
 
 
 
@@ -151,7 +151,7 @@
 
 
                 {{-- DESCUENTO DE PAGO --}}
-                <div class="form-group">
+                <div class="form-group" id="grupoDescuento">
                     <label>Descuento de pago:</label>
                     <input
                         type="number"
@@ -163,6 +163,8 @@
                     <x-error-field field="descuentoDePago" />
                 </div>
 
+
+                {{-- REFERENCIA ORIGINAL --}}
                 <div class="form-group" id="grupoReferenciaOriginal" style="display:none;">
                     <label>Referencia original:</label>
                     <select name="referenciaOriginal" id="selectReferenciaOriginal" class="select">
@@ -270,14 +272,6 @@
 
     </main>
 
-    <script>
-        document.getElementById('selectAll').addEventListener('change', function () {
-            const checkboxes = document.querySelectorAll('.chk-estudiante');
-            checkboxes.forEach(cb => cb.checked = this.checked);
-            actualizarCiclos(); 
-        });
-    </script>
-
 
     <script>
         function aplicarFiltros() {
@@ -297,183 +291,120 @@
 
 
     <script>
-            document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
 
-                document.querySelectorAll('.chk-estudiante').forEach(checkbox => {
-                    checkbox.addEventListener('change', actualizarCiclos);
-                });
+            const selectConcepto   = document.querySelector("select[name='idConceptoDePago']");
+            const grupoReferencia  = document.getElementById("grupoReferenciaOriginal");
+            const selectReferencia = document.getElementById("selectReferenciaOriginal");
+            const grupoCiclo       = document.getElementById("grupoCiclo");
+            const selectCiclo      = document.getElementById("selectCiclo");
+            const hiddenCiclo      = document.getElementById("hiddenCiclo");
+            const grupoDescuento   = document.getElementById("grupoDescuento");
 
-            });
+            const conceptosIndividuales = [19,22,23,28,29,31,32,33,34,35,36,37];
 
-            function actualizarCiclos() {
+            function evaluar() {
 
-                const seleccionados = Array.from(
-                    document.querySelectorAll('.chk-estudiante:checked')
-                ).map(cb => cb.value);
+                const conceptoId = parseInt(selectConcepto.value);
+                const checkboxes = document.querySelectorAll('.chk-estudiante');
+                const seleccionados = Array.from(checkboxes).filter(cb => cb.checked);
 
-                fetch("{{ route('admin.pagos.ciclosPorEstudiantes') }}", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                    },
-                    body: JSON.stringify({
-                        estudiantes: seleccionados
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
+                // Reset visual
+                selectReferencia.innerHTML = '<option value="">Seleccionar referencia</option>';
+                grupoReferencia.style.display = "none";
+                grupoCiclo.style.display = "block";
+                grupoDescuento.style.display = "block";
+                hiddenCiclo.value = selectCiclo.value;
 
-                    const select = document.getElementById('selectCiclo');
-                    select.innerHTML = '';
+                if (!conceptoId) return;
 
-                    if (data.length === 0) {
-                        const option = document.createElement('option');
-                        option.text = 'No hay ciclos coincidentes';
-                        option.disabled = true;
-                        option.selected = true;
-                        select.appendChild(option);
+                // 🔥 SOLO PARA ESTOS CONCEPTOS
+                if (conceptosIndividuales.includes(conceptoId)) {
+
+                    // Mostrar referencia SIEMPRE
+                    grupoReferencia.style.display = "block";
+
+                    // Ocultar ciclo SIEMPRE
+                    grupoCiclo.style.display = "none";
+                    grupoDescuento.style.display = "none";
+                    document.querySelector("input[name='descuentoDePago']").value = "";
+                    selectCiclo.value = "";
+                    hiddenCiclo.value = "";
+
+                    // Permitir solo 1 estudiante
+                    if (seleccionados.length > 1) {
+
+                        alert("Solo puedes seleccionar un estudiante para este concepto.");
+
+                        // dejar solo el primero seleccionado
+                        seleccionados.slice(1).forEach(cb => cb.checked = false);
+
                         return;
                     }
 
-                    const defaultOption = document.createElement('option');
-                    defaultOption.text = 'Seleccionar';
-                    defaultOption.disabled = true;
-                    defaultOption.selected = true;
-                    select.appendChild(defaultOption);
+                    // Si no hay exactamente 1, no consultar
+                    if (seleccionados.length !== 1) return;
 
-                    data.forEach(ciclo => {
-                        const option = document.createElement('option');
-                        option.value = ciclo.idCicloModalidad;
-                        option.text =
-                            ciclo.ciclo_escolar.nombreCicloEscolar +
-                            " - " +
-                            ciclo.modalidad.nombreModalidad;
-                        select.appendChild(option);
-                    });
+                    const idEstudiante = seleccionados[0].value;
 
-                });
-            }
-        </script>
+                    fetch("{{ route('admin.pagos.referenciasVencidas') }}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                        },
+                        body: JSON.stringify({
+                            idEstudiante: idEstudiante,
+                            idConceptoDePago: conceptoId
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
 
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-
-                const selectConcepto = document.querySelector("select[name='idConceptoDePago']");
-                const grupoReferencia = document.getElementById("grupoReferenciaOriginal");
-                const selectReferencia = document.getElementById("selectReferenciaOriginal");
-
-                const conceptosConRecargo = [1,2,30];
-                const conceptosIndividuales = [19,22,23,28,29,31,32,33,34,35,36,37];
-
-                selectConcepto.addEventListener("change", function() {
-
-                    const conceptoId = parseInt(this.value);
-
-                    const estudiantesSeleccionados = Array.from(
-                        document.querySelectorAll('.chk-estudiante:checked')
-                    );
-
-                    // 🔹 SOLO 1 ESTUDIANTE para ciertos conceptos
-                    if (conceptosIndividuales.includes(conceptoId)) {
-                        if (estudiantesSeleccionados.length > 1) {
-                            alert("Solo puedes seleccionar un estudiante para este concepto.");
-                            this.value = "";
-                            return;
-                        }
-                    }
-
-                    if (conceptosConRecargo.includes(conceptoId) || conceptosIndividuales.includes(conceptoId)) {
-
-                        if (estudiantesSeleccionados.length !== 1) {
-                            alert("Debes seleccionar exactamente un estudiante.");
-                            this.value = "";
-                            return;
-                        }
-
+                        // 🔥 SIEMPRE se muestra referencia
                         grupoReferencia.style.display = "block";
 
-                        const idEstudiante = estudiantesSeleccionados[0].value;
-
-                        fetch("{{ route('admin.pagos.referenciasVencidas') }}", {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                            },
-                            body: JSON.stringify({
-                                idEstudiante: idEstudiante,
-                                idConceptoDePago: conceptoId
-                            })
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-
-                            selectReferencia.innerHTML = '<option value="">Seleccionar referencia</option>';
-
-                            if (data.length === 0) {
-                                selectReferencia.innerHTML += '<option disabled>No hay referencias vencidas</option>';
-                                return;
-                            }
-
+                        // Si hay datos los agregamos
+                        if (data && data.length > 0) {
                             data.forEach(ref => {
                                 const option = document.createElement("option");
                                 option.value = ref.Referencia;
+                                option.text =`${ref.Referencia} | ${ref.nombreConceptoDePago ?? ''} | $${ref.montoAPagar} | ${ref.aportacion ?? ''}`;
                                 option.dataset.ciclo = ref.idCicloModalidad;
-                                option.text =
-                                    ref.Referencia +
-                                    " | Vence: " + ref.fechaLimiteDePago +
-                                    " | $" + ref.montoAPagar;
                                 selectReferencia.appendChild(option);
                             });
+                        }
 
-                            selectReferencia.addEventListener("change", function() {
+                        // Si no hay datos → queda vacío y ya.
+                    })
+                    .catch(error => {
+                        console.error("Error cargando referencias:", error);
+                    });
+                }
+            }
 
-                                const selectedOption = this.options[this.selectedIndex];
-                                const cicloId = selectedOption.dataset.ciclo;
+            // Cuando seleccionan referencia
+            selectReferencia.addEventListener("change", function () {
 
-                                if (cicloId) {
+                const selected = this.options[this.selectedIndex];
 
-                                    // Ocultar select visible
-                                    document.getElementById("grupoCiclo").style.display = "none";
-
-                                    // Quitar name al select visible
-                                    document.getElementById("selectCiclo")
-                                        .removeAttribute("name");
-
-                                    // Asignar name al hidden
-                                    const hidden = document.getElementById("hiddenCiclo");
-                                    hidden.value = cicloId;
-                                    hidden.setAttribute("name", "idCicloModalidad");
-                                }
-
-                            });
-                        });
-
-                    } else {
-
-                        grupoReferencia.style.display = "none";
-                        selectReferencia.innerHTML = '';
-
-                        // Mostrar select visible
-                        document.getElementById("grupoCiclo").style.display = "block";
-
-                        // Restaurar name al select
-                        document.getElementById("selectCiclo")
-                            .setAttribute("name", "idCicloModalidad");
-
-                        // Quitar name al hidden
-                        const hidden = document.getElementById("hiddenCiclo");
-                        hidden.removeAttribute("name");
-                        hidden.value = "";
-                    }
-
-                });
-
+                if (selected && selected.dataset.ciclo) {
+                    hiddenCiclo.value = selected.dataset.ciclo;
+                }
             });
-        </script>
 
+            // Cuando cambian el ciclo manualmente (conceptos normales)
+            selectCiclo.addEventListener("change", function () {
+                hiddenCiclo.value = this.value;
+            });
 
+            selectConcepto.addEventListener("change", evaluar);
+
+            document.querySelectorAll('.chk-estudiante')
+                .forEach(cb => cb.addEventListener("change", evaluar));
+
+        });
+    </script>
 
 </body>
 </html>

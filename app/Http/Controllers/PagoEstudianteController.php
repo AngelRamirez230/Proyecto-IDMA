@@ -168,46 +168,119 @@ class PagoEstudianteController extends Controller
             'idConceptoDePago' => 'required|integer'
         ]);
 
-        // =============================
-        // MAPEO DE CONCEPTO → MES
-        // =============================
-        $mesPorConcepto = [
-            22 => 10, // Octubre
-            23 => 11, // Noviembre
-            28 => 12, // Diciembre
-            29 => 3,  // Marzo
-            31 => 1,  // Enero
-            32 => 2,  // Febrero
-            33 => 4,  // Abril
-            34 => 5,  // Mayo
-            35 => 6,  // Junio
-            36 => 7,  // Julio
-            37 => 8,  // Agosto
-            19 => 9,  // Septiembre
-        ];
-
         $conceptoId = (int) $request->idConceptoDePago;
 
-        // Si no es concepto mensual individual
+        \Log::info('Concepto recibido:', ['concepto' => $conceptoId]);
+        \Log::info('Estudiante recibido:', ['estudiante' => $request->idEstudiante]);
+
+        // 🔹 Conceptos con recargo general (1,2,30)
+        if (in_array($conceptoId, [1,2,30])) {
+
+            $query = Pago::with('concepto')
+                    ->where('idEstudiante', $request->idEstudiante)
+                ->whereIn('idConceptoDePago', [1,2,30])
+                ->where('idEstatus', 12)
+                ->whereNotExists(function ($query) {
+                    $query->select(DB::raw(1))
+                        ->from('Pago as p2')
+                        ->whereColumn('p2.referenciaOriginal', 'Pago.Referencia')
+                        ->whereIn('p2.idEstatus', [10, 11]);
+                });
+
+            \Log::info('SQL Recargo:', [
+                'sql' => $query->toSql(),
+                'bindings' => $query->getBindings()
+            ]);
+
+            $referencias = $query->get([
+                'Referencia',
+                'fechaLimiteDePago',
+                'montoAPagar',
+                'idCicloModalidad',
+                'aportacion',
+                'idConceptoDePago'
+            ]);
+
+            \Log::info('Referencias encontradas:', ['count' => $referencias->count()]);
+
+            return response()->json(
+                $referencias->map(function ($pago) {
+                    return [
+                        'Referencia'           => $pago->Referencia,
+                        'fechaLimiteDePago'    => $pago->fechaLimiteDePago,
+                        'montoAPagar'          => $pago->montoAPagar,
+                        'idCicloModalidad'     => $pago->idCicloModalidad,
+                        'aportacion'           => $pago->aportacion,
+                        'nombreConceptoDePago' => $pago->concepto->nombreConceptoDePago ?? null,
+                    ];
+                })
+            );
+        }
+
+        // 🔹 Mapeo mensual
+        $mesPorConcepto = [
+            22 => 10,
+            23 => 11,
+            28 => 12,
+            29 => 3,
+            31 => 1,
+            32 => 2,
+            33 => 4,
+            34 => 5,
+            35 => 6,
+            36 => 7,
+            37 => 8,
+            19 => 9,
+        ];
+
         if (!isset($mesPorConcepto[$conceptoId])) {
+            \Log::info('Concepto no mapeado');
             return response()->json([]);
         }
 
         $mesEsperado = $mesPorConcepto[$conceptoId];
 
-        $referencias = Pago::where('idEstudiante', $request->idEstudiante)
-            ->where('idEstatus', 12) // vencidos
+        \Log::info('Mes esperado:', ['mes' => $mesEsperado]);
+
+        $query = Pago::with('concepto')->where('idEstudiante', $request->idEstudiante)
+            ->where('idEstatus', 12)
             ->whereMonth('fechaLimiteDePago', $mesEsperado)
             ->whereDay('fechaLimiteDePago', 15)
             ->whereNotExists(function ($query) {
                 $query->select(DB::raw(1))
                     ->from('Pago as p2')
                     ->whereColumn('p2.referenciaOriginal', 'Pago.Referencia')
-                    ->where('p2.idEstatus', 10);
-            })
-            ->get(['Referencia', 'fechaLimiteDePago', 'montoAPagar', 'idCicloModalidad']);
+                    ->whereIn('p2.idEstatus', [10, 11]);
+            });
 
-        return response()->json($referencias);
+        \Log::info('SQL Mensual:', [
+            'sql' => $query->toSql(),
+            'bindings' => $query->getBindings()
+        ]);
+
+        $referencias = $query->get([
+            'Referencia',
+            'fechaLimiteDePago',
+            'montoAPagar',
+            'idCicloModalidad',
+            'aportacion',
+            'idConceptoDePago'
+        ]);
+
+        \Log::info('Referencias encontradas:', ['count' => $referencias->count()]);
+
+        return response()->json(
+            $referencias->map(function ($pago) {
+                return [
+                    'Referencia'           => $pago->Referencia,
+                    'fechaLimiteDePago'    => $pago->fechaLimiteDePago,
+                    'montoAPagar'          => $pago->montoAPagar,
+                    'idCicloModalidad'     => $pago->idCicloModalidad,
+                    'aportacion'           => $pago->aportacion,
+                    'nombreConceptoDePago' => $pago->concepto->nombreConceptoDePago ?? null,
+                ];
+            })
+        );
     }
 
 
@@ -227,7 +300,7 @@ class PagoEstudianteController extends Controller
                 'estudiantes'        => 'required|array|min:1',
                 'estudiantes.*'      => 'exists:estudiante,idEstudiante',
                 'aportacion'         => 'required|string|max:100',
-                'idCicloModalidad' => 'required|exists:ciclo_modalidad,idCicloModalidad',
+                'idCicloModalidad' => 'nullable|exists:ciclo_modalidad,idCicloModalidad',
                 'descuentoDePago' => 'nullable|numeric|min:0',
                 'referenciaOriginal' => [
                                             'nullable',
@@ -269,6 +342,13 @@ class PagoEstudianteController extends Controller
                 ->with('popupError', 'No se pudieron generar los pagos. Verifica la información.')
                 ->withErrors($validator)
                 ->withInput();
+        }
+
+        // VALIDACIÓN PERSONALIZADA
+        if (!$request->referenciaOriginal && !$request->idCicloModalidad) {
+            return back()->withErrors([
+                'idCicloModalidad' => 'Debe seleccionar un ciclo escolar.'
+            ])->withInput();
         }
 
         $concepto = ConceptoDePago::findOrFail($request->idConceptoDePago);
@@ -315,10 +395,10 @@ class PagoEstudianteController extends Controller
                     $cicloActual = $estudiante->idCicloModalidad;
 
                     $tuvoCiclo = Pago::where('idEstudiante', $idEstudiante)
-                        ->where('idCicloModalidad', $request->idCicloModalidad)
+                        ->where('idCicloModalidad', $idCicloFinal)
                         ->exists();
 
-                    if ($cicloActual != $request->idCicloModalidad && !$tuvoCiclo) {
+                    if ($cicloActual != $idCicloFinal && !$tuvoCiclo) {
 
                         $omitidosPorPlan[] = [
                             'estudiante' => $estudiante->usuario->primerNombre . ' ' .
@@ -359,12 +439,35 @@ class PagoEstudianteController extends Controller
                     // =============================
                     // CALCULAR MONTO FINAL
                     // =============================
+                    $conceptosHeredanBeca = [19,22,23,28,29,31,32,33,34,35,36,37];
                     $costoOriginal = $concepto->costo;
                     $costoFinal    = $costoOriginal;
 
                     $porcentajeBeca = 0;
                     $descuentoBeca  = 0;
                     $nombreBeca     = null;
+
+                    // =============================
+                    // HEREDAR BECA DESDE REFERENCIA ORIGINAL
+                    // =============================
+                    if (
+                        $request->referenciaOriginal &&
+                        in_array($concepto->idConceptoDePago, $conceptosHeredanBeca)
+                    ) {
+
+                        $pagoOriginal = Pago::where('Referencia', $request->referenciaOriginal)->first();
+
+                        if ($pagoOriginal) {
+
+                            $nombreBeca          = $pagoOriginal->nombreBeca ?? null;
+                            $porcentajeBeca      = $pagoOriginal->porcentajeDeDescuento ?? null;
+                            $descuentoBeca       = $pagoOriginal->descuentoDeBeca ?? null;
+
+                            // Restar descuento heredado
+                            $costoFinal -= $descuentoBeca;
+                            $costoFinal = max($costoFinal, 0);
+                        }
+                    }
 
                     // ¿Es mensualidad?
                     $esMensualidad = ($concepto->idConceptoDePago == 2);
@@ -377,7 +480,7 @@ class PagoEstudianteController extends Controller
                         in_array($fechaLimitePago->month, [3, 9])
                     );
 
-                    if ($esMensualidad && !$ignorarBeca) {
+                    if ($esMensualidad && !$ignorarBeca && !$request->referenciaOriginal ) {
 
                         $solicitudBeca = $estudiante->solicitudesDeBeca()
                             ->where('idEstatus', 6)
@@ -437,7 +540,7 @@ class PagoEstudianteController extends Controller
                             'Referencia'               => $referenciaFinal,
                             'idEstudiante'             => $estudiante->idEstudiante,
                             'idConceptoDePago'         => $concepto->idConceptoDePago,
-                            'idCicloModalidad'         => $request->idCicloModalidad,
+                            'idCicloModalidad'         => $idCicloFinal,
 
                             'costoConceptoOriginal'    => $costoOriginal,
                             'nombreBeca'               => $nombreBeca,

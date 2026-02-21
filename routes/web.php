@@ -239,8 +239,8 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout', 'bitacora'])->g
     Route::get('/admin/pagos/asignar',[PagoEstudianteController::class, 'create'])->name('admin.pagos.create');
     Route::post('/admin/pagos/asignar',[PagoEstudianteController::class, 'store'])->name('admin.pagos.store');
     Route::get('/admin/pagos/detalles-referencias',[PagoEstudianteController::class, 'detallesReferencias'])->name('pagos.detalles-referencias');
-    Route::post('/admin/pagos/ciclos-por-estudiantes', [PagoController::class, 'obtenerCiclosPorEstudiantes'])->name('admin.pagos.ciclosPorEstudiantes');
-    Route::post('/admin/pagos/referencias-vencidas', [PagoController::class, 'referenciasVencidas'])->name('admin.pagos.referenciasVencidas');
+    Route::post('/admin/pagos/ciclos-por-estudiantes', [PagoEstudianteController::class, 'obtenerCiclosPorEstudiantes'])->name('admin.pagos.ciclosPorEstudiantes');
+    Route::post('/admin/pagos/referencias-vencidas', [PagoEstudianteController::class, 'referenciasVencidas'])->name('admin.pagos.referenciasVencidas');
 
     /*----------- NOTIFICACIONES -----------*/
 
