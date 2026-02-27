@@ -137,7 +137,7 @@
         @endif
 
         {{-- 9. PAGOS --}}
-        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11) || Auth::user()->estudiante)
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11,12) || Auth::user()->estudiante)
         <a href="{{ route('apartadoPagos') }}" class="card-btn">
             <img src="/imagenes/IconoInicioPagos.png" alt="">
             <span class="card-btn-title">Pagos</span>
@@ -145,7 +145,7 @@
         @endif
 
         {{-- 10. CONCEPTOS DE PAGO --}}
-        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11) || Auth::user()->estudiante)
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11,12) || Auth::user()->estudiante)
         <a href="{{ route('apartadoConceptos') }}" class="card-btn">
             <img src="/imagenes/IconoConceptodepago.png" alt="">
             <span class="card-btn-title">Conceptos de pago</span>
@@ -153,7 +153,7 @@
         @endif
 
         {{-- 11. PLANES DE PAGO --}}
-        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11,12))
         <a href="{{ route('apartadoPlanDePago') }}" class="card-btn">
             <img src="/imagenes/IconoInicioPlanesdepago.png" alt="">
             <span class="card-btn-title">Planes de pago</span>
@@ -161,7 +161,7 @@
         @endif
 
         {{-- 12. REPORTES --}}
-        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11, 12))
         <a href="{{ route('apartadoReportes') }}" class="card-btn">
             <img src="/imagenes/IconoInicioReportes.png" alt="">
             <span class="card-btn-title">Reportes</span>
@@ -169,7 +169,7 @@
         @endif
 
         {{-- 11. Estados de cuenta --}}
-        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11) || Auth::user()->estudiante)
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11, 12) || Auth::user()->estudiante)
         <a href="{{ route('apartadoEstadoDeCuenta') }}" class="card-btn">
             <img src="/imagenes/IconoInicioEstadoDeCuenta.png" alt="">
             <span class="card-btn-title">Estados de cuenta</span>

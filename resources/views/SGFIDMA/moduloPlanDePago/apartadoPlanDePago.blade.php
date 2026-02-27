@@ -15,6 +15,10 @@
             <a href="{{route('consultaPlan')}}" class="btn-boton btn-consulta-plan">Consultar planes de pago</a>
             <a href="{{ route('admin.planPago.asignar.create') }}" class="btn-boton btn-Asignar-plan">Asignar plan de pago a estudiante(s)</a>
         @endif
+
+        @if(Auth::user()->esEmpleadoDe(12))
+        <a href="{{route('consultaPlan')}}" class="btn-boton btn-consulta-plan">Consultar planes de pago</a>
+        @endif
     </main>
 
 </body>

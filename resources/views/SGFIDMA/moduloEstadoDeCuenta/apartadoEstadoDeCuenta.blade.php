@@ -10,7 +10,7 @@
     @include('layouts.barraNavegacion')
 
     <main class="apartado-general">
-        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11,12))
             <a href="{{ route('estadosCuenta.seleccionarEstudiante') }}" class="btn-boton btn-consultar-estados-de-cuenta-estudiante">Consultar estados de cuenta por estudiante</a>
         @endif  
         

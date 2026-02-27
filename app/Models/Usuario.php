@@ -158,6 +158,11 @@ class Usuario extends Authenticatable
         return $this->idtipoDeUsuario == 1;
     }
 
+    public function esEstudiante()
+    {
+        return $this->idtipoDeUsuario == 4;
+    }
+
     // ¿Es empleado?
     public function esEmpleado()
     {
@@ -170,7 +175,7 @@ class Usuario extends Authenticatable
      * @param int|array $departamentos
      * @return bool
      */
-    public function esEmpleadoDe($departamentos)
+    public function esEmpleadoDe(...$departamentos)
     {
         if (!$this->esEmpleado()) {
             return false;

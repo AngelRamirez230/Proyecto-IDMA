@@ -94,35 +94,35 @@
         @endif
 
         {{-- PAGOS --}}
-        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11) || Auth::user()->estudiante)
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11,12) || Auth::user()->estudiante)
         <li class="subnav-item">
             <a href="{{ route('apartadoPagos') }}">Pagos</a>
         </li>
         @endif
 
         {{-- CONCEPTOS DE PAGO --}}
-        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11) || Auth::user()->estudiante)
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11,12) || Auth::user()->estudiante)
         <li class="subnav-item">
             <a href="{{ route('apartadoConceptos') }}">Conceptos de pago</a>
         </li>
         @endif
 
         {{-- PLANES DE PAGO --}}
-        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11,12))
         <li class="subnav-item">
             <a href="{{ route('apartadoPlanDePago') }}">Planes de pago</a>
         </li>
         @endif
 
         {{-- REPORTES --}}
-        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11,12))
         <li class="subnav-item">
             <a href="{{ route('apartadoReportes') }}">Reportes</a>
         </li>
         @endif
 
         {{-- ESTADOS DE CUENTA --}}
-        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11) || Auth::user()->estudiante)
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11,12) || Auth::user()->estudiante)
         <li class="subnav-item">
             <a href="{{ route('apartadoEstadoDeCuenta') }}">Estados de cuenta</a>
         </li>

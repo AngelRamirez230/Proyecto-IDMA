@@ -15,10 +15,20 @@
 
         <div class="form-group2 acciones-reporte">
 
-            <a href="{{ route('estadosCuenta.seleccionarEstudiante') }}"
-            class="btn-boton-formulario2 btn-cancelar2">
-                Cancelar
-            </a>
+
+            @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11,12))
+                <a href="{{ route('estadosCuenta.seleccionarEstudiante') }}"
+                class="btn-boton-formulario2 btn-cancelar2">
+                    Cancelar
+                </a>
+            @endif
+
+            @estudiante
+                <a href="{{ route('apartadoEstadoDeCuenta') }}"
+                class="btn-boton-formulario2 btn-cancelar2">
+                    Cancelar
+                </a>
+            @endestudiante
 
         </div>
 
@@ -40,12 +50,12 @@
                     ========================== -->
                     <div class="form-group2 acciones-reporte">
 
-                        <form action="{{ route('reportes.pdf') }}" method="POST">
+                        <form action="{{ route('estadoCuenta.pdf', [$estudiante->idEstudiante, $idCiclo]) }}" method="POST">
                             @csrf
                             <button class="btn-boton-formulario2">Exportar PDF</button>
                         </form>
 
-                        <form action="{{ route('reportes.excel') }}" method="POST">
+                        <form action="{{ route('estadoCuenta.excel', [$estudiante->idEstudiante, $idCiclo]) }}" method="POST">
                             @csrf
                             <button class="btn-boton-formulario2">Exportar Excel</button>
                         </form>

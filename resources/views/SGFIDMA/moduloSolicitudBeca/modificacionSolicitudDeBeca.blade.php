@@ -108,31 +108,34 @@
 
         @estudiante
 
-        <h1 class="titulo-form">Datos que puedes editar</h1>
-        <div class="form-group2"> 
-            <label>Promedio anterior:</label> 
-            <input type="number" 
-            step="0.01" 
-            min="8.5" 
-            max="10" 
-            name="promedio" 
-            class="input-chico2"
-            placeholder="Ejemplo: 9.5" 
-            value="{{ old('promedio', $solicitud->promedioAnterior ?? '') }}" > 
-        </div> 
+            <h1 class="titulo-form">Datos que puedes editar</h1>
 
-        
-        <div class="form-group2"> 
-            <label> Examen extrairdinario: </label> 
-            <input type="text" 
-            name="examenExtraordinario" 
-            class="input-chico2" 
-            placeholder="Especifica o deja vacío"
-            value="{{ old('examenExtraordinario', $solicitud->examenExtraordinario ?? '') }}" > 
-        </div>
-        
+            <div class="bloque-horizontal-pagos">
 
-        @endestudiante
+                <div class="form-group"> 
+                    <label>Promedio anterior:</label> 
+                    <input type="number" 
+                        step="0.01" 
+                        min="8.5" 
+                        max="10" 
+                        name="promedio" 
+                        class="input-chico"
+                        placeholder="Ejemplo: 9.5" 
+                        value="{{ old('promedio', $solicitud->promedioAnterior ?? '') }}" > 
+                </div> 
+
+                <div class="form-group"> 
+                    <label>Examen extraordinario:</label> 
+                    <input type="text" 
+                        name="examenExtraordinario" 
+                        class="input-chico" 
+                        placeholder="Especifica o deja vacío"
+                        value="{{ old('examenExtraordinario', $solicitud->examenExtraordinario ?? '') }}" > 
+                </div>
+
+            </div>
+
+    @endestudiante
 
 
 

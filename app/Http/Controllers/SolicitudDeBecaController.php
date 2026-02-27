@@ -55,7 +55,7 @@ class SolicitudDeBecaController extends Controller
                 abort(403, 'Acceso no autorizado');
             }
 
-            // =============================
+            /*// =============================
             // VALIDAR PERIODO DE SOLICITUD
             // =============================
             if ($this->fueraDePeriodoDeSolicitud()) {
@@ -65,7 +65,7 @@ class SolicitudDeBecaController extends Controller
                         'popupError',
                         'No te encuentras en el periodo válido para solicitar una beca.'
                     );
-            }
+            }*/
 
             // =============================
             // BECA ACTIVA

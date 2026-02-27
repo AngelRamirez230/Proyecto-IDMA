@@ -79,7 +79,7 @@
 
         </section>
 
-        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11, 12))
 
             <section class="consulta-tabla-contenedor">
                 <table class="tabla">
@@ -147,7 +147,7 @@
 
                 <thead>
                     <tr class="tabla-encabezado">
-                        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+                        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11,12))
                             <th>Nombre estudiante</th>
                         @endif
                         <th>Referencia de pago</th>
@@ -171,7 +171,7 @@
                     @else
                         @foreach ($pagos as $pago)
                             <tr class="{{ $pago->idEstatus == 2 ? 'fila-suspendida' : '' }}">
-                                @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+                                @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11,12))
                                     <td>
                                         {{ $pago->estudiante->usuario->primerNombre }}
                                         {{ $pago->estudiante->usuario->segundoNombre }}

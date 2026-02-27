@@ -6,12 +6,12 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Middleware\AuthManual;
-use App\Http\Middleware\RolUsuario;
 use App\Http\Middleware\RedirectManual;
 use App\Http\Middleware\NoCache;
 use App\Http\Middleware\SessionTimeout;
 use App\Http\Middleware\RegistrarBitacora;
-
+use App\Http\Middleware\CheckRole;
+use App\Http\Middleware\CheckDepartamento;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -37,6 +37,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'activity.timeout'  => SessionTimeout::class,
             'tipoUsuario' => \App\Http\Middleware\TipoUsuarioMiddleware::class,
             'bitacora' => RegistrarBitacora::class,
+            'role' => \App\Http\Middleware\CheckRole::class,
+            'departamento' => \App\Http\Middleware\CheckDepartamento::class,
 
         ]);
     })

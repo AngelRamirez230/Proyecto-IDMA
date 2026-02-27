@@ -257,8 +257,11 @@
 /* Contenedor que permite poner imagen dentro */
 .contenedor-input-icono2 {
     position: relative;
-    width: fit-content;
-    display: inline-block;
+    width: 100%;
+}
+
+.contenedor-input-icono2 input {
+    width: 100%;
 }
 
 /* Espacio a la derecha dentro del input */

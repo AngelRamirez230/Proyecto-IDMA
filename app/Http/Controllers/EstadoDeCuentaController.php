@@ -11,7 +11,9 @@ use App\Models\CicloModalidad;
 use App\Models\Pago;
 use App\Models\Usuario;
 use Carbon\Carbon;
-
+use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\EstadoCuentaExport;
 
 class EstadoDeCuentaController extends Controller
 {
@@ -365,6 +367,55 @@ class EstadoDeCuentaController extends Controller
             );
         }
     }
+
+
+    public function exportarEstadoCuentaPDF($idEstudiante, $idCiclo)
+    {
+        try {
+
+            $data = $this->generarEstadoDeCuenta($idEstudiante);
+
+            if (!isset($data['estadoCuentaPorCiclo'][$idCiclo])) {
+                abort(404, 'Ciclo no encontrado');
+            }
+
+            $ciclo = $data['estadoCuentaPorCiclo'][$idCiclo];
+
+            $pdf = Pdf::loadView(
+                'SGFIDMA.moduloEstadoDeCuenta.estadoDeCuentaPDF',
+                [
+                    'estudiante' => $data['estudiante'],
+                    'ciclo'      => $ciclo
+                ]
+            )->setPaper('letter', 'landscape');
+        
+
+            return $pdf->download(
+                'Estado de cuenta_' . $ciclo['nombreCiclo'] . '.pdf'
+            );
+
+        } catch (\Throwable $e) {
+
+            Log::error('Error al exportar PDF estado de cuenta', [
+                'idEstudiante' => $idEstudiante,
+                'idCiclo'      => $idCiclo,
+                'error'        => $e->getMessage(),
+            ]);
+
+            return back()->with('popupError', 'Error al generar el PDF.');
+        }
+    }
+
+
+    public function exportarEstadoCuentaExcel($idEstudiante, $idCiclo)
+    {
+        return Excel::download(
+            new EstadoCuentaExport($idEstudiante, $idCiclo),
+            'EstadoCuenta_' . $idCiclo . '.xlsx'
+        );
+    }
+
+
 
 
 

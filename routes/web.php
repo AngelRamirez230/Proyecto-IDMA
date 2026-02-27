@@ -52,53 +52,61 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout', 'bitacora'])->g
 
 
     /*----------- USUARIOS -----------*/
-    Route::get('/apartadoUsuarios', function () {
-        return view('shared.moduloUsuarios.apartadoUsuarios');
-    })->name('apartadoUsuarios');
+    Route::middleware(['role:1'])->group(function () {
 
-    Route::get('/seleccionarRol', function () {
-        return view('shared.moduloUsuarios.seleccionarRol');
-    })->name('seleccionarRol');
+        Route::get('/apartadoUsuarios', function () {
+            return view('shared.moduloUsuarios.apartadoUsuarios');
+        })->name('apartadoUsuarios');
 
-    Route::get('/usuarios/crear', [UsuarioController::class, 'create'])->name('usuarios.create');
-    Route::post('/usuarios', [UsuarioController::class, 'store'])->name('usuarios.store');
+        Route::get('/seleccionarRol', function () {
+            return view('shared.moduloUsuarios.seleccionarRol');
+        })->name('seleccionarRol');
 
-    Route::get('/altaUsuarios', function () {
-        return redirect()->route('usuarios.create');
-    })->name('altaUsuarios');
+        Route::get('/usuarios/crear', [UsuarioController::class, 'create'])->name('usuarios.create');
+        Route::post('/usuarios', [UsuarioController::class, 'store'])->name('usuarios.store');
 
-    Route::get('/consultaUsuarios', [UsuarioController::class, 'consultaUsuarios'])
-    ->name('consultaUsuarios');
+        Route::get('/altaUsuarios', function () {
+            return redirect()->route('usuarios.create');
+        })->name('altaUsuarios');
 
-    Route::get('/usuarios/{usuario}', [UsuarioController::class, 'show'])
-    ->name('usuarios.show');
+        Route::get('/consultaUsuarios', [UsuarioController::class, 'consultaUsuarios'])
+        ->name('consultaUsuarios');
 
-    Route::get('/usuarios/{usuario}/edit', [UsuarioController::class, 'edit'])->name('usuarios.edit');
+        Route::get('/usuarios/{usuario}', [UsuarioController::class, 'show'])
+        ->name('usuarios.show');
 
-    Route::put('/usuarios/{usuario}', [UsuarioController::class, 'update'])->name('usuarios.update');
+        Route::get('/usuarios/{usuario}/edit', [UsuarioController::class, 'edit'])->name('usuarios.edit');
 
-    Route::delete('/usuarios/{usuario}', [UsuarioController::class, 'destroy'])
-    ->name('usuarios.destroy');
+        Route::put('/usuarios/{usuario}', [UsuarioController::class, 'update'])->name('usuarios.update');
 
-    Route::put('/usuarios/{usuario}/toggle-estatus', [UsuarioController::class, 'toggleEstatus'])
-    ->name('usuarios.toggleEstatus');
+        Route::delete('/usuarios/{usuario}', [UsuarioController::class, 'destroy'])
+        ->name('usuarios.destroy');
+
+        Route::put('/usuarios/{usuario}/toggle-estatus', [UsuarioController::class, 'toggleEstatus'])
+        ->name('usuarios.toggleEstatus');
+    
+    });
 
     /*----------- ESTUDIANTES -----------*/
-    Route::get('/apartadoEstudiantes', function () {
-        return view('shared.moduloEstudiantes.apartadoEstudiantes');
-    })->name('apartadoEstudiantes');
+    Route::middleware(['role:1'])->group(function () {
 
-    Route::get('/altaEstudiante', [EstudianteController::class, 'create'])->name('altaEstudiante');
-    Route::post('/estudiantes/store', [EstudianteController::class, 'store'])->name('estudiantes.store');
-    Route::post('/generaciones/crear-dashboard',[GeneracionController::class, 'crearDesdeDashboard'])->name('generaciones.crearDashboard');
-    Route::get('/consultaEstudiantes', [EstudianteController::class, 'index'])->name('consultaEstudiantes');
-    Route::get('/estudiantes', [EstudianteController::class, 'index'])->name('estudiantes.index');
-    Route::get('/estudiantes/{id}/editar', [EstudianteController::class, 'edit'])
-        ->name('estudiantes.edit');
-    Route::put('/estudiantes/{id}', [EstudianteController::class, 'update'])
-        ->name('estudiantes.update');
-    Route::delete('/estudiantes/{id}', [EstudianteController::class, 'destroy'])
-        ->name('estudiantes.destroy');
+        Route::get('/apartadoEstudiantes', function () {
+            return view('shared.moduloEstudiantes.apartadoEstudiantes');
+        })->name('apartadoEstudiantes');
+
+        Route::get('/altaEstudiante', [EstudianteController::class, 'create'])->name('altaEstudiante');
+        Route::post('/estudiantes/store', [EstudianteController::class, 'store'])->name('estudiantes.store');
+        Route::post('/generaciones/crear-dashboard',[GeneracionController::class, 'crearDesdeDashboard'])->name('generaciones.crearDashboard');
+        Route::get('/consultaEstudiantes', [EstudianteController::class, 'index'])->name('consultaEstudiantes');
+        Route::get('/estudiantes', [EstudianteController::class, 'index'])->name('estudiantes.index');
+        Route::get('/estudiantes/{id}/editar', [EstudianteController::class, 'edit'])
+            ->name('estudiantes.edit');
+        Route::put('/estudiantes/{id}', [EstudianteController::class, 'update'])
+            ->name('estudiantes.update');
+        Route::delete('/estudiantes/{id}', [EstudianteController::class, 'destroy'])
+            ->name('estudiantes.destroy');
+
+    });
     
     /*----------- ASIGNATURAS -----------*/
     Route::get('/apartadoAsignaturas', function () {
@@ -133,9 +141,13 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout', 'bitacora'])->g
 
 
     /*----------- REPORTES -----------*/
-    Route::get('/apartadoReporte', function () {
-        return view('shared.moduloReportes.apartadoReportes');
-    })->name('apartadoReportes');
+    Route::middleware(['role:1,2'])->group(function () {
+
+        Route::get('/apartadoReporte', function () {
+            return view('shared.moduloReportes.apartadoReportes');
+        })->name('apartadoReportes');
+
+    });
 
     /*----------- DOCENTES -----------*/
     Route::get('/apartadoDocentes', function () {
@@ -152,95 +164,146 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout', 'bitacora'])->g
     })->name('apartadoBitacoras');
     Route::get('/consultaBitacoras', [BitacoraController::class, 'index'])->name('consultaBitacoras');
 
-    /*----------- BECAS -----------*/
-    Route::get('/apartadoBecas', function () {
-        return view('SGFIDMA.moduloBecas.apartadoBecas');
-    })->name('apartadoBecas');
 
-    Route::get('/altaBeca', [BecaController::class, 'create'])->name('altaBeca');
-    Route::post('/becas/store', [BecaController::class, 'store'])->name('becas.store');
-    Route::get('/consultaBeca', [BecaController::class, 'index'])->name('consultaBeca');
-    Route::get('/becas/{id}/modificar', [BecaController::class, 'edit'])->name('becas.edit');
-    Route::put('/becas/{id}', [BecaController::class, 'update'])->name('becas.update');
-    Route::delete('/becas/{id}', [BecaController::class, 'destroy'])->name('becas.destroy');
+    
+
+    /*----------- BECAS -----------*/
+
+    Route::middleware(['role:1,2,4', 'departamento:11'])->group(function () {
+
+        Route::get('/apartadoBecas', function () {
+            return view('SGFIDMA.moduloBecas.apartadoBecas');
+        })->name('apartadoBecas');
+        Route::get('/consultaBeca', [BecaController::class, 'index'])->name('consultaBeca');
+
+     });
+
+    Route::middleware(['role:1,2', 'departamento:11'])->group(function () {
+
+        Route::get('/altaBeca', [BecaController::class, 'create'])->name('altaBeca');
+        Route::post('/becas/store', [BecaController::class, 'store'])->name('becas.store');
+        Route::get('/becas/{id}/modificar', [BecaController::class, 'edit'])->name('becas.edit');
+        Route::put('/becas/{id}', [BecaController::class, 'update'])->name('becas.update');
+        Route::delete('/becas/{id}', [BecaController::class, 'destroy'])->name('becas.destroy');
+
+    });
 
     /*----------- CONCEPTOS -----------*/
-    Route::get('/apartadoConceptos', function () {
-        return view('SGFIDMA.moduloConceptosDePago.apartadoConceptos');
-    })->name('apartadoConceptos');
 
-    Route::get('/altaConceptos', [ConceptoController::class, 'create'])->name('altaConcepto');
-    Route::post('/Conceptos/store', [ConceptoController::class, 'store'])->name('concepto.store');
-    Route::get('/consultaConceptos', [ConceptoController::class, 'index'])->name('consultaConcepto');
-    Route::get('/concepto/{idConceptoDePago}/modificar', [ConceptoController::class, 'edit'])->name('concepto.edit');
-    Route::put('/concepto/{idConceptoDePago}/actualizar', [ConceptoController::class, 'update'])->name('concepto.update');
-    Route::delete('/concepto/{idConceptoDePago}/eliminar', [ConceptoController::class, 'destroy'])->name('concepto.destroy');
+    Route::middleware(['role:1,2,4', 'departamento:11,12'])->group(function () {
+
+        Route::get('/apartadoConceptos', function () {
+            return view('SGFIDMA.moduloConceptosDePago.apartadoConceptos');
+        })->name('apartadoConceptos');
+
+        Route::get('/consultaConceptos', [ConceptoController::class, 'index'])->name('consultaConcepto');
+
+    });
+
+    Route::middleware(['role:1,2', 'departamento:11'])->group(function () {
+
+        Route::get('/altaConceptos', [ConceptoController::class, 'create'])->name('altaConcepto');
+        Route::post('/Conceptos/store', [ConceptoController::class, 'store'])->name('concepto.store');
+        Route::get('/concepto/{idConceptoDePago}/modificar', [ConceptoController::class, 'edit'])->name('concepto.edit');
+        Route::put('/concepto/{idConceptoDePago}/actualizar', [ConceptoController::class, 'update'])->name('concepto.update');
+        Route::delete('/concepto/{idConceptoDePago}/eliminar', [ConceptoController::class, 'destroy'])->name('concepto.destroy');
+
+    });
+
 
     /*----------- PLAN DE PAGO -----------*/
-    Route::get('/apartadoPlanDePago', function () {
-        return view('SGFIDMA.moduloPlanDePago.apartadoPlanDePago');
-    })->name('apartadoPlanDePago');
+    Route::middleware(['role:1,2', 'departamento:11,12'])->group(function () {
 
-    Route::get('/altaPlanDePago', [PlanDePagoController::class, 'create'])->name('altaPlan');
-    Route::post('/altaPlanDePago', [PlanDePagoController::class, 'store'])->name('planes.store');
-    Route::get('/consultaPlanDePago', [PlanDePagoController::class, 'index'])->name('consultaPlan');
-    Route::get('/planes/{id}/edit', [PlanDePagoController::class, 'edit'])->name('planes.edit');
-    Route::put('/planes/{id}', [PlanDePagoController::class, 'update'])->name('planes.update');
-    Route::delete('/planes/{id}', [PlanDePagoController::class, 'destroy'])->name('planes.destroy');
+        Route::get('/apartadoPlanDePago', function () {
+            return view('SGFIDMA.moduloPlanDePago.apartadoPlanDePago');
+        })->name('apartadoPlanDePago');
 
-    Route::get('/admin/plan-pago/asignar',[PlanDePagoController::class, 'asignarCreate'])->name('admin.planPago.asignar.create');
-    Route::post('/admin/plan-pago/asignar',[PlanDePagoController::class, 'asignarStore'])->name('admin.planPago.asignar.store');
-    Route::get('/admin/plan-pago/detalles-asignacion',[PlanDePagoController::class, 'detallesAsignacionDePlan'])->name('planPago.detallesAsignacion');
+        Route::get('/consultaPlanDePago', [PlanDePagoController::class, 'index'])->name('consultaPlan');
+
+    });
+
+    Route::middleware(['role:1,2', 'departamento:11'])->group(function () {
+
+        Route::get('/altaPlanDePago', [PlanDePagoController::class, 'create'])->name('altaPlan');
+        Route::post('/altaPlanDePago', [PlanDePagoController::class, 'store'])->name('planes.store');
+        Route::get('/planes/{id}/edit', [PlanDePagoController::class, 'edit'])->name('planes.edit');
+        Route::put('/planes/{id}', [PlanDePagoController::class, 'update'])->name('planes.update');
+        Route::delete('/planes/{id}', [PlanDePagoController::class, 'destroy'])->name('planes.destroy');
+
+        Route::get('/admin/plan-pago/asignar',[PlanDePagoController::class, 'asignarCreate'])->name('admin.planPago.asignar.create');
+        Route::post('/admin/plan-pago/asignar',[PlanDePagoController::class, 'asignarStore'])->name('admin.planPago.asignar.store');
+        Route::get('/admin/plan-pago/detalles-asignacion',[PlanDePagoController::class, 'detallesAsignacionDePlan'])->name('planPago.detallesAsignacion');
+
+    });
 
     /*----------- SOLICITUD DE BECA -----------*/
 
-    Route::get('/consulta-solicitudes-beca',[SolicitudDeBecaController::class, 'index'])->name('consultaSolicitudBeca');
-    // formulario
-    Route::get('/solicitud-beca/crear/{idBeca}',[SolicitudDeBecaController::class, 'create'])->name('solicitud-beca.create');
-    // guardar
-    Route::post('/solicitud-beca',[SolicitudDeBecaController::class, 'store'])->name('solicitud-beca.store');
-    // ver documento
-    Route::get('/solicitud-beca/documento/{id}',[SolicitudDeBecaController::class, 'verDocumento'])->name('solicitud-beca.documento');
-    // editar solicitud
-    Route::get('/solicitud-beca/{id}/editar',[SolicitudDeBecaController::class, 'edit'])->name('solicitud-beca.edit');
+    
+    Route::middleware(['role:4'])->group(function () {
 
-    // actualizar solicitud
-    Route::put('/solicitud-beca/{id}',[SolicitudDeBecaController::class, 'update'])->name('solicitud-beca.update');
+        Route::get('/consulta-solicitudes-beca',[SolicitudDeBecaController::class, 'index'])->name('consultaSolicitudBeca');
+        // formulario
+        Route::get('/solicitud-beca/crear/{idBeca}',[SolicitudDeBecaController::class, 'create'])->name('solicitud-beca.create');
+        // guardar
+        Route::post('/solicitud-beca',[SolicitudDeBecaController::class, 'store'])->name('solicitud-beca.store');
+
+    });
 
 
+    Route::middleware(['role:1,2,4', 'departamento:11'])->group(function () {
+
+        Route::get('/consulta-solicitudes-beca',[SolicitudDeBecaController::class, 'index'])->name('consultaSolicitudBeca');
+        // ver documento
+        Route::get('/solicitud-beca/documento/{id}',[SolicitudDeBecaController::class, 'verDocumento'])->name('solicitud-beca.documento');
+        // editar solicitud
+        Route::get('/solicitud-beca/{id}/editar',[SolicitudDeBecaController::class, 'edit'])->name('solicitud-beca.edit');
+        // actualizar solicitud
+        Route::put('/solicitud-beca/{id}',[SolicitudDeBecaController::class, 'update'])->name('solicitud-beca.update');
+
+    });
 
     /*----------- PAGOS -----------*/
 
-    
-    Route::get('/pago/generar-referencia/{idConcepto}',[PagoController::class, 'generarReferencia'])->name('pago.generar-referencia');
+    Route::middleware(['role:1,2,4', 'departamento:11,12'])->group(function () {
+        Route::get('/pago/generar-referencia/{idConcepto}',[PagoController::class, 'generarReferencia'])->name('pago.generar-referencia');
 
-    Route::get('/apartadoPago', function () {
-        return view('SGFIDMA.moduloPagos.apartadoPago');
-    })->name('apartadoPagos');
+        Route::get('/apartadoPago', function () {
+            return view('SGFIDMA.moduloPagos.apartadoPago');
+        })->name('apartadoPagos');
 
-    Route::get('/consultaPagos',[PagoController::class, 'index'])->name('consultaPagos');
-    Route::get('/pagos/eliminar', [PagoController::class, 'vistaEliminar'])->name('pagos.eliminar.vista');
-    Route::get('/pagos/{referencia}',[PagoController::class, 'show'])->name('pagos.show');
-    Route::get('/pagos/{referencia}/recibo',[PagoController::class, 'descargarRecibo'])->name('pagos.recibo');
-    Route::delete('/pagos/{referencia}', [PagoController::class, 'destroy'])->name('pagos.destroy');
-    
-    
+        Route::get('/consultaPagos',[PagoController::class, 'index'])->name('consultaPagos');
+        
+        Route::get('/pagos/{referencia}',[PagoController::class, 'show'])->name('pagos.show');
+        Route::get('/pagos/{referencia}/recibo',[PagoController::class, 'descargarRecibo'])->name('pagos.recibo');
 
-    // VALIDACION DE PAGOS
-    Route::get('/validar/pagos', [PagoController::class, 'vistaValidarPagos'])->name('pagos.validar');
-    Route::post('/validar/pagos/archivo', [PagoController::class, 'validarArchivo'])->name('pagos.validarArchivo');
-    Route::post('/pagos/validar/{referencia}', [PagoController::class, 'validarPago'])->name('pagos.validarPago');
+    });
 
+    Route::middleware(['role:1,2', 'departamento:11'])->group(function () {
 
+        Route::get('/pagos/eliminar', [PagoController::class, 'vistaEliminar'])->name('pagos.eliminar.vista');
+        Route::delete('/pagos/{referencia}', [PagoController::class, 'destroy'])->name('pagos.destroy');
+        
+        
+
+        // VALIDACION DE PAGOS
+        Route::get('/validar/pagos', [PagoController::class, 'vistaValidarPagos'])->name('pagos.validar');
+        Route::post('/validar/pagos/archivo', [PagoController::class, 'validarArchivo'])->name('pagos.validarArchivo');
+        Route::post('/pagos/validar/{referencia}', [PagoController::class, 'validarPago'])->name('pagos.validarPago');
+
+    });
 
 
     /*----------- GENERACION DE PAGOS DESDE ADMINISTRADOR -----------*/
 
-    Route::get('/admin/pagos/asignar',[PagoEstudianteController::class, 'create'])->name('admin.pagos.create');
-    Route::post('/admin/pagos/asignar',[PagoEstudianteController::class, 'store'])->name('admin.pagos.store');
-    Route::get('/admin/pagos/detalles-referencias',[PagoEstudianteController::class, 'detallesReferencias'])->name('pagos.detalles-referencias');
-    Route::post('/admin/pagos/ciclos-por-estudiantes', [PagoEstudianteController::class, 'obtenerCiclosPorEstudiantes'])->name('admin.pagos.ciclosPorEstudiantes');
-    Route::post('/admin/pagos/referencias-vencidas', [PagoEstudianteController::class, 'referenciasVencidas'])->name('admin.pagos.referenciasVencidas');
+    Route::middleware(['role:1,2', 'departamento:11'])->group(function () {
+
+        Route::get('/admin/pagos/asignar',[PagoEstudianteController::class, 'create'])->name('admin.pagos.create');
+        Route::post('/admin/pagos/asignar',[PagoEstudianteController::class, 'store'])->name('admin.pagos.store');
+        Route::get('/admin/pagos/detalles-referencias',[PagoEstudianteController::class, 'detallesReferencias'])->name('pagos.detalles-referencias');
+        Route::post('/admin/pagos/ciclos-por-estudiantes', [PagoEstudianteController::class, 'obtenerCiclosPorEstudiantes'])->name('admin.pagos.ciclosPorEstudiantes');
+        Route::post('/admin/pagos/referencias-vencidas', [PagoEstudianteController::class, 'referenciasVencidas'])->name('admin.pagos.referenciasVencidas');
+
+    });
 
     /*----------- NOTIFICACIONES -----------*/
 
@@ -248,25 +311,47 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout', 'bitacora'])->g
 
 
     /*----------- REPORTES FINANZAS -----------*/
-    Route::get('/apartadoReporteFinanzas', function () {return view('SGFIDMA.moduloReportesFinanzas.apartadoReportesFinanzas');})->name('apartadoReportesFinanzas');
-    Route::get('/eleccionFechas/{tipo}', [ReporteFinancieroController::class, 'fechas'])->name('eleccionFechas');
-    Route::post('/reportes/vista-previa', [ReporteFinancieroController::class, 'vistaPrevia'])->name('reportes.vistaPrevia');
-    Route::post('/reportes/exportar-pdf', [ReporteFinancieroController::class, 'exportarPDF'])->name('reportes.pdf');
-    Route::post('/reportes/exportar-excel', [ReporteFinancieroController::class, 'exportarExcel'])->name('reportes.excel');
+
+    Route::middleware(['role:1,2', 'departamento:11,12'])->group(function () {
+
+        Route::get('/apartadoReporteFinanzas', function () {return view('SGFIDMA.moduloReportesFinanzas.apartadoReportesFinanzas');})->name('apartadoReportesFinanzas');
+        Route::get('/eleccionFechas/{tipo}', [ReporteFinancieroController::class, 'fechas'])->name('eleccionFechas');
+        Route::post('/reportes/vista-previa', [ReporteFinancieroController::class, 'vistaPrevia'])->name('reportes.vistaPrevia');
+        Route::post('/reportes/exportar-pdf', [ReporteFinancieroController::class, 'exportarPDF'])->name('reportes.pdf');
+        Route::post('/reportes/exportar-excel', [ReporteFinancieroController::class, 'exportarExcel'])->name('reportes.excel');
 
 
-    Route::get('/reportes/kardex/seleccionar-estudiante',[ReporteFinancieroController::class, 'seleccionarEstudianteKardex'])->name('kardex.seleccionar.estudiante');
+        Route::get('/reportes/kardex/seleccionar-estudiante',[ReporteFinancieroController::class, 'seleccionarEstudianteKardex'])->name('kardex.seleccionar.estudiante');
+
+    });
 
 
     /*----------- ESTADOS DE CUENTA -----------*/
-    Route::get('/apartadoEstadosDeCuenta', function () {
-        return view('SGFIDMA.moduloEstadoDeCuenta.apartadoEstadoDeCuenta');
-    })->name('apartadoEstadoDeCuenta');
 
-    Route::get('/estados-de-cuenta/seleccionar-estudiante',[EstadoDeCuentaController::class, 'seleccionarEstudiante'])->name('estadosCuenta.seleccionarEstudiante');
-    Route::post('/estado-de-cuenta/vista-previa',[EstadoDeCuentaController::class, 'vistaPreviaEstadoDeCuenta'])->name('estadoCuenta.vistaPrevia');
-    Route::get('/estado-de-cuenta/mi-estado',[EstadoDeCuentaController::class, 'miEstadoDeCuenta'])->name('estadoCuenta.miEstado');
+    Route::middleware(['role:1,2', 'departamento:11,12'])->group(function () {
 
+        Route::get('/apartadoEstadosDeCuenta', function () {
+            return view('SGFIDMA.moduloEstadoDeCuenta.apartadoEstadoDeCuenta');
+        })->name('apartadoEstadoDeCuenta');
+
+        Route::get('/estados-de-cuenta/seleccionar-estudiante',[EstadoDeCuentaController::class, 'seleccionarEstudiante'])->name('estadosCuenta.seleccionarEstudiante');
+        Route::post('/estado-de-cuenta/vista-previa',[EstadoDeCuentaController::class, 'vistaPreviaEstadoDeCuenta'])->name('estadoCuenta.vistaPrevia');
+        Route::post('/estado-cuenta/{estudiante}/{ciclo}/pdf',[EstadoDeCuentaController::class, 'exportarEstadoCuentaPDF'])->name('estadoCuenta.pdf');
+        Route::post('/estado-cuenta/{estudiante}/{ciclo}/excel',[EstadoDeCuentaController::class, 'exportarEstadoCuentaExcel'])->name('estadoCuenta.excel');
+
+    });
+
+    Route::middleware(['role:4'])->group(function () {
+
+        Route::get('/apartadoEstadosDeCuenta', function () {
+            return view('SGFIDMA.moduloEstadoDeCuenta.apartadoEstadoDeCuenta');
+        })->name('apartadoEstadoDeCuenta');
+
+        Route::get('/estado-de-cuenta/mi-estado',[EstadoDeCuentaController::class, 'miEstadoDeCuenta'])->name('estadoCuenta.miEstado');
+        Route::post('/estado-cuenta/{estudiante}/{ciclo}/pdf',[EstadoDeCuentaController::class, 'exportarEstadoCuentaPDF'])->name('estadoCuenta.pdf');
+        Route::post('/estado-cuenta/{estudiante}/{ciclo}/excel',[EstadoDeCuentaController::class, 'exportarEstadoCuentaExcel'])->name('estadoCuenta.excel');
+
+    });
 
 
     /*----------- GRUPOS -----------*/
