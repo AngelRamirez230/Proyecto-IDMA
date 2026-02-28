@@ -4,7 +4,7 @@ namespace App\Exports;
 
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
-use App\Http\Controllers\EstadoDeCuentaController;
+use App\Services\EstadoDeCuentaService;
 
 class EstadoCuentaExport implements FromView
 {
@@ -19,13 +19,17 @@ class EstadoCuentaExport implements FromView
 
     public function view(): View
     {
-        $controller = new EstadoDeCuentaController();
-        $data = $controller->generarEstadoDeCuenta($this->idEstudiante);
+        $service = new EstadoDeCuentaService();
+        $data = $service->generarEstadoDeCuenta($this->idEstudiante);
+
+        if (!isset($data['estadoCuentaPorCiclo'][$this->idCiclo])) {
+            abort(404, 'Ciclo no encontrado');
+        }
 
         $ciclo = $data['estadoCuentaPorCiclo'][$this->idCiclo];
 
         return view(
-            'SGFIDMA.moduloEstadoDeCuenta.excel.estado-cuenta-excel',
+            'SGFIDMA.moduloEstadoDeCuenta.estadoDeCuentaExcel',
             [
                 'estudiante' => $data['estudiante'],
                 'ciclo'      => $ciclo

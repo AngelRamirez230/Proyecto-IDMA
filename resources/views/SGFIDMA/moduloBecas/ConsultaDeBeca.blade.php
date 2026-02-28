@@ -77,7 +77,7 @@
                         @foreach ($becas as $beca)
                             <tr class="{{ $beca->idEstatus == 2 ? 'fila-suspendida' : '' }}">
                                 <td>{{ $beca->nombreDeBeca }}</td>
-                                <td>{{ $beca->porcentajeDeDescuento }}%</td>
+                                <td>{{ $beca->porcentaje_formateado ?? '—' }}%</td>
                                 @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
                                     <td>{{ $beca->estatus->nombreTipoDeEstatus ?? 'Sin estatus' }}</td>
                                 @endif
