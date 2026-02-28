@@ -14,7 +14,7 @@ class SolicitudDeBeca extends Model
         'idEstudiante',
         'idBeca',
         'nombreDeBeca',
-        'porcentajeDeDecuento',
+        'porcentajeDeDescuento',
         'promedioAnterior',
         'examenExtraordinario',
         'observacion',
@@ -72,5 +72,13 @@ class SolicitudDeBeca extends Model
     public function scopeDelEstudiante($query, $idEstudiante)
     {
         return $query->where('idEstudiante', $idEstudiante);
+    }
+
+
+    public function getPromedioAnteriorFormateadoAttribute()
+    {
+        return $this->promedioAnterior !== null
+            ? rtrim(rtrim($this->promedioAnterior, '0'), '.')
+            : null;
     }
 }

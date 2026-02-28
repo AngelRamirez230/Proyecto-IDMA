@@ -251,6 +251,8 @@ class SolicitudDeBecaController extends Controller
 
             $query = SolicitudDeBeca::with([
                 'estudiante.usuario',
+                'estudiante.cicloModalidad.cicloEscolar',
+                'estudiante.cicloModalidad.modalidad',
                 'beca',
                 'estatus'
             ]);
@@ -336,6 +338,8 @@ class SolicitudDeBecaController extends Controller
 
             $query = SolicitudDeBeca::with([
                 'beca',
+                'estudiante.cicloModalidad.cicloEscolar',
+                'estudiante.cicloModalidad.modalidad',
                 'estatus',
                 'documentaciones.tipoDeDocumentacion'
             ]);

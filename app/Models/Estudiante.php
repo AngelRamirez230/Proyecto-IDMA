@@ -90,5 +90,17 @@ class Estudiante extends Model
         );
     }
 
+    public function getCicloModalidadFormateadoAttribute()
+    {
+        if (!$this->cicloModalidad) {
+            return null;
+        }
+
+        $ciclo = $this->cicloModalidad->cicloEscolar->nombreCicloEscolar ?? '';
+        $modalidad = $this->cicloModalidad->modalidad->nombreModalidad ?? '';
+
+        return trim($ciclo . ' ' . $modalidad);
+    }
+
     
 }

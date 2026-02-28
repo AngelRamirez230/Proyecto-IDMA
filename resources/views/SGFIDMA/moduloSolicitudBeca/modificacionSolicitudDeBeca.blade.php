@@ -71,7 +71,9 @@
 
                     <tr>
                         <td>Ciclo escolar</td>
-                        <td>Sin ciclo escolar definido</td>
+                        <td>
+                            {{ $solicitud->estudiante->ciclo_modalidad_formateado ?? 'Sin ciclo escolar definido' }}
+                        </td>
                     </tr>
 
                     <tr>
@@ -86,14 +88,12 @@
 
                     <tr>
                         <td>Porcentaje de descuento</td>
-                        <td>
-                            {{ $solicitud->beca->porcentajeDeDescuento ?? '—' }}%
-                        </td>
+                        <td>{{ $solicitud->beca->porcentaje_formateado ?? '—' }}%</td>
                     </tr>
 
                     <tr>
                         <td>Promedio anterior</td>
-                        <td>{{ $solicitud->promedioAnterior ?? 'No registrado' }}</td>
+                        <td>{{ $solicitud->promedio_anterior_formateado ?? 'No registrado' }}</td>
                     </tr>
 
                     <tr>
@@ -121,7 +121,7 @@
                         name="promedio" 
                         class="input-chico"
                         placeholder="Ejemplo: 9.5" 
-                        value="{{ old('promedio', $solicitud->promedioAnterior ?? '') }}" > 
+                        value="{{ old('promedio', $solicitud->promedio_anterior_formateado ?? '') }}" > 
                 </div> 
 
                 <div class="form-group"> 
