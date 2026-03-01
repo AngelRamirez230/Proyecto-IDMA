@@ -443,8 +443,8 @@ class PagoEstudianteController extends Controller
                     $costoOriginal = $concepto->costo;
                     $costoFinal    = $costoOriginal;
 
-                    $porcentajeBeca = 0;
-                    $descuentoBeca  = 0;
+                    $porcentajeBeca = null;
+                    $descuentoBeca  = null;
                     $nombreBeca     = null;
 
                     // =============================
@@ -484,14 +484,15 @@ class PagoEstudianteController extends Controller
 
                         $solicitudBeca = $estudiante->solicitudesDeBeca()
                             ->where('idEstatus', 6)
-                            ->with('beca')
+                            ->whereDate('fechaDeConclusion', '>=', now())
                             ->first();
 
-                        if ($solicitudBeca && $solicitudBeca->beca) {
+                        if ($solicitudBeca) {
 
-                            $porcentajeBeca = $solicitudBeca->beca->porcentajeDeDescuento;
+                            $porcentajeBeca = $solicitudBeca->porcentajeDeDescuento ?? 0;
+                            $nombreBeca     = $solicitudBeca->nombreDeBeca ?? null;
+
                             $descuentoBeca  = ($costoOriginal * $porcentajeBeca) / 100;
-                            $nombreBeca     = optional($solicitudBeca->beca)->nombreDeBeca;
 
                             $costoFinal -= $descuentoBeca;
                         }
@@ -500,7 +501,7 @@ class PagoEstudianteController extends Controller
                     // =============================
                     // DESCUENTO MANUAL
                     // =============================
-                    $descuentoManual = $request->descuentoDePago ?? 0;
+                    $descuentoManual = $request->descuentoDePago ?? null;
 
                     // Evitar que el descuento sea mayor al monto actual
                     if ($descuentoManual > $costoFinal) {

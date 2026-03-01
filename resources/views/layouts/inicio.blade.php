@@ -19,8 +19,8 @@
                     {{ $notificacion->usuario->segundoNombre ?? '' }} 
                     {{ $notificacion->usuario->primerApellido ?? '' }} 
                     {{ $notificacion->usuario->segundoApellido ?? '' }}
-                    <br>
-                    {{ $notificacion->mensaje }}
+                    <br><br>
+                    {!! nl2br(e($notificacion->mensaje)) !!}
                     
                 </p>
                 <button class="popup-boton" onclick="marcarComoLeida({{ $notificacion->idNotificacion }})">

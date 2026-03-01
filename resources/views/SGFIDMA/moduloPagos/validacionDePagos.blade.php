@@ -15,38 +15,64 @@
 
         <h1 class="titulo-form2">Validación de pagos pendientes</h1>
 
-        <div class="detalle-usuario__header">
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
 
-            <!-- BOTÓN SUBIR TXT -->
-            <form action="{{ route('pagos.validarArchivo') }}" method="POST" enctype="multipart/form-data" class="upload-form">
-                @csrf
-                <div class="upload-container">
+            <section class="consulta-tabla-contenedor">
+                <table class="tabla">
+                    <thead>
+                        <tr>
+                            <th>Seleccionar archivo</th>
+                            <th>Nombre del archivo</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <form action="{{ route('pagos.validarArchivo') }}" 
+                                method="POST" 
+                                enctype="multipart/form-data">
+                                @csrf
 
-                    <label for="archivoTxt" class="btn-upload">
-                        Seleccionar archivo
-                    </label>
+                                <td>
+                                    <input 
+                                        type="file" 
+                                        name="archivoTxt" 
+                                        id="archivoTxt" 
+                                        accept=".txt,.xlsx,.xls" 
+                                        style="display:none"
+                                        required
+                                        onchange="mostrarNombreArchivo(this)"
+                                    >
 
-                    <input 
-                        type="file" 
-                        name="archivoTxt" 
-                        id="archivoTxt" 
-                        accept=".txt,.xlsx,.xls" 
-                        required 
-                        class="upload-input-hidden"
-                    >
+                                    <button 
+                                        type="button"
+                                        class="btn-boton-formulario2 btn-accion"
+                                        onclick="document.getElementById('archivoTxt').click()">
+                                        Subir archivo
+                                    </button>
+                                </td>
 
-                    <span id="archivoNombre" class="archivo-nombre">
-                        Ningún documento seleccionado
-                    </span>
+                                <td>
+                                    <span id="archivoNombre" class="nombre-archivo">
+                                        Ningún archivo seleccionado
+                                    </span>
+                                </td>
 
-                    <!-- Botón validar -->
-                    <button type="submit" class="btn-boton-formulario2 btn-accion">
-                        Validar pagos
-                    </button>
+                                <td>
+                                    <button 
+                                        type="submit" 
+                                        class="btn-boton-formulario2 btn-accion">
+                                        Validar pagos
+                                    </button>
+                                </td>
 
-                </div>
-            </form>
-        </div>
+                            </form>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+        @endif
 
 
         <!-- TABLA DE PAGOS PENDIENTES -->

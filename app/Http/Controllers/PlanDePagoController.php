@@ -988,14 +988,15 @@ class PlanDePagoController extends Controller
                                 $solicitudBeca = $estudiantePlan->estudiante
                                     ->solicitudesDeBeca()
                                     ->where('idEstatus', 6)
-                                    ->with('beca')
+                                    ->whereDate('fechaDeConclusion', '>=', now())
                                     ->first();
 
-                                if ($solicitudBeca && $solicitudBeca->beca) {
+                                if ($solicitudBeca) {
 
-                                    $porcentajeBeca = $solicitudBeca->beca->porcentajeDeDescuento;
+                                    $porcentajeBeca = $solicitudBeca->porcentajeDeDescuento ?? 0;
+                                    $nombreBeca     = $solicitudBeca->nombreDeBeca;
+
                                     $descuentoBeca  = ($costoOriginal * $porcentajeBeca) / 100;
-                                    $nombreBeca     = optional($solicitudBeca->beca)->nombreDeBeca;
 
                                     $montoFinal -= $descuentoBeca;
                                 }

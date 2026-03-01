@@ -409,7 +409,7 @@ class SolicitudDeBecaController extends Controller
         return Carbon::now();
     }
 
-
+ 
     /* ======================================================
        ACTUALIZAR
     ====================================================== */
@@ -443,14 +443,24 @@ class SolicitudDeBecaController extends Controller
 
                 $solicitud = SolicitudDeBeca::findOrFail($id);
 
+                $solicitud = SolicitudDeBeca::with('beca')->findOrFail($id);
+
+                $beca = $solicitud->beca;
+
+                if (!$beca) {
+                    abort(400, 'La beca no existe.');
+                }
+
                 $fechaSolicitud = Carbon::parse($solicitud->fechaDeSolicitud);
 
                 $fechaConclusion = $this->calcularFechaConclusion($fechaSolicitud);
 
                 $solicitud->update([
-                    'idEstatus' => 6, // Aprobada
+                    'idEstatus' => 6,
                     'fechaDeConclusion' => $fechaConclusion,
                     'observacion' => null,
+                    'nombreDeBeca' => $beca->nombreDeBeca,
+                    'porcentajeDeDescuento' => $beca->porcentajeDeDescuento,
                 ]);
 
 

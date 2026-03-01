@@ -13,6 +13,8 @@ class SolicitudDeBeca extends Model
     protected $fillable = [
         'idEstudiante',
         'idBeca',
+        'nombreDeBeca',
+        'porcentajeDeDecuento',
         'promedioAnterior',
         'examenExtraordinario',
         'observacion',

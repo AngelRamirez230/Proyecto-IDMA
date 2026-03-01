@@ -20,7 +20,6 @@ Artisan::command('inspire', function () {
 */
 Schedule::command('becas:finalizar')->dailyAt('00:00');
 
-
 /*
 |--------------------------------------------------------------------------
 | Scheduler de plan de pagos
@@ -28,3 +27,9 @@ Schedule::command('becas:finalizar')->dailyAt('00:00');
 */
 Schedule::command('plan:finalizar')->dailyAt('00:01');
 
+/*
+|--------------------------------------------------------------------------
+| Scheduler de pagos no pagados
+|--------------------------------------------------------------------------
+*/
+Schedule::command('pagos:no-pagados')->dailyAt('00:02');

@@ -62,7 +62,7 @@
 
                     @if ($pagos->isEmpty())
                         <tr>
-                            <td colspan="7" class="tablaVacia">
+                            <td colspan="8" class="tablaVacia">
                                 No existen pagos registrados.
                             </td>
                         </tr>
