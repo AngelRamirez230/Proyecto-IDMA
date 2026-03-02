@@ -55,10 +55,12 @@
                             <button class="btn-boton-formulario2">Exportar PDF</button>
                         </form>
 
+
                         <form action="{{ route('estadoCuenta.excel', [$estudiante->idEstudiante, $idCiclo]) }}" method="POST">
                             @csrf
                             <button class="btn-boton-formulario2">Exportar Excel</button>
                         </form>
+                       
 
                     </div>
 

@@ -1,337 +1,487 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
 </head>
 
-<body style="font-family:Arial; font-size:11px;">
+<body>
 
-<!-- ================= TITULO ================= -->
+    <!-- ================= TITULO ================= -->
 
-<table>
-    <colgroup>
-        <col style="width:1200px;">
-    </colgroup>
-    <tr>
-        <td style="text-align:center; font-size:16px; font-weight:bold;">
-            ESTADO DE CUENTA
-        </td>
-    </tr>
-    <tr>
-        <td style="text-align:center;">
-            {{ $ciclo['nombreCiclo'] ?? '-' }}
-        </td>
-    </tr>
-</table>
+    <table cellspacing="0" cellpadding="4">
+        <colgroup>
+            <col style="width:300px;"> <!-- A -->
+            <col style="width:300px;"> <!-- B -->
+            <col style="width:180px;"> <!-- C -->
+            <col style="width:200px;"> <!-- D -->
+            <col style="width:180px;">  <!-- E -->
+            <col style="width:180px;">  <!-- F -->
+            <col style="width:180px;">  <!-- G -->
+            <col style="width:180px;"> <!-- H -->
+            <col style="width:300px;"> <!-- I -->
+        </colgroup>
 
-<br>
+        <tr>
+            <td colspan="9" align="center">
+                <b>ESTADO DE CUENTA</b>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="9" align="center">
+                <b>{{ $ciclo['nombreCiclo'] ?? '-' }}</b>
+            </td>
+        </tr>
+    </table>
 
-<!-- ================= DATOS + RESUMEN ================= -->
+    <br>
 
-<table>
-    <colgroup>
-        <col style="width:750px;">
-        <col style="width:50px;">
-        <col style="width:400px;">
-    </colgroup>
-    <tr>
+    <!-- ================= CONTENEDOR SUPERIOR ================= -->
 
-        <!-- IZQUIERDA -->
-        <td valign="top">
+    <table cellspacing="0" cellpadding="4">
 
-            <table>
-                <colgroup>
-                    <col style="width:150px;">
-                    <col style="width:200px;">
-                    <col style="width:150px;">
-                    <col style="width:250px;">
-                </colgroup>
+        <colgroup>
+            <col style="width:300px;"> <!-- A -->
+            <col style="width:300px;"> <!-- B -->
+            <col style="width:180px;"> <!-- C -->
+            <col style="width:200px;"> <!-- D -->
+            <col style="width:180px;">  <!-- E -->
+            <col style="width:180px;">  <!-- F -->
+            <col style="width:180px;">  <!-- G -->
+            <col style="width:180px;"> <!-- H -->
+            <col style="width:300px;"> <!-- I -->
+        </colgroup>
 
-                <tr>
-                    <td colspan="4" style="text-align:center; font-weight:bold; background-color:#79272C; color:white;">
-                        DATOS GENERALES DEL ESTUDIANTE
-                    </td>
-                </tr>
+        <!-- ================= FILA 1 : TITULOS ================= -->
 
-                <tr>
-                    <td><strong>Nombre</strong></td>
-                    <td colspan="3">
-                        {{ strtoupper(
-                            $estudiante->usuario->primerNombre.' '.
-                            $estudiante->usuario->segundoNombre.' '.
-                            $estudiante->usuario->primerApellido.' '.
-                            $estudiante->usuario->segundoApellido
-                        ) }}
-                    </td>
-                </tr>
+        <tr>
 
-                <tr>
-                    <td><strong>Carrera</strong></td>
-                    <td colspan="3">
-                        {{ mb_strtoupper(
-                            $estudiante->planDeEstudios->licenciatura->nombreLicenciatura ?? '-',
-                            'UTF-8'
-                        ) }}
-                    </td>
-                </tr>
+            <!-- A-D -->
+            <td colspan="4" align="center">
+                <b>DATOS GENERALES DEL ESTUDIANTE</b>
+            </td>
 
-                <tr>
-                    <td><strong>Matrícula</strong></td>
-                    <td>{{ $estudiante->matriculaAlfanumerica }}</td>
-                    <td><strong>Generación</strong></td>
-                    <td>{{ $estudiante->generacion->nombreGeneracion ?? '-' }}</td>
-                </tr>
+            <!-- E-F-G separación -->
+            <td></td>
+            <td></td>
+            <td></td>
 
-            </table>
+            <!-- H-I -->
+            <td colspan="2" align="center">
+                <b>RESUMEN DE LA CUENTA</b>
+            </td>
 
-        </td>
+        </tr>
 
-        <td></td>
 
-        <!-- DERECHA -->
-        <td valign="top">
+        <!-- ================= FILA 2 ================= -->
 
-            <table>
-                <colgroup>
-                    <col style="width:250px;">
-                    <col style="width:150px;">
-                </colgroup>
+        <tr>
 
-                <tr>
-                    <td colspan="2" style="text-align:center; font-weight:bold; background-color:#79272C; color:white;">
-                        RESUMEN DE LA CUENTA
-                    </td>
-                </tr>
+            <!-- A -->
+            <td align="center"> <b>Nombre:</b></td>
 
-                <tr><td>Importe total</td><td>{{ number_format($ciclo['importeTotal'],2,'.','') }}</td></tr>
-                <tr><td>Becas(-)</td><td>{{ number_format($ciclo['becasTotal'],2,'.','') }}</td></tr>
-                <tr><td>Descuentos</td><td>{{ number_format($ciclo['descuentosTotal'] ?? 0,2,'.','') }}</td></tr>
-                <tr><td>Saldo a pagar</td><td>{{ number_format($ciclo['saldoAPagar'] ?? 0,2,'.','') }}</td></tr>
-                <tr><td>Abonos a saldo(-)</td><td>{{ number_format($ciclo['abonosASaldo'] ?? 0,2,'.','') }}</td></tr>
-                <tr><td>Abono a recargos</td><td>{{ number_format($ciclo['abonoARecargos'] ?? 0,2,'.','') }}</td></tr>
-                <tr><td>Saldo pendiente</td><td>{{ number_format($ciclo['saldoPendiente'] ?? 0,2,'.','') }}</td></tr>
-                <tr><td>Saldo vencido</td><td>{{ number_format($ciclo['saldoVencido'] ?? 0,2,'.','') }}</td></tr>
-                <tr><td>Recargos(+)</td><td>{{ number_format($ciclo['recargosTotal'] ?? 0,2,'.','') }}</td></tr>
-                <tr>
-                    <td><strong>Saldo actual</strong></td>
-                    <td><strong>{{ number_format($ciclo['saldoActual'] ?? 0,2,'.','') }}</strong></td>
-                </tr>
+            <!-- B-C-D -->
+            <td align="center" colspan="3">
+                {{ strtoupper(
+                    $estudiante->usuario->primerNombre.' '.
+                    $estudiante->usuario->segundoNombre.' '.
+                    $estudiante->usuario->primerApellido.' '.
+                    $estudiante->usuario->segundoApellido
+                ) ?? '-' }}
+            </td>
 
-            </table>
+            <!-- E-F-G -->
+            <td></td>
+            <td></td>
+            <td></td>
 
-        </td>
+            <!-- H -->
+            <td><b>Importe total</b></td>
 
-    </tr>
-</table>
+            <!-- I -->
+            <td align="right">{{ $ciclo['importeTotal'] ?? 0 }}</td>
 
-<br>
+        </tr>
 
-<!-- ================= DETALLE DE MOVIMIENTOS ================= -->
 
-<!-- ================= PAGOS NO PAGADOS ================= -->
+        <!-- ================= FILA 3 ================= -->
 
-<table>
-    <colgroup>
-        <col style="width:120px;">
-        <col style="width:200px;">
-        <col style="width:120px;">
-        <col style="width:100px;">
-        <col style="width:90px;">
-        <col style="width:90px;">
-        <col style="width:90px;">
-        <col style="width:100px;">
-        <col style="width:110px;">
-    </colgroup>
+        <tr>
 
-    <tr>
-        <td colspan="9" style="text-align:center; font-weight:bold; background-color:#79272C; color:white;">
-            PAGOS NO PAGADOS
-        </td>
-    </tr>
+            <td align="center"><b>Carrera:</b></td>
+            <td align="center" colspan="3">
+                {{ mb_strtoupper(
+                    $estudiante->planDeEstudios->licenciatura->nombreLicenciatura ?? '-',
+                    'UTF-8'
+                ) ?? '-' }}
+            </td>
 
-    <tr style="background-color:#79272C; color:white;">
-        <td style="text-align:center; font-weight:bold;">Referencia</td>
-        <td style="text-align:center; font-weight:bold;">Concepto</td>
-        <td style="text-align:center; font-weight:bold;">Fecha límite</td>
-        <td style="text-align:center; font-weight:bold;">Importe</td>
-        <td style="text-align:center; font-weight:bold;">Beca</td>
-        <td style="text-align:center; font-weight:bold;">Descuento</td>
-        <td style="text-align:center; font-weight:bold;">Recargo</td>
-        <td style="text-align:center; font-weight:bold;">Total</td>
-        <td style="text-align:center; font-weight:bold;">Ref. Original</td>
-    </tr>
+            <td></td>
+            <td></td>
+            <td></td>
 
-    @forelse ($ciclo['pagosNoPagados'] as $pago)
-    <tr>
-        <td>{{ $pago->Referencia }}</td>
-        <td>{{ $pago->concepto->nombreConceptoDePago }}</td>
-        <td>{{ $pago->fechaLimiteDePago?->format('d/m/Y') ?? '-' }}</td>
-        <td>{{ number_format($pago->costo_concepto_mostrar,2,'.','') }}</td>
-        <td>{{ number_format($pago->descuentoDeBeca,2,'.','') }}</td>
-        <td>{{ number_format($pago->descuentoDePago,2,'.','') }}</td>
-        <td>{{ number_format($pago->recargo_concepto,2,'.','') }}</td>
-        <td>{{ number_format($pago->montoAPagar,2,'.','') }}</td>
-        <td>{{ $pago->referenciaOriginal ?? '-' }}</td>
-    </tr>
-    @empty
-    <tr>
-        <td colspan="9" style="text-align:center;">No hay pagos no pagados.</td>
-    </tr>
-    @endforelse
-</table>
+            <td><b>Becas(-)</b></td>
+            <td align="right">{{ $ciclo['becasTotal'] ?? 0 }}</td>
 
-<br>
+        </tr>
 
-<!-- ================= PAGOS PENDIENTES ================= -->
 
-<table>
-    <colgroup>
-        <col style="width:120px;">
-        <col style="width:200px;">
-        <col style="width:120px;">
-        <col style="width:100px;">
-        <col style="width:90px;">
-        <col style="width:90px;">
-        <col style="width:90px;">
-        <col style="width:100px;">
-        <col style="width:110px;">
-    </colgroup>
+        <!-- ================= FILA 4 ================= -->
 
-    <tr>
-        <td colspan="9" style="text-align:center; font-weight:bold; background-color:#79272C; color:white;">
-            PAGOS PENDIENTES
-        </td>
-    </tr>
+        <tr>
 
-    <tr style="background-color:#79272C; color:white;">
-        <td style="font-weight:bold;">Referencia</td>
-        <td style="font-weight:bold;">Concepto</td>
-        <td style="font-weight:bold;">Fecha límite</td>
-        <td style="font-weight:bold;">Importe</td>
-        <td style="font-weight:bold;">Beca</td>
-        <td style="font-weight:bold;">Descuento</td>
-        <td style="font-weight:bold;">Recargo</td>
-        <td style="font-weight:bold;">Total</td>
-        <td style="font-weight:bold;">Ref. Original</td>
-    </tr>
+            <td align="center"><b>Matrícula:</b></td>
+            <td align="center">{{ $estudiante->matriculaAlfanumerica }}</td>
+            <td align="center"><b>Generación:</b></td>
+            <td align="center">{{ $estudiante->generacion->nombreGeneracion ?? '-' }}</td>
 
-    @forelse ($ciclo['pagosPendientes'] as $pago)
-    <tr>
-        <td>{{ $pago->Referencia }}</td>
-        <td>{{ $pago->concepto->nombreConceptoDePago }}</td>
-        <td>{{ $pago->fechaLimiteDePago?->format('d/m/Y') ?? '-' }}</td>
-        <td>{{ number_format($pago->costo_concepto_mostrar,2,'.','') }}</td>
-        <td>{{ number_format($pago->descuentoDeBeca,2,'.','') }}</td>
-        <td>{{ number_format($pago->descuentoDePago,2,'.','') }}</td>
-        <td>{{ number_format($pago->recargo_concepto,2,'.','') }}</td>
-        <td>{{ number_format($pago->montoAPagar,2,'.','') }}</td>
-        <td>{{ $pago->referenciaOriginal ?? '-' }}</td>
-    </tr>
-    @empty
-    <tr>
-        <td colspan="9" style="text-align:center;">No hay pagos pendientes.</td>
-    </tr>
-    @endforelse
-</table>
+            <td></td>
+            <td></td>
+            <td></td>
 
-<br>
+            <td><b>Descuentos</b></td>
+            <td align="right">{{ $ciclo['descuentosTotal'] ?? 0}}</td>
 
-<!-- ================= PAGOS APROBADOS ================= -->
+        </tr>
 
-<table>
-    <colgroup>
-        <col style="width:120px;">
-        <col style="width:200px;">
-        <col style="width:100px;">
-        <col style="width:120px;">
-        <col style="width:120px;">
-        <col style="width:100px;">
-        <col style="width:120px;">
-        <col style="width:120px;">
-    </colgroup>
 
-    <tr>
-        <td colspan="8" style="text-align:center; font-weight:bold; background-color:#79272C; color:white;">
-            PAGOS APROBADOS
-        </td>
-    </tr>
+        <!-- ================= FILA 5 ================= -->
 
-    <tr style="background-color:#79272C; color:white;">
-        <td style="font-weight:bold;">Referencia</td>
-        <td style="font-weight:bold;">Concepto</td>
-        <td style="font-weight:bold;">Aportación</td>
-        <td style="font-weight:bold;">Fecha pago</td>
-        <td style="font-weight:bold;">Método</td>
-        <td style="font-weight:bold;">Abono saldo</td>
-        <td style="font-weight:bold;">Abono recargos</td>
-        <td style="font-weight:bold;">Total</td>
-    </tr>
+        <tr>
 
-    @forelse ($ciclo['pagosAprobados'] as $pago)
-    <tr>
-        <td>{{ $pago->Referencia }}</td>
-        <td>{{ $pago->concepto->nombreConceptoDePago }}</td>
-        <td>{{ $pago->aportacion ?? '-' }}</td>
-        <td>{{ $pago->fechaDePago?->format('d/m/Y') ?? '-' }}</td>
-        <td>{{ $pago->idTipoDePago == 1 ? 'Efectivo' : ($pago->idTipoDePago == 3 ? 'Transferencia' : '-') }}</td>
-        <td>{{ number_format($pago->abono_saldo,2,'.','') }}</td>
-        <td>{{ number_format($pago->abono_recargo,2,'.','') }}</td>
-        <td>{{ number_format($pago->montoAPagar,2,'.','') }}</td>
-    </tr>
-    @empty
-    <tr>
-        <td colspan="8" style="text-align:center;">No hay pagos aprobados.</td>
-    </tr>
-    @endforelse
-</table>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
 
-<br>
+            <td></td>
+            <td></td>
+            <td></td>
 
-<!-- ================= OTROS PAGOS ================= -->
+            <td><b>Saldo a pagar</b></td>
+            <td align="right">{{ $ciclo['saldoAPagar'] ?? 0 }}</td>
 
-<table>
-    <colgroup>
-        <col style="width:120px;">
-        <col style="width:200px;">
-        <col style="width:120px;">
-        <col style="width:120px;">
-        <col style="width:120px;">
-        <col style="width:120px;">
-        <col style="width:120px;">
-    </colgroup>
+        </tr>
 
-    <tr>
-        <td colspan="7" style="text-align:center; font-weight:bold; background-color:#79272C; color:white;">
-            OTROS PAGOS
-        </td>
-    </tr>
 
-    <tr style="background-color:#79272C; color:white;">
-        <td style="font-weight:bold;">Referencia</td>
-        <td style="font-weight:bold;">Concepto</td>
-        <td style="font-weight:bold;">Fecha límite</td>
-        <td style="font-weight:bold;">Fecha pago</td>
-        <td style="font-weight:bold;">Método</td>
-        <td style="font-weight:bold;">Total</td>
-        <td style="font-weight:bold;">Estatus</td>
-    </tr>
+        <!-- ================= FILA 6 ================= -->
 
-    @forelse ($ciclo['otrosPagos'] as $pago)
-    <tr>
-        <td>{{ $pago->Referencia }}</td>
-        <td>{{ $pago->concepto->nombreConceptoDePago }}</td>
-        <td>{{ $pago->fechaLimiteDePago?->format('d/m/Y') ?? '-' }}</td>
-        <td>{{ $pago->fechaDePago?->format('d/m/Y') ?? '-' }}</td>
-        <td>{{ $pago->idTipoDePago == 1 ? 'Efectivo' : ($pago->idTipoDePago == 3 ? 'Transferencia' : '-') }}</td>
-        <td>{{ number_format($pago->montoAPagar,2,'.','') }}</td>
-        <td>{{ $pago->estatus->nombreTipoDeEstatus ?? '-' }}</td>
-    </tr>
-    @empty
-    <tr>
-        <td colspan="7" style="text-align:center;">No hay otros pagos.</td>
-    </tr>
-    @endforelse
-</table>
+        <tr>
+
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+
+            <td></td>
+            <td></td>
+            <td></td>
+
+            <td><b>Abonos a saldo(-)</b></td>
+            <td align="right">{{ $ciclo['abonosASaldo'] ?? 0 }}</td>
+
+        </tr>
+
+
+        <!-- ================= FILA 7 ================= -->
+
+        <tr>
+
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+
+            <td></td>
+            <td></td>
+            <td></td>
+
+            <td><b>Abono a recargos</b></td>
+            <td align="right">{{ $ciclo['abonoARecargos'] ?? 0 }}</td>
+
+        </tr>
+
+
+        <!-- ================= FILA 8 ================= -->
+
+        <tr>
+
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+
+            <td></td>
+            <td></td>
+            <td></td>
+
+            <td><b>Saldo pendiente</b></td>
+            <td align="right">{{ $ciclo['saldoPendiente'] ?? 0 }}</td>
+
+        </tr>
+
+
+        <!-- ================= FILA 9 ================= -->
+
+        <tr>
+
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+
+            <td></td>
+            <td></td>
+            <td></td>
+
+            <td><b>Saldo vencido</b></td>
+            <td align="right">{{ $ciclo['saldoVencido'] ?? 0 }}</td>
+
+        </tr>
+
+
+        <!-- ================= FILA 10 ================= -->
+
+        <tr>
+
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+
+            <td></td>
+            <td></td>
+            <td></td>
+
+            <td><b>Recargos(+)</b></td>
+            <td align="right">{{ $ciclo['recargosTotal'] ?? 0 }}</td>
+
+        </tr>
+
+
+        <!-- ================= FILA 11 ================= -->
+
+        <tr>
+
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+
+            <td></td>
+            <td></td>
+            <td></td>
+
+            <td><b>Saldo actual</b></td>
+            <td align="right">{{ $ciclo['saldoActual'] ?? 0 }}</td>
+
+        </tr>
+
+    </table>
+
+    <br>
+
+    <!-- ================= PAGOS NO PAGADOS ================= -->
+
+    <table>
+
+        <colgroup>
+            <col style="width:300px;"> <!-- A -->
+            <col style="width:300px;"> <!-- B -->
+            <col style="width:180px;"> <!-- C -->
+            <col style="width:200px;"> <!-- D -->
+            <col style="width:180px;">  <!-- E -->
+            <col style="width:180px;">  <!-- F -->
+            <col style="width:180px;">  <!-- G -->
+            <col style="width:180px;"> <!-- H -->
+            <col style="width:300px;"> <!-- I -->
+        </colgroup>
+
+        <tr>
+            <td colspan="9" align="center"><b>PAGOS NO PAGADOS</b></td>
+        </tr>
+        <tr>
+            <th><b>Referencia</b></th>
+            <th><b>Concepto</b></th>
+            <th><b>Fecha límite</b></th>
+            <th><b>Importe total</b></th>
+            <th><b>Beca (-)</b></th>
+            <th><b>Descuento (-)</b></th>
+            <th><b>Recargo (+)</b></th>
+            <th><b>Total a pagar</b></th>
+            <th><b>Referencia original</b></th>
+        </tr>
+
+        @forelse ($ciclo['pagosNoPagados'] as $pago)
+        <tr>
+            <td align="center">{{ $pago->Referencia ?? '-' }}</td>
+            <td align="center">{{ $pago->concepto->nombreConceptoDePago ?? '-' }}</td>
+            <td align="center">{{ $pago->fechaLimiteDePago?->format('d/m/Y') ?? '-' }}</td>
+            <td align="center">{{ $pago->costo_concepto_mostrar ?? 0}}</td>
+            <td align="center">{{ $pago->descuentoDeBeca ?? 0 }}</td>
+            <td align="center">{{ $pago->descuentoDePago ?? 0 }}</td>
+            <td align="center">{{ $pago->recargo_concepto ?? 0 }}</td>
+            <td align="center">{{ $pago->montoAPagar ?? 0 }}</td>
+            <td align="center">{{ $pago->referenciaOriginal ?? '-' }}</td>
+        </tr>
+        @empty
+        <tr>
+            <td colspan="9" align="center">No hay pagos no pagados.</td>
+        </tr>
+        @endforelse
+    </table>
+
+    <br>
+
+    <!-- ================= PAGOS PENDIENTES ================= -->
+
+    <table>
+
+        <colgroup>
+            <col style="width:300px;"> <!-- A -->
+            <col style="width:300px;"> <!-- B -->
+            <col style="width:180px;"> <!-- C -->
+            <col style="width:200px;"> <!-- D -->
+            <col style="width:180px;">  <!-- E -->
+            <col style="width:180px;">  <!-- F -->
+            <col style="width:180px;">  <!-- G -->
+            <col style="width:180px;"> <!-- H -->
+            <col style="width:300px;"> <!-- I -->
+        </colgroup>
+
+        <tr>
+            <td colspan="9" align="center"><b>PAGOS PENDIENTES</b></td>
+        </tr>
+        <tr>
+            <th><b>Referencia</b></th>
+            <th><b>Concepto</b></th>
+            <th><b>Fecha límite</b></th>
+            <th><b>Importe total</b></th>
+            <th><b>Beca (-)</b></th>
+            <th><b>Descuento (-)</b></th>
+            <th><b>Recargo (+)</b></th>
+            <th><b>Total a pagar</b></th>
+            <th><b>Referencia original</b></th>
+        </tr>
+
+        @forelse ($ciclo['pagosPendientes'] as $pago)
+        <tr>
+            <td align="center">{{ $pago->Referencia ?? '-' }}</td>
+            <td align="center">{{ $pago->concepto->nombreConceptoDePago ?? '-' }}</td>
+            <td align="center">{{ $pago->fechaLimiteDePago?->format('d/m/Y') ?? '-' }}</td>
+            <td align="center">{{ $pago->costo_concepto_mostrar ?? 0 }}</td>
+            <td align="center">{{ $pago->descuentoDeBeca ?? 0 }}</td>
+            <td align="center">{{ $pago->descuentoDePago ?? 0 }}</td>
+            <td align="center">{{ $pago->recargo_concepto ?? 0 }}</td>
+            <td align="center">{{ $pago->montoAPagar ?? 0}}</td>
+            <td align="center">{{ $pago->referenciaOriginal ?? '-' }}</td>
+        </tr>
+        @empty
+        <tr>
+            <td colspan="9" align="center">No hay pagos pendientes.</td>
+        </tr>
+        @endforelse
+    </table>
+
+    <br>
+
+    <!-- ================= PAGOS APROBADOS ================= -->
+
+    <table>
+
+        <colgroup>
+            <col style="width:300px;"> <!-- A -->
+            <col style="width:300px;"> <!-- B -->
+            <col style="width:180px;"> <!-- C -->
+            <col style="width:200px;"> <!-- D -->
+            <col style="width:180px;">  <!-- E -->
+            <col style="width:180px;">  <!-- F -->
+            <col style="width:180px;">  <!-- G -->
+            <col style="width:180px;"> <!-- H -->
+            <col style="width:300px;"> <!-- I -->
+        </colgroup>
+
+        <tr>
+            <td colspan="9" align="center"><b>PAGOS APROBADOS</b></td>
+        </tr>
+        <tr>
+            <th><b>Referencia</b></th>
+            <th><b>Concepto</b></th>
+            <th><b>Aportación</b></th>
+            <th><b>Fecha de pago</b></th>
+            <th><b>Método de pago</b></th>
+            <th><b>Abono a saldo</b></th>
+            <th><b>Abono a recargos</b></th>
+            <th colspan="2"><b>Total</b></th>
+        </tr>
+
+        @forelse ($ciclo['pagosAprobados'] as $pago)
+        <tr>
+            <td align="center">{{ $pago->Referencia ?? '-' }}</td>
+            <td align="center">{{ $pago->concepto->nombreConceptoDePago ?? '-' }}</td>
+            <td align="center">{{ $pago->aportacion ?? '-' }}</td>
+            <td align="center">{{ $pago->fechaDePago?->format('d/m/Y') ?? '-' }}</td>
+            <td align="center">{{ $pago->idTipoDePago == 1 ? 'Efectivo' : ($pago->idTipoDePago == 3 ? 'Transferencia' : '-') }}</td>
+            <td align="center">{{ $pago->abono_saldo ?? 0 }}</td>
+            <td align="center">{{ $pago->abono_recargo ?? 0}}</td>
+            <td align="center" colspan="2">
+                {{ $pago->montoAPagar ?? 0 }}
+            </td>
+        </tr>
+        @empty
+        <tr>
+            <td colspan="9" align="center">No hay pagos aprobados.</td>
+        </tr>
+        @endforelse
+    </table>
+
+    <br>
+
+    <!-- ================= OTROS PAGOS ================= -->
+
+    <table>
+
+        <colgroup>
+            <col style="width:300px;"> <!-- A -->
+            <col style="width:300px;"> <!-- B -->
+            <col style="width:180px;"> <!-- C -->
+            <col style="width:200px;"> <!-- D -->
+            <col style="width:180px;">  <!-- E -->
+            <col style="width:180px;">  <!-- F -->
+            <col style="width:180px;">  <!-- G -->
+            <col style="width:180px;"> <!-- H -->
+            <col style="width:300px;"> <!-- I -->
+        </colgroup>
+
+        <tr>
+            <td colspan="9" align="center"><b>OTROS PAGOS</b></td>
+        </tr>
+        <tr>
+            <th><b>Referencia</b></th>
+            <th><b>Concepto</b></th>
+            <th><b>Fecha límite</b></th>
+            <th><b>Fecha de pago</b></th>
+            <th><b>Método de pago</b></th>
+            <th colspan="2"><b>Total</b></th>
+            <th colspan="2"><b>Estatus</b></th>
+        </tr>
+
+        @forelse ($ciclo['otrosPagos'] as $pago)
+        <tr>
+            <td align="center">{{ $pago->Referencia ?? '-' }}</td>
+            <td align="center">{{ $pago->concepto->nombreConceptoDePago ?? '-' }}</td>
+            <td align="center">{{ $pago->fechaLimiteDePago?->format('d/m/Y') ?? '-' }}</td>
+            <td align="center">{{ $pago->fechaDePago?->format('d/m/Y') ?? '-' }}</td>
+            <td align="center">{{ $pago->idTipoDePago == 1 ? 'Efectivo' : ($pago->idTipoDePago == 3 ? 'Transferencia' : '-') }}</td>
+            <td align="center" colspan="2">{{ $pago->montoAPagar ?? 0}}</td>
+            <td align="center" colspan="2">{{ $pago->estatus->nombreTipoDeEstatus ?? '-' }}</td>
+        </tr>
+        @empty
+        <tr>
+            <td colspan="9" align="center">No hay otros pagos registrados.</td>
+        </tr>
+        @endforelse
+    </table>
 
 </body>
 </html>

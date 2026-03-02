@@ -108,7 +108,7 @@
 					</tr>
 
 					<tr>
-						<td><strong>Nombre</strong></td>
+						<td><strong>Nombre:</strong></td>
 						<td colspan="3">
 							{{ strtoupper(
 								$estudiante->usuario->primerNombre.' '.
@@ -120,7 +120,7 @@
 					</tr>
 
 					<tr>
-						<td><strong>Carrera</strong></td>
+						<td><strong>Carrera:</strong></td>
 						<td colspan="3">
 							{{ mb_strtoupper(
 								$estudiante->planDeEstudios->licenciatura->nombreLicenciatura ?? '-',
@@ -130,9 +130,9 @@
 					</tr>
 
 					<tr>
-						<td><strong>Matrícula</strong></td>
+						<td><strong>Matrícula:</strong></td>
 						<td>{{ $estudiante->matriculaAlfanumerica }}</td>
-						<td><strong>Generación</strong></td>
+						<td><strong>Generación:</strong></td>
 						<td>{{ $estudiante->generacion->nombreGeneracion ?? '-' }}</td>
 					</tr>
 				</table>
@@ -184,12 +184,12 @@
 			<th>Referencia</th>
 			<th>Concepto</th>
 			<th>Fecha límite</th>
-			<th>Importe</th>
-			<th>Beca</th>
-			<th>Descuento</th>
-			<th>Recargo</th>
-			<th>Total</th>
-			<th>Ref. Original</th>
+			<th>Importe total</th>
+			<th>Beca (-)</th>
+			<th>Descuento (-)</th>
+			<th>Recargo (+)</th>
+			<th>Total a pagar</th>
+			<th>Referencia original</th>
 		</tr>
 
 		@forelse ($ciclo['pagosNoPagados'] as $pago)
@@ -221,12 +221,12 @@
 			<th>Referencia</th>
 			<th>Concepto</th>
 			<th>Fecha límite</th>
-			<th>Importe</th>
-			<th>Beca</th>
-			<th>Descuento</th>
-			<th>Recargo</th>
-			<th>Total</th>
-			<th>Ref. Original</th>
+			<th>Importe total</th>
+			<th>Beca (-)</th>
+			<th>Descuento (-)</th>
+			<th>Recargo (+)</th>
+			<th>Total a pagar</th>
+			<th>Referencia original</th>
 		</tr>
 
 		@forelse ($ciclo['pagosPendientes'] as $pago)
@@ -258,10 +258,10 @@
 			<th>Referencia</th>
 			<th>Concepto</th>
 			<th>Aportación</th>
-			<th>Fecha pago</th>
-			<th>Método</th>
-			<th>Abono saldo</th>
-			<th>Abono recargos</th>
+			<th>Fecha de pago</th>
+			<th>Método de pago</th>
+			<th>Abono a saldo</th>
+			<th>Abono a recargos</th>
 			<th>Total</th>
 		</tr>
 
@@ -295,8 +295,8 @@
 			<th>Referencia</th>
 			<th>Concepto</th>
 			<th>Fecha límite</th>
-			<th>Fecha pago</th>
-			<th>Método</th>
+			<th>Fecha de pago</th>
+			<th>Método de pago</th>
 			<th>Total</th>
 			<th>Estatus</th>
 		</tr>
@@ -315,7 +315,7 @@
 			</tr>
 		@empty
 			<tr>
-				<td colspan="7" class="tablaVacia">No hay otros pagos.</td>
+				<td colspan="7" class="tablaVacia">No hay otros pagos registrados.</td>
 			</tr>
 		@endforelse
 	</table>
