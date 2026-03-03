@@ -18,9 +18,11 @@ use App\Exports\EstadoCuentaExport;
 
 class EstadoDeCuentaController extends Controller
 {
+    
 
     public function seleccionarEstudiante(Request $request)
     {
+        
         try {
 
             $buscar = $request->buscar;
@@ -182,6 +184,32 @@ class EstadoDeCuentaController extends Controller
     }
 
 
+    private function generarNombreArchivo($idEstudiante, $idCiclo)
+    {
+        $service = new EstadoDeCuentaService();
+        $data = $service->generarEstadoDeCuenta($idEstudiante);
+
+        if (!isset($data['estadoCuentaPorCiclo'][$idCiclo])) {
+            abort(404, 'Ciclo no encontrado');
+        }
+
+        $ciclo = $data['estadoCuentaPorCiclo'][$idCiclo];
+        $estudiante = $data['estudiante'];
+
+        $nombreCompleto = trim(
+            $estudiante->usuario->primerNombre . ' ' .
+            ($estudiante->usuario->segundoNombre ?? '') . ' ' .
+            $estudiante->usuario->primerApellido . ' ' .
+            ($estudiante->usuario->segundoApellido ?? '')
+        );
+
+        // Quitar dobles espacios
+        $nombreCompleto = preg_replace('/\s+/', ' ', $nombreCompleto);
+
+        return 'Estado de cuenta_' . $ciclo['nombreCiclo'] . '_' . $nombreCompleto;
+    }
+
+
     public function exportarEstadoCuentaPDF($idEstudiante, $idCiclo)
     {
         try {
@@ -194,19 +222,20 @@ class EstadoDeCuentaController extends Controller
             }
 
             $ciclo = $data['estadoCuentaPorCiclo'][$idCiclo];
+            $estudiante = $data['estudiante'];
 
             $pdf = Pdf::loadView(
                 'SGFIDMA.moduloEstadoDeCuenta.estadoDeCuentaPDF',
                 [
-                    'estudiante' => $data['estudiante'],
+                    'estudiante' => $estudiante,
                     'ciclo'      => $ciclo
                 ]
             )->setPaper('letter', 'portrait');
-        
 
-            return $pdf->download(
-                'Estado de cuenta_' . $ciclo['nombreCiclo'] . '.pdf'
-            );
+            
+            $nombreArchivo = $this->generarNombreArchivo($idEstudiante, $idCiclo);
+
+            return $pdf->download($nombreArchivo . '.pdf');
 
         } catch (\Throwable $e) {
 
@@ -223,10 +252,26 @@ class EstadoDeCuentaController extends Controller
 
     public function exportarEstadoCuentaExcel($idEstudiante, $idCiclo)
     {
-        return Excel::download(
-            new EstadoCuentaExport($idEstudiante, $idCiclo),
-            'Estado de Cuenta_' . $idCiclo . '.xlsx'
-        );
+        try {
+
+            
+            $nombreArchivo = $this->generarNombreArchivo($idEstudiante, $idCiclo);
+
+            return Excel::download(
+                new EstadoCuentaExport($idEstudiante, $idCiclo),
+                $nombreArchivo . '.xlsx'
+            );
+
+        } catch (\Throwable $e) {
+
+            Log::error('Error al exportar Excel estado de cuenta', [
+                'idEstudiante' => $idEstudiante,
+                'idCiclo'      => $idCiclo,
+                'error'        => $e->getMessage(),
+            ]);
+
+            return back()->with('popupError', 'Error al generar el archivo Excel.');
+        }
     }
 
 

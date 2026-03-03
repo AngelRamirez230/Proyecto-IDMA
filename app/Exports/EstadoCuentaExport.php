@@ -190,6 +190,29 @@ class EstadoCuentaExport implements FromView, WithStyles
                 $fila++;
             }
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | CONFIGURACION DE IMPRESION EN 1 PAGINA VERTICAL
+        |--------------------------------------------------------------------------
+        */
+
+        // Área de impresión dinámica
+        $sheet->getPageSetup()->setPrintArea("A1:{$ultimaColumna}{$ultimaFila}");
+
+        $sheet->getPageSetup()->setOrientation(
+            \PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::ORIENTATION_PORTRAIT
+        );
+
+        // Tamaño carta
+        $sheet->getPageSetup()->setPaperSize(
+            \PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::PAPERSIZE_LETTER
+        );
+
+        // Ajustar TODO a una sola página (ancho y alto)
+        $sheet->getPageSetup()->setFitToPage(true);
+        $sheet->getPageSetup()->setFitToWidth(1);
+        $sheet->getPageSetup()->setFitToHeight(1);
     }
 
 

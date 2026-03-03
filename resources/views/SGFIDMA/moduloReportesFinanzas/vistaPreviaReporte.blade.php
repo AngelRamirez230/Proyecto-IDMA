@@ -284,7 +284,7 @@
         @else
 
 
-            <h1 class="consulta-titulo" style="text-align:center;">
+            <h1 class="titulo-form2" style="text-align:center;  margin-bottom: 10px;  margin-left:0; padding-left:0;">
                 Reporte de pagos {{ ($tipo) }}
             </h1>
 
@@ -295,10 +295,10 @@
 
             <section class="consulta-tabla-contenedor">
 
-                <table class="tabla">
+                <table class="tabla-compacta">
 
                     <thead>
-                        <tr class="tabla-encabezado">
+                        <tr>
                             <th>Nombre estudiante</th>
                             <th>Referencia</th>
                             <th>Concepto</th>
@@ -310,11 +310,11 @@
                         </tr>
                     </thead>
 
-                    <tbody class="tabla-cuerpo">
+                    <tbody>
 
                         @if ($pagos->isEmpty())
                             <tr>
-                                <td colspan="8" class="tablaVacia">
+                                <td colspan="8" class="estado-cuenta-tabla-vacia">
                                     No existen pagos en este rango de fechas.
                                 </td>
                             </tr>
@@ -330,26 +330,12 @@
                                     </td>
 
                                     <td>{{ $pago->Referencia }}</td>
-
                                     <td>{{ $pago->concepto->nombreConceptoDePago }}</td>
-
                                     <td>${{ number_format($pago->montoAPagar, 2) }}</td>
-
-                                    <td>
-                                        {{ $pago->fechaGeneracionDePago?->format('d/m/Y') ?? '-' }}
-                                    </td>
-
-                                    <td>
-                                        {{ $pago->fechaLimiteDePago?->format('d/m/Y') ?? '-' }}
-                                    </td>
-
-                                    <td>
-                                        {{ $pago->fechaDePago?->format('d/m/Y') ?? '-' }}
-                                    </td>
-
-                                    <td>
-                                        {{ $pago->estatus->nombreTipoDeEstatus ?? 'Sin estatus' }}
-                                    </td>
+                                    <td>{{ $pago->fechaGeneracionDePago?->format('d/m/Y') ?? '-' }}</td>
+                                    <td>{{ $pago->fechaLimiteDePago?->format('d/m/Y') ?? '-' }}</td>
+                                    <td>{{ $pago->fechaDePago?->format('d/m/Y') ?? '-' }}</td>
+                                    <td>{{ $pago->estatus->nombreTipoDeEstatus ?? 'Sin estatus' }}</td>
 
                                 </tr>
                             @endforeach

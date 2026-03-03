@@ -33,9 +33,9 @@ class ReportePagosExport implements FromView, WithStyles, WithTitle, WithEvents
 
         if ($tipo !== 'kardex') {
             $map = [
-                'pendientes' => 3,
-                'rechazados' => 7,
-                'aprobados'  => 6,
+                'pendientes' => 10,
+                'rechazados' => 12,
+                'aprobados'  => 11,
             ];
             $query->where('idEstatus', $map[$tipo]);
         }
@@ -58,22 +58,41 @@ class ReportePagosExport implements FromView, WithStyles, WithTitle, WithEvents
         $sheet->getStyle('D')->getNumberFormat()
             ->setFormatCode('"$"#,##0.00');
 
-        // Número de filas con datos
+        // Número de filas y columnas con datos
         $ultimaFila = $sheet->getHighestRow();
+        $ultimaColumna = $sheet->getHighestColumn(); // <- aquí estaba el error
 
-        // Rango completo (A1 hasta H última fila)
-        $rango = "A1:H{$ultimaFila}";
+        // Rango de la tabla (A4 hasta H última fila)
+        $rango = "A4:H{$ultimaFila}";
 
         // Bordes para todas las celdas
         $sheet->getStyle($rango)->getBorders()->getAllBorders()->setBorderStyle(
             Border::BORDER_THIN
         );
 
-        // Centrar todo (opcional pero se ve pro)
+        // Centrar todo
         $sheet->getStyle($rango)->getAlignment()->setHorizontal('center');
         $sheet->getStyle($rango)->getAlignment()->setVertical('center');
-    }
 
+        // Filas 1 y 2: letras color #79272C
+        $sheet->getStyle('A1:H2')->getFont()->getColor()->setARGB('79272C');
+        $sheet->getStyle('A1:H2')->getFont()->setBold(true);
+
+        // Fila 4: encabezados con fondo #79272C y letras blancas
+        $sheet->getStyle('A4:H4')->getFont()->getColor()->setARGB('FFFFFF');
+        $sheet->getStyle('A4:H4')->getFont()->setBold(true);
+        $sheet->getStyle('A4:H4')->getFill()
+            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('79272C');
+
+        // ===============================
+        // Área de impresión
+        // ===============================
+        $sheet->getPageSetup()->setPrintArea("A1:{$ultimaColumna}{$ultimaFila}");
+        $sheet->getPageSetup()->setOrientation(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::ORIENTATION_PORTRAIT);
+        $sheet->getPageSetup()->setFitToWidth(1);
+        $sheet->getPageSetup()->setFitToHeight(0); // largo automático
+    }
 
     public function title(): string
     {

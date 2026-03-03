@@ -135,9 +135,24 @@ class BecaController extends Controller
 
             $query = Beca::with('estatus');
 
-            // Estudiante: solo becas activas
-            if ((int) $usuario->idtipoDeUsuario === 4) {
+            // ==============================
+            // FILTRO POR SELECCIÓN DEL USUARIO
+            // ==============================
+            if ($filtro === 'activas') {
                 $query->where('idEstatus', 1);
+            } elseif ($filtro === 'suspendidas') {
+                $query->where('idEstatus', 2);
+            } elseif ($filtro === 'eliminadas') {
+                $query->where('idEstatus', 8);
+            } else {
+                // ==============================
+                // FILTRO POR TIPO DE USUARIO (SIN selección)
+                // ==============================
+                if ((int) $usuario->idtipoDeUsuario === 4) {
+                    $query->where('idEstatus', 1); // Estudiantes solo activas
+                } else {
+                    $query->whereIn('idEstatus', [1, 2]); // Otros usuarios: activas + suspendidas
+                }
             }
 
             // Buscar por nombre
@@ -145,12 +160,6 @@ class BecaController extends Controller
                 $query->where('nombreDeBeca', 'LIKE', "%{$buscar}%");
             }
 
-            // Filtros
-            if ($filtro === 'activas') {
-                $query->where('idEstatus', 1);
-            } elseif ($filtro === 'suspendidas') {
-                $query->where('idEstatus', 2);
-            }
 
             // Ordenamientos
             if ($orden === 'alfabetico') {
@@ -170,7 +179,6 @@ class BecaController extends Controller
 
         } catch (\Throwable $e) {
 
-            // Log del error (MUY recomendado)
             \Log::error('Error al cargar becas', [
                 'error' => $e->getMessage()
             ]);
@@ -289,7 +297,6 @@ class BecaController extends Controller
     public function destroy($idBeca)
     {
         try {
-
             $beca = Beca::findOrFail($idBeca);
 
             // Si algún estudiante la está usando actualmente
@@ -302,30 +309,21 @@ class BecaController extends Controller
                     ->with('popupError', 'No se puede eliminar la beca porque actualmente hay estudiantes que la utilizan.');
             }
 
-            // Si alguna vez fue utilizada
-            $tieneHistorial = $beca->solicitudes()->exists();
-
-            if ($tieneHistorial) {
-                return redirect()->route('consultaBeca')
-                    ->with('popupError', 'No se puede eliminar la beca porque tiene historial de uso por estudiantes, se sugiere solo suspenderla.');
-            }
-
-            // Eliminar beca
-            $nombreBeca = $beca->nombreDeBeca;
-            $beca->delete();
+            // Cambiar estatus a eliminado (8)
+            $beca->idEstatus = 8;
+            $beca->save();
 
             return redirect()->route('consultaBeca')
-                ->with('success', "La beca {$nombreBeca} ha sido eliminada correctamente.");
+                ->with('success', "La beca {$beca->nombreDeBeca} ha sido eliminada correctamente.");
 
         } catch (\Throwable $e) {
-
             \Log::error('Error al eliminar beca', [
                 'id_beca' => $idBeca,
                 'error'   => $e->getMessage()
             ]);
 
             return redirect()->route('consultaBeca')
-                ->with('popupError', 'Ocurrió un error al intentar eliminar la beca, puede ser que esta beca ya ha sido eliminada por otro usuario.');
+                ->with('popupError', 'Ocurrió un error al intentar eliminar la beca.');
         }
     }
 

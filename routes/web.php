@@ -241,7 +241,6 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout', 'bitacora'])->g
     
     Route::middleware(['role:4'])->group(function () {
 
-        Route::get('/consulta-solicitudes-beca',[SolicitudDeBecaController::class, 'index'])->name('consultaSolicitudBeca');
         // formulario
         Route::get('/solicitud-beca/crear/{idBeca}',[SolicitudDeBecaController::class, 'create'])->name('solicitud-beca.create');
         // guardar
@@ -276,19 +275,18 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout', 'bitacora'])->g
         Route::get('/pagos/{referencia}',[PagoController::class, 'show'])->name('pagos.show');
         Route::get('/pagos/{referencia}/recibo',[PagoController::class, 'descargarRecibo'])->name('pagos.recibo');
 
+        // VALIDACION DE PAGOS
+        Route::get('/validar/pagos', [PagoController::class, 'vistaValidarPagos'])->name('pagos.validar');
+        Route::post('/validar/pagos/archivo', [PagoController::class, 'validarArchivo'])->name('pagos.validarArchivo');
+        Route::post('/pagos/validar/{referencia}', [PagoController::class, 'validarPago'])->name('pagos.validarPago');
+
     });
 
     Route::middleware(['role:1,2', 'departamento:11'])->group(function () {
 
         Route::get('/pagos/eliminar', [PagoController::class, 'vistaEliminar'])->name('pagos.eliminar.vista');
         Route::delete('/pagos/{referencia}', [PagoController::class, 'destroy'])->name('pagos.destroy');
-        
-        
 
-        // VALIDACION DE PAGOS
-        Route::get('/validar/pagos', [PagoController::class, 'vistaValidarPagos'])->name('pagos.validar');
-        Route::post('/validar/pagos/archivo', [PagoController::class, 'validarArchivo'])->name('pagos.validarArchivo');
-        Route::post('/pagos/validar/{referencia}', [PagoController::class, 'validarPago'])->name('pagos.validarPago');
 
     });
 
@@ -328,28 +326,28 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout', 'bitacora'])->g
 
     /*----------- ESTADOS DE CUENTA -----------*/
 
-    Route::middleware(['role:1,2', 'departamento:11,12'])->group(function () {
+
+    Route::middleware(['role:1,2,4', 'departamento:11,12'])->group(function () {
 
         Route::get('/apartadoEstadosDeCuenta', function () {
             return view('SGFIDMA.moduloEstadoDeCuenta.apartadoEstadoDeCuenta');
         })->name('apartadoEstadoDeCuenta');
 
-        Route::get('/estados-de-cuenta/seleccionar-estudiante',[EstadoDeCuentaController::class, 'seleccionarEstudiante'])->name('estadosCuenta.seleccionarEstudiante');
         Route::post('/estado-de-cuenta/vista-previa',[EstadoDeCuentaController::class, 'vistaPreviaEstadoDeCuenta'])->name('estadoCuenta.vistaPrevia');
         Route::post('/estado-cuenta/{estudiante}/{ciclo}/pdf',[EstadoDeCuentaController::class, 'exportarEstadoCuentaPDF'])->name('estadoCuenta.pdf');
+
+    });
+
+    Route::middleware(['role:1,2', 'departamento:11,12'])->group(function () {
+
+        Route::get('/estados-de-cuenta/seleccionar-estudiante',[EstadoDeCuentaController::class, 'seleccionarEstudiante'])->name('estadosCuenta.seleccionarEstudiante');
         Route::post('/estado-cuenta/{estudiante}/{ciclo}/excel',[EstadoDeCuentaController::class, 'exportarEstadoCuentaExcel'])->name('estadoCuenta.excel');
 
     });
 
     Route::middleware(['role:4'])->group(function () {
 
-        Route::get('/apartadoEstadosDeCuenta', function () {
-            return view('SGFIDMA.moduloEstadoDeCuenta.apartadoEstadoDeCuenta');
-        })->name('apartadoEstadoDeCuenta');
-
         Route::get('/estado-de-cuenta/mi-estado',[EstadoDeCuentaController::class, 'miEstadoDeCuenta'])->name('estadoCuenta.miEstado');
-        Route::post('/estado-cuenta/{estudiante}/{ciclo}/pdf',[EstadoDeCuentaController::class, 'exportarEstadoCuentaPDF'])->name('estadoCuenta.pdf');
-        Route::post('/estado-cuenta/{estudiante}/{ciclo}/excel',[EstadoDeCuentaController::class, 'exportarEstadoCuentaExcel'])->name('estadoCuenta.excel');
 
     });
 

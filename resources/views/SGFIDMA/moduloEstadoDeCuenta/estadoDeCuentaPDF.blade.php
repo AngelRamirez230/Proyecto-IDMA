@@ -13,8 +13,12 @@
 
 		body {
 			font-family: DejaVu Sans, sans-serif;
-			font-size: 7px;
+			font-size: 5px;
 			margin: 0;
+		}
+
+		.font-small {
+			font-size: 4px;   
 		}
 
 		h1 {
@@ -42,9 +46,10 @@
 		th,
 		td {
 			border: 1px solid #5B5B5B;
-			padding: 3px;
+			padding: 1px 3px;      
 			text-align: center;
-			word-wrap: break-word;
+			line-height: 1;        
+			vertical-align: middle;
 		}
 
 		th {
@@ -53,6 +58,7 @@
 
 		.contenedor-superior td {
 			border: none !important;
+			vertical-align: top;
 		}
 
 		.encabezado-principal {
@@ -98,7 +104,7 @@
 		<tr>
 
 			<!-- IZQUIERDA -->
-			<td width="60%" valign="top">
+			<td width="40%" valign="top">
 
 				<table>
 					<tr>
@@ -140,10 +146,10 @@
 			</td>
 
 			<!-- ESPACIO ENTRE TABLAS -->
-			<td width="5%"></td>
+			<td width="40%"></td>
 
 			<!-- DERECHA -->
-			<td width="35%" valign="top">
+			<td width="20%" valign="top">
 
 				<table class="resumen">
 					<tr>
@@ -194,7 +200,7 @@
 
 		@forelse ($ciclo['pagosNoPagados'] as $pago)
 			<tr>
-				<td>{{ $pago->Referencia }}</td>
+				<td class="font-small">{{ $pago->Referencia }}</td>
 				<td>{{ $pago->concepto->nombreConceptoDePago }}</td>
 				<td>{{ $pago->fechaLimiteDePago?->format('d/m/Y') ?? '-' }}</td>
 				<td>${{ number_format($pago->costo_concepto_mostrar, 2) }}</td>
@@ -231,7 +237,7 @@
 
 		@forelse ($ciclo['pagosPendientes'] as $pago)
 			<tr>
-				<td>{{ $pago->Referencia }}</td>
+				<td class="font-small">{{ $pago->Referencia }}</td>
 				<td>{{ $pago->concepto->nombreConceptoDePago }}</td>
 				<td>{{ $pago->fechaLimiteDePago?->format('d/m/Y') ?? '-' }}</td>
 				<td>${{ number_format($pago->costo_concepto_mostrar, 2) }}</td>
@@ -239,7 +245,7 @@
 				<td>${{ number_format($pago->descuentoDePago, 2) }}</td>
 				<td>${{ number_format($pago->recargo_concepto, 2) }}</td>
 				<td>${{ number_format($pago->montoAPagar, 2) }}</td>
-				<td>{{ $pago->referenciaOriginal ?? '-' }}</td>
+				<td class="font-small">{{ $pago->referenciaOriginal ?? '-' }}</td>
 			</tr>
 		@empty
 			<tr>
@@ -267,7 +273,7 @@
 
 		@forelse ($ciclo['pagosAprobados'] as $pago)
 			<tr>
-				<td>{{ $pago->Referencia }}</td>
+				<td class="font-small">{{ $pago->Referencia }}</td>
 				<td>{{ $pago->concepto->nombreConceptoDePago }}</td>
 				<td>{{ $pago->aportacion ?? '-' }}</td>
 				<td>{{ $pago->fechaDePago?->format('d/m/Y') ?? '-' }}</td>
@@ -303,7 +309,7 @@
 
 		@forelse ($ciclo['otrosPagos'] as $pago)
 			<tr>
-				<td>{{ $pago->Referencia }}</td>
+				<td class="font-small">{{ $pago->Referencia }}</td>
 				<td>{{ $pago->concepto->nombreConceptoDePago }}</td>
 				<td>{{ $pago->fechaLimiteDePago?->format('d/m/Y') ?? '-' }}</td>
 				<td>{{ $pago->fechaDePago?->format('d/m/Y') ?? '-' }}</td>
