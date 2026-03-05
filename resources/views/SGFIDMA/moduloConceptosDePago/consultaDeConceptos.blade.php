@@ -26,8 +26,7 @@
 
                     @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11,12))
                         <select name="filtro" class="select select-boton" onchange="this.form.submit()">
-                            <option value="" disabled selected>Filtrar por</option>
-                            <option value="todas" {{ ($filtro ?? '') == 'todas' ? 'selected' : '' }}>Ver todas</option>
+                            <option value="" selected>Filtrar por</option>
                             <option value="activas" {{ ($filtro ?? '') == 'activas' ? 'selected' : '' }}>Activo(a)</option>
                             <option value="suspendidas" {{ ($filtro ?? '') == 'suspendidas' ? 'selected' : '' }}>Suspendido(a)</option>
                             <option value="pieza" {{ ($filtro ?? '') == 'pieza' ? 'selected' : '' }}>Pieza</option>
@@ -37,15 +36,14 @@
 
                     @estudiante
                         <select name="filtro" class="select select-boton" onchange="this.form.submit()">
-                            <option value="" disabled selected>Filtrar por</option>
-                            <option value="todas" {{ ($filtro ?? '') == 'todas' ? 'selected' : '' }}>Ver todas</option>
+                            <option value="" selected>Filtrar por</option>
                             <option value="pieza" {{ ($filtro ?? '') == 'pieza' ? 'selected' : '' }}>Pieza</option>
                             <option value="servicio" {{ ($filtro ?? '') == 'servicio' ? 'selected' : '' }}>Servicio</option>
                         </select>
                     @endestudiante
 
                     <select name="orden" class="select select-boton" onchange="this.form.submit()">
-                        <option value="" disabled selected>Ordenar por</option>
+                        <option value="" selected>Ordenar por</option>
                         <option value="alfabetico" {{ ($orden ?? '') == 'alfabetico' ? 'selected' : '' }}>Alfabéticamente (A-Z)</option>
                         <option value="costo_mayor" {{ ($orden ?? '') == 'costo_mayor' ? 'selected' : '' }}>Mayor costo</option>
                         <option value="costo_menor" {{ ($orden ?? '') == 'costo_menor' ? 'selected' : '' }}>Menor costo</option>

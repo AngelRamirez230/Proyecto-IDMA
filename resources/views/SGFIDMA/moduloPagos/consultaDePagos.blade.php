@@ -44,7 +44,7 @@
 
                     
                     <select name="filtro" class="select select-boton" onchange="this.form.submit()">
-                        <option value="" disabled {{ empty($filtro) ? 'selected' : '' }}>
+                        <option value=""  {{ empty($filtro) ? 'selected' : '' }}>
                             Filtrar por
                         </option>
                         <option value="pendientes" {{ ($filtro ?? '') == 'pendientes' ? 'selected' : '' }}>
@@ -56,11 +56,16 @@
                         <option value="rechazados" {{ ($filtro ?? '') == 'rechazados' ? 'selected' : '' }}>
                             Rechazados
                         </option>
+                        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+                            <option value="eliminados" {{ ($filtro ?? '') == 'eliminados' ? 'selected' : '' }}>
+                                Eliminados
+                            </option>
+                        @endif
                     </select>
                     
 
                     <select name="orden" class="select select-boton" onchange="this.form.submit()">
-                        <option value="" disabled {{ empty($orden) ? 'selected' : '' }}>
+                        <option value=""  {{ empty($orden) ? 'selected' : '' }}>
                             Ordenar por
                         </option>
                         <option value="alfabetico" {{ ($orden ?? '') == 'alfabetico' ? 'selected' : '' }}>
@@ -152,6 +157,7 @@
                         @endif
                         <th>Referencia de pago</th>
                         <th>Concepto de pago</th>
+                        <th>Aportación</th>
                         <th>Monto</th>
                         <th>Fecha límite de pago</th>
                         <th>Fecha de pago</th>
@@ -164,13 +170,13 @@
 
                     @if ($pagos->isEmpty())
                         <tr>
-                            <td colspan="7" class="tablaVacia">
+                            <td colspan="9" class="tablaVacia">
                                 No existen pagos registrados.
                             </td>
                         </tr>
                     @else
                         @foreach ($pagos as $pago)
-                            <tr class="{{ $pago->idEstatus == 2 ? 'fila-suspendida' : '' }}">
+                            <tr>
                                 @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11,12))
                                     <td>
                                         {{ $pago->estudiante->usuario->primerNombre }}
@@ -183,6 +189,8 @@
                                 <td>{{ $pago->Referencia }}</td>
 
                                 <td>{{ $pago->concepto->nombreConceptoDePago }}</td>
+
+                                <td>{{ $pago->aportacion ?? '-' }}</td>
 
                                 <td>${{ $pago->montoAPagar }}</td>
 

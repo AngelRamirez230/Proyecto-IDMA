@@ -475,7 +475,7 @@ class SolicitudDeBecaController extends Controller
                     Notificacion::create([
                         'idUsuario'          => $usuario->idUsuario,
                         'titulo'             => 'Solicitud de beca aprobada',
-                        'mensaje'            => "Tu solicitud para la beca: {$nombreBeca} ha sido aprobada. Fecha de conclusión: {$fechaConclusion->format('d/m/Y')}.",
+                        'mensaje'            => "Tu solicitud para la beca: \"{$nombreBeca}\" ha sido aprobada. \nFecha de conclusión: {$fechaConclusion->format('d/m/Y')}.",
                         'tipoDeNotificacion' => 1, // Información
                         'fechaDeInicio'      => Carbon::today()->toDateString(),
                         'fechaFin'           => Carbon::today()->addDays(3)->toDateString(),
@@ -515,7 +515,7 @@ class SolicitudDeBecaController extends Controller
                     Notificacion::create([
                         'idUsuario'          => $usuario->idUsuario,
                         'titulo'             => 'Solicitud de beca rechazada',
-                        'mensaje'            => "Tu solicitud para la beca '{$nombreBeca}' ha sido rechazada. Observaciones: {$request->observaciones}",
+                        'mensaje'            => "Tu solicitud para la beca \"{$nombreBeca}\" ha sido rechazada. \nObservaciones: {$request->observaciones}",
                         'tipoDeNotificacion' => 2, // Advertencia
                         'fechaDeInicio'      => Carbon::today()->toDateString(),
                         'fechaFin'           => Carbon::today()->addDays(7)->toDateString(),

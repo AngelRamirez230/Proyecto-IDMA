@@ -195,7 +195,7 @@ class PagoController extends Controller
 
             return redirect()
                 ->back()
-                ->with('popupError', 'No se pudo generar la referencia de pago. Intente mas tarde');
+                ->with('popupError', "No se pudo generar la referencia de pago. \nIntente mas tarde");
         }
     }
 
@@ -242,7 +242,7 @@ class PagoController extends Controller
                 'error'      => $e->getMessage()
             ]);
 
-            return redirect()->back()->with('popupError', 'No fue posible generar el recibo de pago. Intente mas tarde');
+            return redirect()->back()->with('popupError', "No fue posible generar el recibo de pago. \nIntente mas tarde");
         }
     }
 
@@ -266,6 +266,13 @@ class PagoController extends Controller
                 'concepto',
                 'estatus'
             ]);
+
+            // Mostrar eliminados solo si se pide
+            if ($filtro === 'eliminados') {
+                $query->where('idEstatus', 8);
+            } else {
+                $query->whereIn('idEstatus', [10, 11, 12]);
+            }
 
             // =============================
             // RESTRICCIÓN POR ROL (ESTUDIANTE)
@@ -423,7 +430,7 @@ class PagoController extends Controller
                 ->back()
                 ->with(
                     'popupError',
-                    'No se pudo cargar ingresar a este apartado. Intente mas tarde'
+                    "No se pudo cargar ingresar a este apartado. \nIntente mas tarde"
                 );
         }
     }
@@ -442,18 +449,64 @@ class PagoController extends Controller
 
         foreach ($pagosVencidos as $pago) {
 
-            if ($pago->idConceptoDePago != 2) continue;
+            // ==============================
+            // SI NO ES COLEGIATURA
+            // ==============================
 
-            $mesNumero = Carbon::parse($pago->fechaLimiteDePago)->month;
+            if ($pago->idConceptoDePago != 2 && !$pago->referenciaOriginal) {
+                $pago->update([
+                    'idEstatus' => 12
+                ]);
+                continue;
+            }
+
+            // ==============================
+            // OBTENER REFERENCIA RAÍZ
+            // ==============================
+
+            $referenciaRaiz = $pago->referenciaOriginal ?: $pago->Referencia;
+
+            // ==============================
+            // OBTENER EL PAGO RAÍZ
+            // ==============================
+
+            $pagoRaiz = Pago::where('Referencia', $referenciaRaiz)->first();
+
+            if (!$pagoRaiz) {
+                $pago->update(['idEstatus' => 12]);
+                continue;
+            }
+
+
+            // ==============================
+            // MES DEL PAGO ORIGINAL
+            // ==============================
+
+            $mesNumero = Carbon::parse($pagoRaiz->fechaLimiteDePago)->month;
 
             $conceptoPorMes = [
-                10 => 22, 11 => 23, 12 => 28,
-                3  => 29, 1  => 31, 2  => 32,
-                4  => 33, 5  => 34, 6  => 35,
-                7  => 36, 8  => 37, 9  => 19,
+                10 => 22,
+                11 => 23,
+                12 => 28,
+                1  => 31,
+                2  => 32,
+                3  => 29,
+                4  => 33,
+                5  => 34,
+                6  => 35,
+                7  => 36,
+                8  => 37,
+                9  => 19,
             ];
 
-            if (!isset($conceptoPorMes[$mesNumero])) continue;
+            if (!isset($conceptoPorMes[$mesNumero])) {
+
+                $pago->update([
+                    'idEstatus' => 12
+                ]);
+
+                continue;
+            }
 
             $mesNombre = strtoupper(
                 Carbon::create()
@@ -462,18 +515,40 @@ class PagoController extends Controller
                     ->translatedFormat('F')
             );
 
-            $yaExiste = Pago::where('referenciaOriginal', $pago->Referencia)
+            // ==============================
+            // VALIDAR SI YA EXISTE RECARGO
+            // ==============================
+
+            $yaExiste = Pago::where('referenciaOriginal', $referenciaRaiz)
                 ->where('idEstatus', 10)
+                ->whereDate('fechaLimiteDePago', '>=', $fechaHoy)
+                ->where('Referencia', '!=', $pago->Referencia)
                 ->exists();
 
-            if ($yaExiste) continue;
+            if ($yaExiste) {
+                $pago->update(['idEstatus' => 12]);
+                continue;
+            }
 
             $concepto = ConceptoDePago::find($conceptoPorMes[$mesNumero]);
             $estudiante = $pago->estudiante;
 
-            if (!$concepto || !$estudiante) continue;
+            if (!$concepto || !$estudiante) {
+                $pago->update(['idEstatus' => 12]);
+                continue;
+            }
 
-            $pago->update(['idEstatus' => 12]);
+            // ==============================
+            // MARCAR COMO NO PAGADO
+            // ==============================
+
+            $pago->update([
+                'idEstatus' => 12
+            ]);
+
+            // ==============================
+            // COSTO FINAL
+            // ==============================
 
             $costoFinal = max(
                 $concepto->costo - ($pago->descuentoDeBeca ?? 0),
@@ -489,6 +564,10 @@ class PagoController extends Controller
                 $nuevaFechaLimite
             );
 
+            // ==============================
+            // CREAR RECARGO
+            // ==============================
+
             Pago::create([
                 'Referencia' => $referenciaNueva,
                 'idEstudiante' => $estudiante->idEstudiante,
@@ -503,7 +582,7 @@ class PagoController extends Controller
                 'fechaLimiteDePago' => $nuevaFechaLimite,
                 'aportacion' => "COLEGIATURA CON RECARGO DEL MES DE {$mesNombre}",
                 'idEstatus' => 10,
-                'referenciaOriginal' => $pago->Referencia,
+                'referenciaOriginal' => $referenciaRaiz
             ]);
         }
     }
@@ -610,11 +689,12 @@ class PagoController extends Controller
 
             $nombreArchivo = $archivo->getClientOriginalName();
 
-            return redirect()->back()->with('success',
-                "TXT cargado correctamente<br>
-                <strong>Archivo cargado</strong>: {$nombreArchivo}<br>
+            return redirect()->back()->with(
+                'success',
+                "TXT cargado correctamente\n
+                <strong>Archivo cargado</strong>: {$nombreArchivo}\n
                 <strong>Pagos validados:</strong> " . count($pagosActualizados) .
-                "<br><strong>No encontrados:</strong> " . count($pagosNoEncontrados)
+                "\n<strong>No encontrados:</strong> " . count($pagosNoEncontrados)
             );
 
         } catch (\Throwable $e) {
@@ -750,10 +830,10 @@ class PagoController extends Controller
             $nombreArchivo = $archivo->getClientOriginalName();
 
             return redirect()->back()->with('success',
-                "Excel cargado correctamente<br>
-                <strong>Archivo cargado</strong>: {$nombreArchivo}<br>
+                "Excel cargado correctamente\n
+                <strong>Archivo cargado</strong>: {$nombreArchivo}\n
                 <strong>Pagos validados:</strong> " . count($pagosActualizados) .
-                "<br><strong>No encontrados:</strong> " . count($pagosNoEncontrados)
+                "\n<strong>No encontrados:</strong> " . count($pagosNoEncontrados)
             );
         } catch (\Throwable $e) {
 
@@ -825,14 +905,16 @@ class PagoController extends Controller
 
             $pago = Pago::findOrFail($referencia);
 
-            // 🔹 SOLO permitir eliminar si está pendiente
+            // Solo permitir eliminar si está pendiente
             if ($pago->idEstatus != 10) {
                 return redirect()
                     ->back()
                     ->with('popupError', 'Solo se pueden eliminar pagos pendientes.');
             }
 
-            $pago->delete();
+            // 🔹 Eliminación lógica
+            $pago->idEstatus = 8;
+            $pago->save();
 
             return redirect()
                 ->back()

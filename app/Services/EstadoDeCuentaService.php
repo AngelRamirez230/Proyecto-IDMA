@@ -29,6 +29,7 @@ class EstadoDeCuentaService
             'pagoOriginal'
         ])
             ->where('idEstudiante', $idEstudiante)
+            ->whereIn('idEstatus', [10, 11, 12])
             ->orderBy('fechaLimiteDePago')
             ->get()
             ->groupBy('idCicloModalidad');

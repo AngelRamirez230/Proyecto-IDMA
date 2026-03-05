@@ -63,7 +63,7 @@ class ConceptoController extends Controller
 
             if ($validator->fails()) {
                 return back()
-                    ->with('popupError', 'No se pudo crear el concepto de pago. Verifica los datos ingresados.')
+                    ->with('popupError', "No se pudo crear el concepto de pago. \nVerifica los datos ingresados.")
                     ->withErrors($validator)
                     ->withInput();
             }
@@ -102,7 +102,7 @@ class ConceptoController extends Controller
             ]);
 
             return redirect()->back()
-                ->with('popupError', 'Ocurrió un error al crear el concepto de pago. Intenta nuevamente.')
+                ->with('popupError', "Ocurrió un error al crear el concepto de pago. \nIntenta nuevamente.")
                 ->withInput();
         }
     }
@@ -191,7 +191,7 @@ class ConceptoController extends Controller
             ]);
 
             return redirect()->back()
-                ->with('popupError', 'Ocurrió un error al cargar los conceptos de pago. Intenta más tarde.');
+                ->with('popupError', "Ocurrió un error al cargar los conceptos de pago. \nIntenta más tarde.");
         }
     }
 
@@ -256,7 +256,7 @@ class ConceptoController extends Controller
 
                 if ($validator->fails()) {
                     return back()
-                        ->with('popupError', 'No se pudo actualizar el concepto de pago. Verifica los datos ingresados.')
+                        ->with('popupError', "No se pudo actualizar el concepto de pago. \nVerifica los datos ingresados.")
                         ->withErrors($validator)
                         ->withInput();
                 }
@@ -286,7 +286,7 @@ class ConceptoController extends Controller
                         ->route('consultaConcepto')
                         ->with(
                             'popupError',
-                            "El concepto {$concepto->nombreConceptoDePago} no puede suspenderse porque está siendo usado en un plan de pago."
+                            "El concepto \"{$concepto->nombreConceptoDePago}\" no puede suspenderse porque está siendo usado en un plan de pago."
                         );
                 }
 
@@ -296,8 +296,8 @@ class ConceptoController extends Controller
 
                 // Mensaje según acción
                 $mensaje = ($estatusAnterior == 1)
-                    ? "El concepto {$concepto->nombreConceptoDePago} ha sido suspendido."
-                    : "El concepto {$concepto->nombreConceptoDePago} ha sido activado.";
+                    ? "El concepto \"{$concepto->nombreConceptoDePago}\" ha sido suspendido."
+                    : "El concepto \"{$concepto->nombreConceptoDePago}\" ha sido activado.";
 
                 return redirect()
                     ->route('consultaConcepto')
@@ -338,7 +338,7 @@ class ConceptoController extends Controller
                     ->route('consultaConcepto')
                     ->with(
                         'popupError',
-                        "El concepto {$concepto->nombreConceptoDePago} no puede eliminarse porque está siendo usado en un plan de pago."
+                        "El concepto \"{$concepto->nombreConceptoDePago}\" no puede eliminarse porque está siendo usado en un plan de pago."
                     );
             }
 
@@ -355,7 +355,7 @@ class ConceptoController extends Controller
                     ->route('consultaConcepto')
                     ->with(
                         'popupError',
-                        "El concepto {$concepto->nombreConceptoDePago} no puede eliminarse porque existen pagos registrados con este concepto."
+                        "El concepto \"{$concepto->nombreConceptoDePago}\" no puede eliminarse porque existen pagos registrados con este concepto."
                     );
             }
 
@@ -368,7 +368,7 @@ class ConceptoController extends Controller
                 ->route('consultaConcepto')
                 ->with(
                     'success',
-                    "El concepto {$concepto->nombreConceptoDePago} ha sido eliminado correctamente."
+                    "El concepto \"{$concepto->nombreConceptoDePago}\" ha sido eliminado correctamente."
                 );
 
         } catch (\Throwable $e) {

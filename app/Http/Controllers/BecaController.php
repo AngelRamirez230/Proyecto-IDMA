@@ -57,7 +57,7 @@ class BecaController extends Controller
 
         if ($validator->fails()) {
             return back()
-                ->with('popupError', 'No se pudo registrar la beca. Verifica los datos ingresados.')
+                ->with('popupError', "No se pudo registrar la beca.\nVerifica los datos ingresados.")
                 ->withErrors($validator)
                 ->withInput();
         }
@@ -90,7 +90,7 @@ class BecaController extends Controller
 
         } catch (\Exception $e) {
             return back()
-                ->with('popupError', 'Error: No se pudo registrar la beca. Inténtalo nuevamente.')
+                ->with('popupError', "Error: No se pudo registrar la beca. \nInténtalo nuevamente.")
                 ->withInput();
         }
     }
@@ -184,7 +184,7 @@ class BecaController extends Controller
             ]);
 
             return redirect()->back()
-                ->with('popupError', 'Ocurrió un error al cargar la lista de becas. Intenta más tarde.');
+                ->with('popupError', "Ocurrió un error al cargar la lista de becas. \nIntenta más tarde.");
         }
     }
 
@@ -243,7 +243,7 @@ class BecaController extends Controller
 
                 if ($validator->fails()) {
                     return back()
-                        ->with('popupError', 'No se pudo actualizar la beca. Verifica los datos ingresados.')
+                        ->with('popupError', "No se pudo actualizar la beca. \nVerifica los datos ingresados.")
                         ->withErrors($validator)
                         ->withInput();
                 }
@@ -314,8 +314,8 @@ class BecaController extends Controller
             $beca->save();
 
             return redirect()->route('consultaBeca')
-                ->with('success', "La beca {$beca->nombreDeBeca} ha sido eliminada correctamente.");
-
+                ->with('success', "La beca \"{$beca->nombreDeBeca}\" ha sido eliminada correctamente.");
+                
         } catch (\Throwable $e) {
             \Log::error('Error al eliminar beca', [
                 'id_beca' => $idBeca,

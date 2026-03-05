@@ -155,7 +155,7 @@ class PagoEstudianteController extends Controller
                 ->back()
                 ->with(
                     'popupError',
-                    'Ocurrió un error al cargar la información. Intente nuevamente o contacte al administrador.'
+                    "Ocurrió un error al cargar la información. \nIntente nuevamente o contacte al administrador."
                 );
         }
     }
@@ -339,7 +339,7 @@ class PagoEstudianteController extends Controller
 
         if ($validator->fails()) {
             return back()
-                ->with('popupError', 'No se pudieron generar los pagos. Verifica la información.')
+                ->with('popupError', "No se pudieron generar los pagos. \nVerifica la información.")
                 ->withErrors($validator)
                 ->withInput();
         }
@@ -578,7 +578,7 @@ class PagoEstudianteController extends Controller
                         Notificacion::create([
                             'idUsuario'         => $estudiante->idUsuario,
                             'titulo'            => 'Nuevo pago asignado',
-                            'mensaje'           => "Se te ha asignado el concepto de pago: {$concepto->nombreConceptoDePago}. Revisa tus pagos.",
+                            'mensaje'           => "Se te ha asignado el concepto de pago: \n{$concepto->nombreConceptoDePago}. \nRevisa tus pagos.",
                             'tipoDeNotificacion'=> 1, // Informativo
                             'fechaDeInicio' => $fechaEmisionPago->toDateString(),
                             'fechaFin'           => $fechaEmisionPago->copy()->addDays(3)->toDateString(),

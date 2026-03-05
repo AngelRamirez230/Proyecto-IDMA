@@ -15,7 +15,7 @@
 
         <h1 class="titulo-form2">Validación de pagos pendientes</h1>
 
-        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11,12))
 
             <section class="consulta-tabla-contenedor">
                 <table class="tabla">

@@ -25,14 +25,13 @@
                     <input type="hidden" name="buscarPlan" value="{{ $buscar ?? '' }}">
 
                     <select name="filtro" class="select select-boton" onchange="this.form.submit()">
-                        <option value="" disabled selected>Filtrar por</option>
-                        <option value="todas" {{ ($filtro ?? '') == 'todas' ? 'selected' : '' }}>Ver todas</option>
+                        <option value="" selected>Filtrar por</option>
                         <option value="activas" {{ ($filtro ?? '') == 'activas' ? 'selected' : '' }}>Activo(a)</option>
                         <option value="suspendidas" {{ ($filtro ?? '') == 'suspendidas' ? 'selected' : '' }}>Suspendido(a)</option>
                     </select>
 
                     <select name="orden" class="select select-boton" onchange="this.form.submit()">
-                        <option value="" disabled selected>Ordenar por</option>
+                        <option value="" selected>Ordenar por</option>
                         <option value="alfabetico" {{ ($orden ?? '') == 'alfabetico' ? 'selected' : '' }}>Alfabéticamente (A-Z)</option>
                     </select>
                 </form>

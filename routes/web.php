@@ -284,7 +284,7 @@ Route::middleware(['auth.manual', 'nocache', 'activity.timeout', 'bitacora'])->g
 
     Route::middleware(['role:1,2', 'departamento:11'])->group(function () {
 
-        Route::get('/pagos/eliminar', [PagoController::class, 'vistaEliminar'])->name('pagos.eliminar.vista');
+        Route::get('/pago/eliminar', [PagoController::class, 'vistaEliminar'])->name('pagos.eliminar.vista');
         Route::delete('/pagos/{referencia}', [PagoController::class, 'destroy'])->name('pagos.destroy');
 
 

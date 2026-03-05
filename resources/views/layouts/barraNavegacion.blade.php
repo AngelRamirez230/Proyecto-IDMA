@@ -2,7 +2,7 @@
     @if (session('success'))
         <div class="popup-notificacion" id="popup">
             <div class="popup-contenido">
-                <p>{!! session('success') !!}</p>
+                <p>{!! nl2br(session('success')) !!}</p>
                 <button class="popup-boton" onclick="cerrarPopup()">Aceptar</button>
             </div>
         </div>
@@ -11,7 +11,7 @@
     @if (session('popupError'))
         <div class="popup-notificacion" id="popup">
             <div class="popup-contenido" style="color: red;">
-                <p>{{ session('popupError') }}</p>
+                <p>{!! nl2br(session('popupError')) !!}</p>
                 <button class="popup-boton" onclick="cerrarPopup()">Aceptar</button>
             </div>
         </div>

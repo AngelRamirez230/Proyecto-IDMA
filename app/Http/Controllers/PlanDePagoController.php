@@ -79,7 +79,7 @@ class PlanDePagoController extends Controller
             // ⛔ Validación
             if ($validator->fails()) {
                 return back()
-                    ->with('popupError', 'No se pudo crear el plan de pago. Verifica los datos ingresados.')
+                    ->with('popupError', "No se pudo crear el plan de pago. \nVerifica los datos ingresados.")
                     ->withErrors($validator)
                     ->withInput();
             }
@@ -177,7 +177,7 @@ class PlanDePagoController extends Controller
 
             return redirect()
                 ->back()
-                ->with('popupError', 'Ocurrió un error al crear el plan de pago. Intenta más tarde.');
+                ->with('popupError', "Ocurrió un error al crear el plan de pago. \nIntenta más tarde.");
         }
     }
 
@@ -379,7 +379,7 @@ class PlanDePagoController extends Controller
                     ->route('consultaPlan')
                     ->with(
                         'popupError',
-                        'No se puede modificar este plan de pago porque tiene estudiantes asignados actualmente y también cuenta con historial. Solo puede ser suspendido.'
+                        "No se puede modificar este plan de pago porque tiene estudiantes asignados actualmente y también cuenta con historial. \nSolo puede ser suspendido."
                     );
             }
 
@@ -395,7 +395,7 @@ class PlanDePagoController extends Controller
                     ->route('consultaPlan')
                     ->with(
                         'success',
-                        'El nombre del plan se actualizó correctamente. No se pueden modificar los conceptos porque el plan tiene estudiantes asignados.'
+                        "El nombre del plan se actualizó correctamente. \nNo se pueden modificar los conceptos porque el plan tiene estudiantes asignados."
                     );
             }
 
@@ -440,7 +440,7 @@ class PlanDePagoController extends Controller
 
             if ($validator->fails()) {
                 return back()
-                    ->with('popupError', 'No se pudo actualizar el plan de pago. Verifica los datos ingresados.')
+                    ->with('popupError', "No se pudo actualizar el plan de pago. \nVerifica los datos ingresados.")
                     ->withErrors($validator)
                     ->withInput();
             }
@@ -467,12 +467,14 @@ class PlanDePagoController extends Controller
 
             // INSCRIPCIÓN o REINSCRIPCIÓN (solo uno)
             if (
-                ($inscripcion > 0 && $reinscripcion > 0) ||
-                ($inscripcion === 0 && $reinscripcion === 0)
+                !(
+                    ($inscripcion === 1 && $reinscripcion === 0) ||
+                    ($inscripcion === 0 && $reinscripcion === 1)
+                )
             ) {
                 return back()
                     ->withErrors([
-                        'cantidades' => 'El plan debe incluir INSCRIPCIÓN o REINSCRIPCIÓN (solo uno de ellos).'
+                        'cantidades' => 'El plan debe incluir exactamente 1 INSCRIPCIÓN o 1 REINSCRIPCIÓN (solo uno de ellos).'
                     ])
                     ->withInput();
             }
@@ -517,7 +519,7 @@ class PlanDePagoController extends Controller
             // report($e); // ← opcional para logs
 
             return back()
-                ->with('popupError', 'Ocurrió un error al actualizar el plan de pagos. Intenta nuevamente.')
+                ->with('popupError', "Ocurrió un error al actualizar el plan de pagos. \nIntenta nuevamente.")
                 ->withInput();
         }
     }
@@ -540,7 +542,7 @@ class PlanDePagoController extends Controller
             if ($tieneHistorial) {
                 return back()->with(
                     'popupError',
-                    'No se puede eliminar este plan de pago porque existen o existieron estudiantes con este plan asignado. Solo puede ser suspendido si no existen estudiantes con este plan asignado en este momento.'
+                    "No se puede eliminar este plan de pago porque existen o existieron estudiantes con este plan asignado. \nSolo puede ser suspendido si no existen estudiantes con este plan asignado en este momento."
                 );
             }
 
@@ -560,7 +562,7 @@ class PlanDePagoController extends Controller
 
             return back()->with(
                 'popupError',
-                'Ocurrió un error al intentar eliminar el plan de pago. Intenta nuevamente.'
+                "Ocurrió un error al intentar eliminar el plan de pago. \nIntenta nuevamente."
             );
 
             // Para depuración:
@@ -678,7 +680,7 @@ class PlanDePagoController extends Controller
                 ->back()
                 ->with(
                     'popupError',
-                    'Ocurrió un error al cargar la asignación de planes de pago. Intente nuevamente.'
+                    "Ocurrió un error al cargar la asignación de planes de pago. \nIntente nuevamente."
                 );
         }
     }
@@ -740,7 +742,7 @@ class PlanDePagoController extends Controller
 
             if ($validator->fails()) {
                 return back()
-                    ->with('popupError', 'No se pudo asignar el plan. Verifica la información.')
+                    ->with('popupError', "No se pudo asignar el plan. \nVerifica la información.")
                     ->withErrors($validator)
                     ->withInput();
             }
@@ -1115,7 +1117,7 @@ class PlanDePagoController extends Controller
                         Notificacion::create([
                             'idUsuario'          => $estudiante->idUsuario,
                             'titulo'             => 'Nuevo plan de pago asignado',
-                            'mensaje'            => "Se te ha asignado el plan de pago: {$estudiantePlan->planDePago->nombrePlanDePago}. Revisa tu información en inicio.",
+                            'mensaje'            => "Se te ha asignado el plan de pago: \n{$estudiantePlan->planDePago->nombrePlanDePago}. \nRevisa tu información en inicio.",
                             'tipoDeNotificacion' => 1,
                             'fechaDeInicio'      => now()->toDateString(),
                             'fechaFin'           => now()->addDays(3)->toDateString(),
@@ -1169,7 +1171,7 @@ class PlanDePagoController extends Controller
             return back()
                 ->with(
                     'popupError',
-                    'Ocurrió un error inesperado al asignar el plan de pago. Intente nuevamente o contacte al administrador.'
+                    "Ocurrió un error inesperado al asignar el plan de pago. \nIntente nuevamente o contacte al administrador."
                 )
                 ->withInput();
         }
