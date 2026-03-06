@@ -412,6 +412,39 @@ class PagoEstudianteController extends Controller
                         continue;
                     }
 
+                    // =============================
+                    // VALIDAR CONCEPTO SEGÚN GRADO
+                    // =============================
+                    $grado = $estudiante->grado;
+
+                    if ($grado > 1 && $concepto->idConceptoDePago == 1) {
+
+                        $omitidosPorPlan[] = [
+                            'estudiante' => $estudiante->usuario->primerNombre . ' ' .
+                                            $estudiante->usuario->segundoNombre . ' ' .
+                                            $estudiante->usuario->primerApellido . ' ' .
+                                            $estudiante->usuario->segundoApellido,
+                            'concepto'   => $concepto->nombreConceptoDePago,
+                            'motivo'     => 'El concepto de inscripción solo puede asignarse a estudiantes de primer semestre',
+                        ];
+
+                        continue;
+                    }
+
+                    if ($grado == 1 && $concepto->idConceptoDePago == 30) {
+
+                        $omitidosPorPlan[] = [
+                            'estudiante' => $estudiante->usuario->primerNombre . ' ' .
+                                            $estudiante->usuario->segundoNombre . ' ' .
+                                            $estudiante->usuario->primerApellido . ' ' .
+                                            $estudiante->usuario->segundoApellido,
+                            'concepto'   => $concepto->nombreConceptoDePago,
+                            'motivo'     => 'El concepto de reinscripción no aplica para estudiantes de primer semestre',
+                        ];
+
+                        continue;
+                    }
+
 
                     // =============================
                     // VALIDAR PLAN DE PAGO ACTIVO

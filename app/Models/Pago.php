@@ -28,6 +28,7 @@ class Pago extends Model
         'fechaDePago',
         'idConceptoDePago',
         'costoConceptoOriginal',
+        'nombrePlanDePago', 
         'nombreBeca',
         'porcentajeDeDescuento',
         'descuentoDeBeca',

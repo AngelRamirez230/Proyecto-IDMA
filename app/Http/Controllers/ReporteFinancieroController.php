@@ -77,7 +77,11 @@ class ReporteFinancieroController extends Controller
                 )->endOfMonth();
 
                 // 🔹 Todos los pagos del estudiante
-                $pagos = Pago::where('idEstudiante', $estudiante->idEstudiante)->get();
+                $pagos = Pago::with('tipoDePago')
+                    ->where('idEstudiante', $estudiante->idEstudiante)
+                    ->orderBy('idCicloModalidad')
+                    ->orderBy('fechaLimiteDePago')
+                    ->get();
 
                 // 🔹 Mensualidades
                 $mensualidades = $pagos
@@ -89,14 +93,23 @@ class ReporteFinancieroController extends Controller
                         ];
                     });
 
-                $inscripciones   = $pagos
+                // 🔹 Inscripciones
+                $inscripciones = $pagos
                     ->where('idConceptoDePago', 1)
                     ->values();
+
+                // 🔹 Reinscripciones
                 $reinscripciones = $pagos
                     ->where('idConceptoDePago', 30)
                     ->values();
 
-                // 🔹 Generar meses
+                // 🔹 Recargos
+                $recargos = $pagos
+                    ->filter(fn ($p) => !empty($p->referenciaOriginal))
+                    ->where('idEstatus', 11)
+                    ->groupBy('referenciaOriginal');
+
+                // 🔹 Generar meses de la generación
                 $meses = [];
                 $actual = $inicio->copy();
 
@@ -105,7 +118,7 @@ class ReporteFinancieroController extends Controller
                     $actual->addMonth();
                 }
 
-                // 🔹 Armar kárdex
+                // 🔹 Armar kardex
                 $kardex = [];
                 $semestre = 1;
 
@@ -144,17 +157,58 @@ class ReporteFinancieroController extends Controller
                             $estado = 12;
                         }
 
+                        // 🔹 Buscar recargo asociado
+                        $recargoPago = null;
+
+                        if ($pago && isset($recargos[$pago->Referencia])) {
+                            $recargoPago = $recargos[$pago->Referencia]->first();
+                        }
+
+                        $fechaPago = $pago?->fechaDePago;
+                        $formaPago = ($pago?->idTipoDePago === 3)
+                            ? 'Transferencia'
+                            : $pago?->tipoDePago?->nombreTipoDePago;
+
+                        // 🔹 Si existe recargo usar su información
+                        if ($recargoPago) {
+                            $estado = $recargoPago->idEstatus;
+                            $fechaPago = $recargoPago->fechaDePago;
+                            $formaPago = ($recargoPago->idTipoDePago === 3)
+                                ? 'Transferencia'
+                                : $recargoPago->tipoDePago?->nombreTipoDePago;
+                        }
+
+                        // 🔹 Mensualidad
                         $kardex[] = [
                             'concepto'  => 'Mensualidad',
                             'periodo'   => ucfirst($mes->translatedFormat('F Y')),
                             'tipo'      => 'mensualidad',
                             'estado'    => $estado,
                             'monto'     => $pago?->montoAPagar,
-                            'fechaPago' => $pago?->fechaDePago,
-                            'formaPago' => ($pago?->idTipoDePago === 3)
-                                ? 'Transferencia'
-                                : $pago?->tipoDePago?->nombreTipoDePago,
+                            'fechaPago' => $fechaPago,
+                            'formaPago' => $formaPago,
                         ];
+
+                        // 🔹 Agregar recargos
+                        if ($pago && isset($recargos[$pago->Referencia])) {
+
+                            foreach ($recargos[$pago->Referencia] as $recargo) {
+
+                                $montoRecargo = $recargo->montoAPagar - $pago->montoAPagar;
+
+                                $kardex[] = [
+                                    'concepto'  => 'Recargo',
+                                    'periodo'   => ucfirst($mes->translatedFormat('F Y')),
+                                    'tipo'      => 'recargo',
+                                    'estado'    => $recargo->idEstatus,
+                                    'monto'     => $montoRecargo,
+                                    'fechaPago' => $recargo->fechaDePago,
+                                    'formaPago' => ($recargo->idTipoDePago === 3)
+                                        ? 'Transferencia'
+                                        : $recargo->tipoDePago?->nombreTipoDePago,
+                                ];
+                            }
+                        }
                     }
 
                     $semestre++;

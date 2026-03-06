@@ -100,13 +100,19 @@
                                         @csrf
                                         @method('DELETE')
 
-                                        <button type="submit"
+                                        <button type="button"
                                                 class="accion-boton"
-                                                onclick="return confirm('¿Eliminar este pago?')"
+                                                onclick="mostrarPopupConfirmacion(
+                                                    '{{ $pago->concepto->nombreConceptoDePago }}',
+                                                    '{{ $pago->estudiante->usuario->primerNombre }} {{ $pago->estudiante->usuario->segundoNombre }} {{ $pago->estudiante->usuario->primerApellido }} {{ $pago->estudiante->usuario->segundoApellido }}',
+                                                    '{{ $pago->Referencia }}',
+                                                    '${{ number_format($pago->montoAPagar,2) }}',
+                                                    '{{ $pago->fechaLimiteDePago?->format('d/m/Y') ?? '-' }}',
+                                                    this
+                                                    )"
                                                 title="Eliminar">
 
-                                            <img src="{{ asset('imagenes/IconoEliminar.png') }}" 
-                                                alt="Eliminar">
+                                            <img src="{{ asset('imagenes/IconoEliminar.png') }}" alt="Eliminar">
                                         </button>
                                     </form>
                                 </td>
@@ -125,6 +131,41 @@
         </div>
 
     </main>
+
+
+    <script>
+
+
+        function mostrarPopupConfirmacion(concepto,
+            estudiante,
+            referencia,
+            monto,
+            fechaLimite,
+            boton) 
+        {
+
+            // Guardar formulario
+            formularioAEliminar = boton.closest('form');
+
+            // Cambiar mensaje
+            document.getElementById('mensajeConfirmacion').innerHTML =
+            `
+            <strong>¡ADVERTENCIA!</strong><br><br>
+
+            <b>¿Estás seguro de eliminar este pago?</b><br><br>
+
+            <b>Referencia de pago:</b> ${referencia}<br>
+            <b>Concepto de pago:</b> ${concepto}<br>
+            <b>Estudiante:</b> ${estudiante}<br>
+            <b>Monto:</b> ${monto}<br>
+            <b>Fecha límite:</b> ${fechaLimite}
+            `;
+
+            // Mostrar popup
+            document.getElementById('popupConfirmacion').style.display = 'flex';
+        }
+
+        </script>
     
 </body>
 </html>

@@ -14,7 +14,7 @@ use Carbon\Carbon;
 class PagosNoPagados extends Command
 {
     protected $signature = 'pagos:no-pagados';
-    protected $description = 'Marca como NO PAGADOS los pagos vencidos con 3 días de tolerancia';
+    protected $description = 'Marca pagos vencidos y genera recargos automáticamente';
 
     public function handle()
     {
@@ -22,11 +22,12 @@ class PagosNoPagados extends Command
 
             DB::transaction(function () {
 
-                $fechaLimite = Carbon::today()->subDays(3);
+                $fechaHoy = Carbon::today();
 
                 $pagosVencidos = Pago::where('idEstatus', 10)
                     ->whereNotNull('fechaLimiteDePago')
-                    ->whereDate('fechaLimiteDePago', '<', $fechaLimite)
+                    ->whereDate('fechaLimiteDePago', '<', $fechaHoy)
+                    ->lockForUpdate()
                     ->get();
 
                 if ($pagosVencidos->isEmpty()) {
@@ -38,9 +39,9 @@ class PagosNoPagados extends Command
                     10 => 22,
                     11 => 23,
                     12 => 28,
-                    3  => 29,
                     1  => 31,
                     2  => 32,
+                    3  => 29,
                     4  => 33,
                     5  => 34,
                     6  => 35,
@@ -51,15 +52,52 @@ class PagosNoPagados extends Command
 
                 foreach ($pagosVencidos as $pago) {
 
-                    $pago->update(['idEstatus' => 12]);
+                    // ==============================
+                    // SI NO ES COLEGIATURA
+                    // ==============================
 
-                    if ($pago->idConceptoDePago != 2) {
+                    if ($pago->idConceptoDePago != 2 && !$pago->referenciaOriginal) {
+
+                        $pago->update([
+                            'idEstatus' => 12
+                        ]);
+
                         continue;
                     }
 
-                    $mesNumero = Carbon::parse($pago->fechaLimiteDePago)->month;
+                    // ==============================
+                    // REFERENCIA RAÍZ
+                    // ==============================
+
+                    $referenciaRaiz = $pago->referenciaOriginal ?: $pago->Referencia;
+
+                    // ==============================
+                    // PAGO RAÍZ
+                    // ==============================
+
+                    $pagoRaiz = Pago::where('Referencia', $referenciaRaiz)->first();
+
+                    if (!$pagoRaiz) {
+
+                        $pago->update([
+                            'idEstatus' => 12
+                        ]);
+
+                        continue;
+                    }
+
+                    // ==============================
+                    // MES DEL PAGO ORIGINAL
+                    // ==============================
+
+                    $mesNumero = Carbon::parse($pagoRaiz->fechaLimiteDePago)->month;
 
                     if (!isset($conceptoPorMes[$mesNumero])) {
+
+                        $pago->update([
+                            'idEstatus' => 12
+                        ]);
+
                         continue;
                     }
 
@@ -70,37 +108,55 @@ class PagosNoPagados extends Command
                             ->translatedFormat('F')
                     );
 
-                    $nuevoConceptoId = $conceptoPorMes[$mesNumero];
+                    // ==============================
+                    // VALIDAR SI YA EXISTE RECARGO
+                    // ==============================
 
-                    $yaExiste = Pago::where('referenciaOriginal', $pago->Referencia)
+                    $yaExiste = Pago::where('referenciaOriginal', $referenciaRaiz)
                         ->where('idEstatus', 10)
+                        ->whereDate('fechaLimiteDePago', '>=', $fechaHoy)
+                        ->where('Referencia', '!=', $pago->Referencia)
                         ->exists();
 
                     if ($yaExiste) {
+
+                        $pago->update([
+                            'idEstatus' => 12
+                        ]);
+
                         continue;
                     }
 
+                    $concepto = ConceptoDePago::find($conceptoPorMes[$mesNumero]);
                     $estudiante = $pago->estudiante;
-                    $concepto   = ConceptoDePago::find($nuevoConceptoId);
 
-                    if (!$estudiante || !$concepto) {
+                    if (!$concepto || !$estudiante) {
+
+                        $pago->update([
+                            'idEstatus' => 12
+                        ]);
+
                         continue;
                     }
+
+                    // ==============================
+                    // MARCAR COMO NO PAGADO
+                    // ==============================
+
+                    $pago->update([
+                        'idEstatus' => 12
+                    ]);
+
+                    // ==============================
+                    // COSTO FINAL
+                    // ==============================
+
+                    $costoFinal = max(
+                        $concepto->costo - ($pago->descuentoDeBeca ?? 0),
+                        0
+                    );
 
                     $nuevaFechaLimite = Carbon::today()->addDays(8);
-
-                    // HEREDAR BECA
-                    $costoOriginal   = $concepto->costo;
-                    $costoFinal      = $costoOriginal;
-
-                    $nombreBeca      = $pago->nombreBeca ?? null;
-                    $porcentajeBeca  = $pago->porcentajeDeDescuento ?? 0;
-                    $descuentoBeca   = $pago->descuentoDeBeca ?? 0;
-
-                    if ($descuentoBeca > 0) {
-                        $costoFinal -= $descuentoBeca;
-                        $costoFinal = max($costoFinal, 0);
-                    }
 
                     $referenciaNueva = ReferenciaBancariaAztecaService::generar(
                         $estudiante,
@@ -109,33 +165,63 @@ class PagosNoPagados extends Command
                         $nuevaFechaLimite
                     );
 
+                    // ==============================
+                    // CREAR RECARGO
+                    // ==============================
+
                     Pago::create([
-                        'Referencia'               => $referenciaNueva,
-                        'idEstudiante'             => $estudiante->idEstudiante,
-                        'idConceptoDePago'         => $nuevoConceptoId,
-                        'idCicloModalidad'         => $pago->idCicloModalidad,
-                        'costoConceptoOriginal'    => $costoOriginal,
-                        'nombreBeca'               => $nombreBeca,
-                        'porcentajeDeDescuento'    => $porcentajeBeca,
-                        'descuentoDeBeca'          => $descuentoBeca,
-                        'montoAPagar'              => $costoFinal,
-                        'fechaGeneracionDePago'    => Carbon::today(),
-                        'fechaLimiteDePago'        => $nuevaFechaLimite,
-                        'aportacion'               => "COLEGIATURA CON RECARGO DEL MES DE {$mesNombre}",
-                        'idEstatus'                => 10,
-                        'referenciaOriginal'       => $pago->Referencia,
+                        'Referencia' => $referenciaNueva,
+                        'idEstudiante' => $estudiante->idEstudiante,
+                        'idConceptoDePago' => $concepto->idConceptoDePago,
+                        'idCicloModalidad' => $pago->idCicloModalidad,
+                        'costoConceptoOriginal' => $concepto->costo,
+                        'nombreBeca' => $pago->nombreBeca,
+                        'porcentajeDeDescuento' => $pago->porcentajeDeDescuento,
+                        'descuentoDeBeca' => $pago->descuentoDeBeca,
+                        'montoAPagar' => $costoFinal,
+                        'fechaGeneracionDePago' => Carbon::today(),
+                        'fechaLimiteDePago' => $nuevaFechaLimite,
+                        'aportacion' => "COLEGIATURA CON RECARGO DEL MES DE {$mesNombre}",
+                        'idEstatus' => 10,
+                        'referenciaOriginal' => $referenciaRaiz
                     ]);
 
+                    // ==============================
+                    // CREAR NOTIFICACIÓN
+                    // ==============================
+
+                    $conceptoVencido = optional($pago->concepto)->nombreConceptoDePago ?? 'Concepto vencido';
+                    $conceptoRecargo = $concepto->nombreConceptoDePago ?? 'Concepto con recargo';
+
+                    // Si el pago vencido es el pago raíz
+                    if (!$pago->referenciaOriginal) {
+
+                        $titulo = 'Pago de colegiatura vencido';
+
+                        $mensaje = "Tu pago \"{$conceptoVencido}\" correspondiente al mes de {$mesNombre} ha vencido.\n
+                    Se ha generado un nuevo pago \"{$conceptoRecargo}\".\n
+                    Revisa tus pagos.";
+
+                    } 
+                    // Si venció un pago que ya tenía recargo
+                    else {
+
+                        $titulo = 'Pago con recargo vencido';
+
+                        $mensaje = "Tu pago con recargo \"{$conceptoVencido}\" correspondiente al mes de {$mesNombre} ha vencido.\n
+                    Se ha generado un nuevo pago \"{$conceptoRecargo}\".\n
+                    Revisa tus pagos.";
+
+                    }
+
                     Notificacion::create([
-                        'idUsuario'          => $estudiante->idUsuario,
-                        'titulo'             => 'Mensualidad vencida',
-                        'mensaje'            => "Tu mensualidad del mes de {$mesNombre} ha vencido.
-                                                Se te ha asignado el concepto {$concepto->nombreConceptoDePago}.
-                                                Revisa tus pagos.",
+                        'idUsuario' => $estudiante->idUsuario,
+                        'titulo' => $titulo,
+                        'mensaje' => $mensaje,
                         'tipoDeNotificacion' => 1,
-                        'fechaDeInicio'      => Carbon::today()->toDateString(),
-                        'fechaFin'           => Carbon::today()->copy()->addDays(5)->toDateString(),
-                        'leida'              => 0,
+                        'fechaDeInicio' => Carbon::today(),
+                        'fechaFin' => Carbon::today()->copy()->addDays(5),
+                        'leida' => 0
                     ]);
                 }
 
@@ -146,7 +232,7 @@ class PagosNoPagados extends Command
 
             Log::error('Error en comando pagos:no-pagados', [
                 'mensaje' => $e->getMessage(),
-                'linea'   => $e->getLine(),
+                'linea' => $e->getLine(),
                 'archivo' => $e->getFile(),
             ]);
 

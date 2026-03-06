@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 // MODELOS
 use App\Models\Pago;
 use App\Models\ConceptoDePago;
+use App\Models\Notificacion;
 use App\Services\ReferenciaBancariaAztecaService;
 
 class PagoController extends Controller
@@ -583,6 +584,44 @@ class PagoController extends Controller
                 'aportacion' => "COLEGIATURA CON RECARGO DEL MES DE {$mesNombre}",
                 'idEstatus' => 10,
                 'referenciaOriginal' => $referenciaRaiz
+            ]);
+
+            // ==============================
+            // CREAR NOTIFICACIÓN
+            // ==============================
+
+            $conceptoVencido = optional($pago->concepto)->nombreConceptoDePago ?? 'Concepto vencido';
+            $conceptoRecargo = $concepto->nombreConceptoDePago ?? 'Concepto con recargo';
+
+            // Si el pago vencido es el pago raíz
+            if (!$pago->referenciaOriginal) {
+
+                $titulo = 'Pago de colegiatura vencido';
+
+                $mensaje = "Tu pago \"{$conceptoVencido}\" correspondiente al mes de {$mesNombre} ha vencido.\n
+            Se ha generado un nuevo pago \"{$conceptoRecargo}\".\n
+            Revisa tus pagos.";
+
+            }
+            // Si venció un pago que ya tenía recargo
+            else {
+
+                $titulo = 'Pago con recargo vencido';
+
+                $mensaje = "Tu pago con recargo \"{$conceptoVencido}\" correspondiente al mes de {$mesNombre} ha vencido.\n
+            Se ha generado un nuevo pago \"{$conceptoRecargo}\".\n
+            Revisa tus pagos.";
+
+            }
+
+            Notificacion::create([
+                'idUsuario' => $estudiante->idUsuario,
+                'titulo' => $titulo,
+                'mensaje' => $mensaje,
+                'tipoDeNotificacion' => 1,
+                'fechaDeInicio' => Carbon::today(),
+                'fechaFin' => Carbon::today()->copy()->addDays(5),
+                'leida' => 0
             ]);
         }
     }

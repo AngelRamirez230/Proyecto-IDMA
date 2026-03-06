@@ -910,13 +910,21 @@ class PlanDePagoController extends Controller
                             $descuentoManual,
                             &$seCrearonPagos,
                             &$creados,
-                            &$duplicados
+                            &$duplicados,
+                            $estudiantePlan
                         ) {
 
 
                             $pagoExistente = Pago::where('Referencia', $referencia)
                                 ->where('idEstudiante', $idEstudiante)
                                 ->first();
+                            if ($pagoExistente) {
+
+                                $pagoExistente->update([
+                                    'nombrePlanDePago' => $estudiantePlan->planDePago->nombrePlanDePago
+                                ]);
+
+                            }
 
                             if (!$pagoExistente) {
 
@@ -930,6 +938,7 @@ class PlanDePagoController extends Controller
 
                                     'costoConceptoOriginal'    => $costoOriginal,
                                     'descuentoDePago'          => $descuentoManual,
+                                    'nombrePlanDePago'         => $estudiantePlan->planDePago->nombrePlanDePago,
 
                                     'montoAPagar'              => $montoFinal,
 
@@ -1045,6 +1054,14 @@ class PlanDePagoController extends Controller
                                     ->where('idEstudiante', $idEstudiante)
                                     ->first();
 
+                                if ($pagoExistente) {
+
+                                    $pagoExistente->update([
+                                        'nombrePlanDePago' => $estudiantePlan->planDePago->nombrePlanDePago
+                                    ]);
+
+                                }
+
                                 if (!$pagoExistente) {
 
                                     $seCrearonPagos = true;
@@ -1057,6 +1074,7 @@ class PlanDePagoController extends Controller
 
                                         'costoConceptoOriginal'    => $costoOriginal,
                                         'descuentoDePago'          => $descuentoManual,
+                                        'nombrePlanDePago'         => $estudiantePlan->planDePago->nombrePlanDePago,
 
                                         'nombreBeca'               => $nombreBeca,
                                         'porcentajeDeDescuento'    => $porcentajeBeca,
