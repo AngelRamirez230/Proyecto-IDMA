@@ -152,6 +152,7 @@ class PagoController extends Controller
             Pago::create([
                 'Referencia'              => $referenciaFinal,
                 'idCicloModalidad'        => $estudiante->idCicloModalidad,
+                'semestre'                => $estudiante->grado,
                 'idConceptoDePago'        => $concepto->idConceptoDePago,
                 'costoConceptoOriginal'   => $concepto->costo,  
                 'nombreBeca'              => $nombreBeca,
@@ -574,6 +575,7 @@ class PagoController extends Controller
                 'idEstudiante' => $estudiante->idEstudiante,
                 'idConceptoDePago' => $concepto->idConceptoDePago,
                 'idCicloModalidad' => $pago->idCicloModalidad,
+                'semestre'         => $pago->semestre,
                 'costoConceptoOriginal' => $concepto->costo,
                 'nombreBeca' => $pago->nombreBeca,
                 'porcentajeDeDescuento' => $pago->porcentajeDeDescuento,

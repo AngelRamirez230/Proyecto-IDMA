@@ -25,6 +25,7 @@ class Pago extends Model
     protected $fillable = [
         'Referencia',
         'idCicloModalidad', 
+        'semestre',
         'fechaDePago',
         'idConceptoDePago',
         'costoConceptoOriginal',

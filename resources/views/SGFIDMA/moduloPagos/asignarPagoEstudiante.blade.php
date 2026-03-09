@@ -76,32 +76,6 @@
                 </div>
 
 
-                {{-- CICLO --}}
-                <div class="form-group" id="grupoCiclo">
-                    <label>Ciclo escolar:</label>
-                    <select id="selectCiclo" class="select">
-                        <option value="" disabled {{ old('idCicloModalidad') ? '' : 'selected' }}>
-                            Seleccionar
-                        </option>
-
-                        @foreach($ciclos as $ciclo)
-                            <option value="{{ $ciclo->idCicloModalidad }}"
-                                {{ old('idCicloModalidad') == $ciclo->idCicloModalidad ? 'selected' : '' }}>
-                                
-                                {{ $ciclo->cicloEscolar->nombreCicloEscolar }}
-                                - 
-                                {{ $ciclo->modalidad->nombreModalidad }}
-
-                            </option>
-                        @endforeach
-                    </select>
-
-                    <x-error-field field="idCicloModalidad" />
-                </div>
-
-
-                <input type="hidden" id="hiddenCiclo" name="idCicloModalidad">
-
 
 
                 {{-- FECHA DE EMISIÓN--}}
@@ -203,7 +177,8 @@
                                         type="checkbox"
                                         name="estudiantes[]"
                                         value="{{ $estudiante->idEstudiante }}"
-                                        class="chk-estudiante chk-grande" 
+                                        class="chk-estudiante chk-grande"
+                                        {{ in_array($estudiante->idEstudiante, old('estudiantes', [])) ? 'checked' : '' }} 
                                     >
                                 </td>
 
@@ -296,9 +271,6 @@
             const selectConcepto   = document.querySelector("select[name='idConceptoDePago']");
             const grupoReferencia  = document.getElementById("grupoReferenciaOriginal");
             const selectReferencia = document.getElementById("selectReferenciaOriginal");
-            const grupoCiclo       = document.getElementById("grupoCiclo");
-            const selectCiclo      = document.getElementById("selectCiclo");
-            const hiddenCiclo      = document.getElementById("hiddenCiclo");
             const grupoDescuento   = document.getElementById("grupoDescuento");
 
             const conceptosIndividuales = [19,22,23,28,29,31,32,33,34,35,36,37];
@@ -312,37 +284,27 @@
                 // Reset visual
                 selectReferencia.innerHTML = '<option value="">Seleccionar referencia</option>';
                 grupoReferencia.style.display = "none";
-                grupoCiclo.style.display = "block";
                 grupoDescuento.style.display = "block";
-                hiddenCiclo.value = selectCiclo.value;
 
                 if (!conceptoId) return;
 
-                // 🔥 SOLO PARA ESTOS CONCEPTOS
+                // SOLO PARA CONCEPTOS CON RECARGO
                 if (conceptosIndividuales.includes(conceptoId)) {
 
-                    // Mostrar referencia SIEMPRE
                     grupoReferencia.style.display = "block";
-
-                    // Ocultar ciclo SIEMPRE
-                    grupoCiclo.style.display = "none";
                     grupoDescuento.style.display = "none";
                     document.querySelector("input[name='descuentoDePago']").value = "";
-                    selectCiclo.value = "";
-                    hiddenCiclo.value = "";
 
-                    // Permitir solo 1 estudiante
+                    // Solo permitir un estudiante
                     if (seleccionados.length > 1) {
 
                         alert("Solo puedes seleccionar un estudiante para este concepto.");
 
-                        // dejar solo el primero seleccionado
                         seleccionados.slice(1).forEach(cb => cb.checked = false);
-
                         return;
                     }
 
-                    // Si no hay exactamente 1, no consultar
+                    // Si no hay exactamente uno, no consultar
                     if (seleccionados.length !== 1) return;
 
                     const idEstudiante = seleccionados[0].value;
@@ -361,47 +323,50 @@
                     .then(res => res.json())
                     .then(data => {
 
-                        // 🔥 SIEMPRE se muestra referencia
                         grupoReferencia.style.display = "block";
 
-                        // Si hay datos los agregamos
                         if (data && data.length > 0) {
+
+                            const referenciaOld = "{{ old('referenciaOriginal') }}";
+
                             data.forEach(ref => {
+
                                 const option = document.createElement("option");
+
                                 option.value = ref.Referencia;
-                                option.text =`${ref.Referencia} | ${ref.nombreConceptoDePago ?? ''} | $${ref.montoAPagar} | ${ref.aportacion ?? ''}`;
-                                option.dataset.ciclo = ref.idCicloModalidad;
+
+                                option.text =
+                                    ref.Referencia +
+                                    " | " + (ref.nombreConceptoDePago ?? '') +
+                                    " | $" + ref.montoAPagar +
+                                    " | " + (ref.aportacion ?? '');
+
+                                if (referenciaOld && referenciaOld == ref.Referencia) {
+                                    option.selected = true;
+                                }
+
                                 selectReferencia.appendChild(option);
+
                             });
+
                         }
 
-                        // Si no hay datos → queda vacío y ya.
                     })
                     .catch(error => {
                         console.error("Error cargando referencias:", error);
                     });
+
                 }
+
             }
-
-            // Cuando seleccionan referencia
-            selectReferencia.addEventListener("change", function () {
-
-                const selected = this.options[this.selectedIndex];
-
-                if (selected && selected.dataset.ciclo) {
-                    hiddenCiclo.value = selected.dataset.ciclo;
-                }
-            });
-
-            // Cuando cambian el ciclo manualmente (conceptos normales)
-            selectCiclo.addEventListener("change", function () {
-                hiddenCiclo.value = this.value;
-            });
 
             selectConcepto.addEventListener("change", evaluar);
 
             document.querySelectorAll('.chk-estudiante')
                 .forEach(cb => cb.addEventListener("change", evaluar));
+
+
+            evaluar();
 
         });
     </script>

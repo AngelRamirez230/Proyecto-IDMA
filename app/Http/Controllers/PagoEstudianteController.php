@@ -75,7 +75,8 @@ class PagoEstudianteController extends Controller
             // =============================
             // QUERY BASE
             // =============================
-            $query = Estudiante::with('usuario');
+            $query = Estudiante::with('usuario')
+                ->where('idEstatus', 4);
 
             // =============================
             // BUSCADOR
@@ -301,6 +302,7 @@ class PagoEstudianteController extends Controller
                 'estudiantes.*'      => 'exists:estudiante,idEstudiante',
                 'aportacion'         => 'required|string|max:100',
                 'idCicloModalidad' => 'nullable|exists:ciclo_modalidad,idCicloModalidad',
+                'semestre'         => 'nullable',
                 'descuentoDePago' => 'nullable|numeric|min:0',
                 'referenciaOriginal' => [
                                             'nullable',
@@ -344,12 +346,6 @@ class PagoEstudianteController extends Controller
                 ->withInput();
         }
 
-        // VALIDACIÓN PERSONALIZADA
-        if (!$request->referenciaOriginal && !$request->idCicloModalidad) {
-            return back()->withErrors([
-                'idCicloModalidad' => 'Debe seleccionar un ciclo escolar.'
-            ])->withInput();
-        }
 
         $concepto = ConceptoDePago::findOrFail($request->idConceptoDePago);
         $fechaLimitePago = Carbon::parse($request->fechaLimiteDePago);
@@ -372,14 +368,13 @@ class PagoEstudianteController extends Controller
             DB::transaction(function () use ($request,$concepto,$fechaLimitePago,$fechaEmisionPago,&$contadorReferencias,&$referenciasCreadas,&$referenciasDuplicadas,&$omitidosPorPlan) 
             {
 
-                $idCicloFinal = $request->idCicloModalidad;
+                // =============================
+                // OBTENER PAGO ORIGINAL (SI EXISTE)
+                // =============================
+                $pagoOriginal = null;
 
                 if ($request->referenciaOriginal) {
                     $pagoOriginal = Pago::where('Referencia', $request->referenciaOriginal)->first();
-
-                    if ($pagoOriginal) {
-                        $idCicloFinal = $pagoOriginal->idCicloModalidad;
-                    }
                 }
 
 
@@ -388,29 +383,13 @@ class PagoEstudianteController extends Controller
                     $estudiante = Estudiante::with('usuario')->findOrFail($idEstudiante);
 
 
-
                     // =============================
-                    // VALIDAR CICLO ESCOLAR
+                    // DEFINIR CICLO Y SEMESTRE DEL PAGO
                     // =============================
-                    $cicloActual = $estudiante->idCicloModalidad;
+                    $idCicloFinal = $pagoOriginal?->idCicloModalidad ?? $estudiante->idCicloModalidad;
+                    $semestrePago = $pagoOriginal?->semestre ?? $estudiante->grado;
 
-                    $tuvoCiclo = Pago::where('idEstudiante', $idEstudiante)
-                        ->where('idCicloModalidad', $idCicloFinal)
-                        ->exists();
 
-                    if ($cicloActual != $idCicloFinal && !$tuvoCiclo) {
-
-                        $omitidosPorPlan[] = [
-                            'estudiante' => $estudiante->usuario->primerNombre . ' ' .
-                                            $estudiante->usuario->segundoNombre . ' ' .
-                                            $estudiante->usuario->primerApellido . ' ' .
-                                            $estudiante->usuario->segundoApellido,
-                            'concepto'   => $concepto->nombreConceptoDePago,
-                            'motivo'     => 'Nunca ha tenido asignado el ciclo escolar seleccionado',
-                        ];
-
-                        continue;
-                    }
 
                     // =============================
                     // VALIDAR CONCEPTO SEGÚN GRADO
@@ -484,23 +463,18 @@ class PagoEstudianteController extends Controller
                     // HEREDAR BECA DESDE REFERENCIA ORIGINAL
                     // =============================
                     if (
-                        $request->referenciaOriginal &&
+                        $pagoOriginal &&
                         in_array($concepto->idConceptoDePago, $conceptosHeredanBeca)
                     ) {
 
-                        $pagoOriginal = Pago::where('Referencia', $request->referenciaOriginal)->first();
+                        $nombreBeca          = $pagoOriginal->nombreBeca ?? null;
+                        $porcentajeBeca      = $pagoOriginal->porcentajeDeDescuento ?? null;
+                        $descuentoBeca       = $pagoOriginal->descuentoDeBeca ?? null;
 
-                        if ($pagoOriginal) {
-
-                            $nombreBeca          = $pagoOriginal->nombreBeca ?? null;
-                            $porcentajeBeca      = $pagoOriginal->porcentajeDeDescuento ?? null;
-                            $descuentoBeca       = $pagoOriginal->descuentoDeBeca ?? null;
-
-                            // Restar descuento heredado
-                            $costoFinal -= $descuentoBeca;
-                            $costoFinal = max($costoFinal, 0);
-                        }
+                        $costoFinal -= $descuentoBeca;
+                        $costoFinal = max($costoFinal, 0);
                     }
+
 
                     // ¿Es mensualidad?
                     $esMensualidad = ($concepto->idConceptoDePago == 2);
@@ -547,7 +521,6 @@ class PagoEstudianteController extends Controller
                     $costoFinal = max($costoFinal, 0);
 
 
-
                     // =============================
                     // GENERAR REFERENCIA
                     // =============================
@@ -563,8 +536,22 @@ class PagoEstudianteController extends Controller
                     // VERIFICAR DUPLICADO
                     // =============================
                     $pagoExistente = Pago::where('Referencia', $referenciaFinal)
-                                        ->where('idEstudiante', $estudiante->idEstudiante)
-                                        ->first();
+                        ->where('idEstudiante', $estudiante->idEstudiante)
+                        ->first();
+
+
+                    // =============================
+                    // SI EXISTE PAGO ELIMINADO
+                    // =============================
+                    if ($pagoExistente && $pagoExistente->idEstatus == 8) {
+
+
+                        throw new \Exception(
+                            'Por favor selecciona otra fecha de vencimiento.'
+                        );
+                    }
+
+
 
                     if (!$pagoExistente) {
                         // =============================
@@ -575,6 +562,7 @@ class PagoEstudianteController extends Controller
                             'idEstudiante'             => $estudiante->idEstudiante,
                             'idConceptoDePago'         => $concepto->idConceptoDePago,
                             'idCicloModalidad'         => $idCicloFinal,
+                            'semestre'                 => $semestrePago,
 
                             'costoConceptoOriginal'    => $costoOriginal,
                             'nombreBeca'               => $nombreBeca,
@@ -631,7 +619,17 @@ class PagoEstudianteController extends Controller
                 }
             });
         } catch (\Throwable $e) {
-            return back()->with('popupError', 'Ocurrió un error al generar los pagos.');
+            Log::error('Error al generar pagos', [
+                'mensaje' => $e->getMessage(),
+                'archivo' => $e->getFile(),
+                'linea' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'request' => $request->all(),
+            ]);
+            return back()->with(
+                'popupError',
+                $e->getMessage() ?: 'Ocurrió un error al generar los pagos.'
+            )->withInput();
         }
 
         // =============================

@@ -174,6 +174,7 @@ class PagosNoPagados extends Command
                         'idEstudiante' => $estudiante->idEstudiante,
                         'idConceptoDePago' => $concepto->idConceptoDePago,
                         'idCicloModalidad' => $pago->idCicloModalidad,
+                        'semestre'         => $pago->semestre,
                         'costoConceptoOriginal' => $concepto->costo,
                         'nombreBeca' => $pago->nombreBeca,
                         'porcentajeDeDescuento' => $pago->porcentajeDeDescuento,

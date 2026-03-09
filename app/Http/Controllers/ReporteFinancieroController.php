@@ -83,6 +83,12 @@ class ReporteFinancieroController extends Controller
                     ->orderBy('fechaLimiteDePago')
                     ->get();
 
+                $pagosPorSemestre = $pagos->groupBy('semestre');
+
+                $maxSemestrePagado = $pagos->max('semestre') ?? 0;
+
+                $totalSemestres = max(8, $maxSemestrePagado);
+
                 // 🔹 Mensualidades
                 $mensualidades = $pagos
                     ->where('idConceptoDePago', 2)
@@ -122,18 +128,21 @@ class ReporteFinancieroController extends Controller
                 $kardex = [];
                 $semestre = 1;
 
-                foreach (array_chunk($meses, 6) as $bloque) {
+                for ($semestre = 1; $semestre <= $totalSemestres; $semestre++) {
 
-                    if ($semestre > 8) break;
+                    $pagosSemestre = $pagosPorSemestre[$semestre] ?? collect();
 
-                    $pagoSemestre = $semestre === 1
-                        ? $inscripciones->first()
-                        : $reinscripciones->get($semestre - 2);
+                    // =============================
+                    // INSCRIPCIÓN / REINSCRIPCIÓN
+                    // =============================
+                    $pagoSemestre = $semestre == 1
+                        ? $pagosSemestre->where('idConceptoDePago', 1)->first()
+                        : $pagosSemestre->where('idConceptoDePago', 30)->first();
 
                     $estadoSemestre = $pagoSemestre?->idEstatus ?? 10;
 
                     $kardex[] = [
-                        'concepto'  => $semestre === 1 ? 'Inscripción' : 'Reinscripción',
+                        'concepto'  => $semestre == 1 ? 'Inscripción' : 'Reinscripción',
                         'periodo'   => "{$semestre} Semestre",
                         'tipo'      => 'semestre',
                         'estado'    => $estadoSemestre,
@@ -144,20 +153,29 @@ class ReporteFinancieroController extends Controller
                             : $pagoSemestre?->tipoDePago?->nombreTipoDePago,
                     ];
 
-                    foreach ($bloque as $mes) {
+                    // =============================
+                    // GENERAR 6 MESES DEL SEMESTRE
+                    // =============================
+                    $mensualidadesPagadas = $pagosSemestre
+                        ->where('idConceptoDePago', 2)
+                        ->filter(fn($p) => $p->fechaLimiteDePago)
+                        ->sortBy('fechaLimiteDePago')
+                        ->values();
 
-                        $claveMes = $mes->format('Y-m');
-                        $pago = $mensualidades[$claveMes] ?? null;
+                    // base para calcular meses
+                    $baseMes = ($semestre % 2 == 1) ? 3 : 9; // marzo o septiembre
+                    $añoBase = $inicio->year + floor(($semestre - 1) / 2);
 
-                        $estado = 10;
+                    for ($i = 0; $i < 6; $i++) {
 
-                        if ($pago) {
-                            $estado = $pago->idEstatus;
-                        } elseif (now()->gt($mes->copy()->day(15))) {
-                            $estado = 12;
-                        }
+                        $pago = $mensualidadesPagadas[$i] ?? null;
 
-                        // 🔹 Buscar recargo asociado
+                        $mes = $pago
+                            ? Carbon::parse($pago->fechaLimiteDePago)
+                            : null;
+
+                        $estado = $pago?->idEstatus ?? 10;
+
                         $recargoPago = null;
 
                         if ($pago && isset($recargos[$pago->Referencia])) {
@@ -165,23 +183,27 @@ class ReporteFinancieroController extends Controller
                         }
 
                         $fechaPago = $pago?->fechaDePago;
+
                         $formaPago = ($pago?->idTipoDePago === 3)
                             ? 'Transferencia'
                             : $pago?->tipoDePago?->nombreTipoDePago;
 
-                        // 🔹 Si existe recargo usar su información
                         if ($recargoPago) {
+
                             $estado = $recargoPago->idEstatus;
+
                             $fechaPago = $recargoPago->fechaDePago;
+
                             $formaPago = ($recargoPago->idTipoDePago === 3)
                                 ? 'Transferencia'
                                 : $recargoPago->tipoDePago?->nombreTipoDePago;
                         }
 
-                        // 🔹 Mensualidad
                         $kardex[] = [
                             'concepto'  => 'Mensualidad',
-                            'periodo'   => ucfirst($mes->translatedFormat('F Y')),
+                            'periodo' => $mes
+                                ? ucfirst($mes->translatedFormat('F Y'))
+                                : '-',
                             'tipo'      => 'mensualidad',
                             'estado'    => $estado,
                             'monto'     => $pago?->montoAPagar,
@@ -189,7 +211,9 @@ class ReporteFinancieroController extends Controller
                             'formaPago' => $formaPago,
                         ];
 
-                        // 🔹 Agregar recargos
+                        // =============================
+                        // AGREGAR RECARGOS
+                        // =============================
                         if ($pago && isset($recargos[$pago->Referencia])) {
 
                             foreach ($recargos[$pago->Referencia] as $recargo) {
@@ -198,7 +222,9 @@ class ReporteFinancieroController extends Controller
 
                                 $kardex[] = [
                                     'concepto'  => 'Recargo',
-                                    'periodo'   => ucfirst($mes->translatedFormat('F Y')),
+                                    'periodo' => $mes
+                                        ? ucfirst($mes->translatedFormat('F Y'))
+                                        : '-',
                                     'tipo'      => 'recargo',
                                     'estado'    => $recargo->idEstatus,
                                     'monto'     => $montoRecargo,
@@ -210,8 +236,6 @@ class ReporteFinancieroController extends Controller
                             }
                         }
                     }
-
-                    $semestre++;
                 }
 
                 // 🔹 Resumen

@@ -178,7 +178,11 @@
 
                                 {{-- SALDO / ESTADO --}}
                                 <td>
-                                    {{ $saldo > 0 ? '$' . number_format($saldo, 2) : '-' }}
+                                    @if (($fila['estado'] ?? null) === 11)
+                                        ${{ number_format($saldo, 2) }}
+                                    @else
+                                        -
+                                    @endif
                                 </td>
 
                             </tr>

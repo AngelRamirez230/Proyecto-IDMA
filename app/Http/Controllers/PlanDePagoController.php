@@ -758,99 +758,100 @@ class PlanDePagoController extends Controller
 
             foreach ($request->estudiantes as $idEstudiante) {
 
-                $usuario = Estudiante::with('usuario')
-                    ->find($idEstudiante)
-                    ->usuario;
+                DB::transaction(function () use ($idEstudiante,$request,$plan,&$creados,&$duplicados,&$noAplicados) 
+                {
 
-                $nombreCompleto = trim(
-                    collect([
-                        $usuario->primerNombre,
-                        $usuario->segundoNombre,
-                        $usuario->primerApellido,
-                        $usuario->segundoApellido,
-                    ])->filter()->implode(' ')
-                );
+                    $estudiante = Estudiante::with('usuario')
+                         ->findOrFail($idEstudiante);
 
-                $estudiante = Estudiante::with(['usuario'])
-                    ->findOrFail($idEstudiante);
+                    $usuario = $estudiante->usuario;
 
-                $ciclo = $estudiante->cicloModalidad;
+                    $nombreCompleto = trim(
+                        collect([
+                            $usuario->primerNombre,
+                            $usuario->segundoNombre,
+                            $usuario->primerApellido,
+                            $usuario->segundoApellido,
+                        ])->filter()->implode(' ')
+                    );
 
-
-                // 🔹 Inicializar SIEMPRE
-                $creados[$idEstudiante]['estudiante']    = $nombreCompleto;
-                $duplicados[$idEstudiante]['estudiante'] = $nombreCompleto;
-
-                $creados[$idEstudiante]['pagos']    = [];
-                $duplicados[$idEstudiante]['pagos'] = [];
-
-                $seCrearonPagos = false;
-
-                $estudiantePlan = EstudiantePlan::where('idEstudiante', $idEstudiante)
-                    ->where('idEstatus', 1)
-                    ->with('planDePago')
-                    ->first();
-
-                // =============================
-                // VALIDAR PLAN ACTIVO EXISTENTE
-                // =============================
-                if ($estudiantePlan) {
-
-                    $noAplicados[] = [
-                        'estudiante' => $nombreCompleto,
-                        'motivo'     => 'El estudiante ya cuenta con un plan de pago activo: ' .
-                                        $estudiantePlan->planDePago->nombrePlanDePago
-                    ];
-
-                    continue; 
-                }
+                    $ciclo = $estudiante->cicloModalidad;
 
 
-                // =============================
-                // VALIDAR CICLO ACTIVO
-                // =============================
-                if (!$ciclo || $ciclo->idTipoDeEstatus != 1) {
+                    // 🔹 Inicializar SIEMPRE
+                    $creados[$idEstudiante]['estudiante']    = $nombreCompleto;
+                    $duplicados[$idEstudiante]['estudiante'] = $nombreCompleto;
 
-                    $noAplicados[] = [
-                        'estudiante' => $nombreCompleto,
-                        'motivo'     => 'El estudiante no tiene un ciclo escolar activo.'
-                    ];
+                    $creados[$idEstudiante]['pagos']    = [];
+                    $duplicados[$idEstudiante]['pagos'] = [];
 
-                    continue;
-                }
+                    $seCrearonPagos = false;
 
+                    $estudiantePlan = EstudiantePlan::where('idEstudiante', $idEstudiante)
+                        ->where('idEstatus', 1)
+                        ->lockForUpdate()
+                        ->with('planDePago')
+                        ->first();
 
-                
+                    // =============================
+                    // VALIDAR PLAN ACTIVO EXISTENTE
+                    // =============================
+                    if ($estudiantePlan) {
 
-                $contieneInscripcion   = $plan->conceptos->contains(fn ($pc) => $pc->concepto->idConceptoDePago == 1);
-                $contieneReinscripcion = $plan->conceptos->contains(fn ($pc) => $pc->concepto->idConceptoDePago == 30);
+                        $noAplicados[] = [
+                            'estudiante' => $nombreCompleto,
+                            'motivo'     => 'El estudiante ya cuenta con un plan de pago activo: ' .
+                                            $estudiantePlan->planDePago->nombrePlanDePago
+                        ];
 
-                $grado = $estudiante->grado;
-
-
-                if ($grado == 1 && $contieneReinscripcion) {
-
-                    $noAplicados[] = [
-                        'estudiante' => $nombreCompleto,
-                        'motivo'     => 'No se aplicó el plan porque el estudiante es de nuevo ingreso y el plan contiene reinscripción.'
-                    ];
-
-                    continue;
-                }
-
-                if ($grado >= 2 && $contieneInscripcion) {
-
-                    $noAplicados[] = [
-                        'estudiante' => $nombreCompleto,
-                        'motivo'     => 'No se aplicó el plan porque el estudiante no es de nuevo ingreso y el plan contiene inscripción.'
-                    ];
-
-                    continue; 
-                }
+                        return;
+                    }
 
 
+                    // =============================
+                    // VALIDAR CICLO ACTIVO
+                    // =============================
+                    if (!$ciclo || $ciclo->idTipoDeEstatus != 1) {
 
-                if (!$estudiantePlan) {
+                        $noAplicados[] = [
+                            'estudiante' => $nombreCompleto,
+                            'motivo'     => 'El estudiante no tiene un ciclo escolar activo.'
+                        ];
+
+                        return;
+                    }
+
+
+                    
+
+                    $contieneInscripcion   = $plan->conceptos->contains(fn ($pc) => $pc->concepto->idConceptoDePago == 1);
+                    $contieneReinscripcion = $plan->conceptos->contains(fn ($pc) => $pc->concepto->idConceptoDePago == 30);
+
+                    $grado = $estudiante->grado;
+
+
+                    if ($grado == 1 && $contieneReinscripcion) {
+
+                        $noAplicados[] = [
+                            'estudiante' => $nombreCompleto,
+                            'motivo'     => 'No se aplicó el plan porque el estudiante es de nuevo ingreso y el plan contiene reinscripción.'
+                        ];
+
+                        return;
+                    }
+
+                    if ($grado >= 2 && $contieneInscripcion) {
+
+                        $noAplicados[] = [
+                            'estudiante' => $nombreCompleto,
+                            'motivo'     => 'No se aplicó el plan porque el estudiante no es de nuevo ingreso y el plan contiene inscripción.'
+                        ];
+
+                        return;
+                    }
+
+
+
                     $estudiantePlan = EstudiantePlan::create([
                         'idEstudiante'        => $idEstudiante,
                         'idPlanDePago'        => $request->idPlanDePago,
@@ -858,61 +859,42 @@ class PlanDePagoController extends Controller
                         'fechaDeAsignacion'   => now()->toDateString(),
                         'fechaDeFinalizacion' => $request->fechaDeFinalizacion,
                     ]);
-                }
 
 
-                // Determinar mes inicial
-                $hoy = Carbon::now();
-                $inicioPlan = $hoy->month <= 6
-                    ? Carbon::create($hoy->year, 3, 1)
-                    : Carbon::create($hoy->year, 9, 1);
+                    // Determinar mes inicial
+                    $hoy = Carbon::now();
+                    $inicioPlan = $hoy->month <= 6
+                        ? Carbon::create($hoy->year, 3, 1)
+                        : Carbon::create($hoy->year, 9, 1);
 
-                $meses = $this->obtenerMesesDelPlan($inicioPlan);
+                    $meses = $this->obtenerMesesDelPlan($inicioPlan);
 
-                foreach ($plan->conceptos as $pc) {
+                    foreach ($plan->conceptos as $pc) {
 
-                    $concepto = $pc->concepto;
+                        $concepto = $pc->concepto;
 
-                    // =====================
-                    // INSCRIPCIÓN o REINSCRIPCION (1 VEZ)
-                    // =====================
-                    if (in_array($concepto->idConceptoDePago, [1, 30])) {
+                        // =====================
+                        // INSCRIPCIÓN o REINSCRIPCION (1 VEZ)
+                        // =====================
+                        if (in_array($concepto->idConceptoDePago, [1, 30])) {
 
-                        $primerMes = $meses[0];
-                        $fechaLimite = $primerMes->copy()->day(15);
+                            $primerMes = $meses[0];
+                            $fechaLimite = $primerMes->copy()->day(15);
 
-                        $aportacionTexto = $concepto->idConceptoDePago == 1
-                            ? 'INSCRIPCIÓN'
-                            : 'REINSCRIPCIÓN';
+                            $aportacionTexto = $concepto->idConceptoDePago == 1
+                                ? 'INSCRIPCIÓN'
+                                : 'REINSCRIPCIÓN';
 
-                        $costoOriginal   = $concepto->costo;
-                        $montoFinal      = $costoOriginal;
-                        $descuentoManual = 0;
+                            $costoOriginal   = $concepto->costo;
+                            $montoFinal      = $costoOriginal;
+                            $descuentoManual = 0;
 
-                        $referencia = ReferenciaBancariaAztecaService::generar(
-                            $estudiantePlan->estudiante,
-                            $concepto,
-                            $montoFinal,
-                            $fechaLimite
-                        );
-
-
-                        DB::transaction(function () use (
-                            $referencia,
-                            $ciclo,
-                            $idEstudiante,
-                            $concepto,
-                            $primerMes,
-                            $fechaLimite,
-                            $aportacionTexto,
-                            $costoOriginal,
-                            $montoFinal,
-                            $descuentoManual,
-                            &$seCrearonPagos,
-                            &$creados,
-                            &$duplicados,
-                            $estudiantePlan
-                        ) {
+                            $referencia = ReferenciaBancariaAztecaService::generar(
+                                $estudiantePlan->estudiante,
+                                $concepto,
+                                $montoFinal,
+                                $fechaLimite
+                            );
 
 
                             $pagoExistente = Pago::where('Referencia', $referencia)
@@ -933,6 +915,7 @@ class PlanDePagoController extends Controller
                                 Pago::create([
                                     'Referencia'               => $referencia,
                                     'idCicloModalidad'         => $ciclo->idCicloModalidad,
+                                    'semestre'                 => $estudiante->grado,
                                     'idEstudiante'             => $idEstudiante,
                                     'idConceptoDePago'         => $concepto->idConceptoDePago,
 
@@ -965,86 +948,64 @@ class PlanDePagoController extends Controller
                                     'idConcepto' => $concepto->idConceptoDePago,
                                 ];
                             }
-                        });
+                            
 
-                    }
-
-
-
-                    // =====================
-                    // MENSUALIDADES
-                    // =====================
-                    if ($concepto->idConceptoDePago == 2) {
-
-                        $contadorMes = 1;
-
-                        foreach ($meses as $mes) {
-
-                            $fechaGeneracion = $mes->copy()->day(1);
-                            $fechaLimite     = $mes->copy()->day(15);
-
-                            // =============================
-                            // MONTO (BECAS SOLO DE 2ª A 6ª)
-                            // =============================
-                            $costoOriginal      = $concepto->costo;
-                            $montoFinal         = $costoOriginal;
-                            $porcentajeBeca     = 0;
-                            $descuentoBeca      = 0;
-                            $nombreBeca         = null;
-                            $descuentoManual    = 0;
+                        }
 
 
-                            if ($contadorMes > 1) {
 
-                                $solicitudBeca = $estudiantePlan->estudiante
-                                    ->solicitudesDeBeca()
-                                    ->where('idEstatus', 6)
-                                    ->whereDate('fechaDeConclusion', '>=', now())
-                                    ->first();
+                        // =====================
+                        // MENSUALIDADES
+                        // =====================
+                        if ($concepto->idConceptoDePago == 2) {
 
-                                if ($solicitudBeca) {
+                            $contadorMes = 1;
 
-                                    $porcentajeBeca = $solicitudBeca->porcentajeDeDescuento ?? 0;
-                                    $nombreBeca     = $solicitudBeca->nombreDeBeca;
+                            foreach ($meses as $mes) {
 
-                                    $descuentoBeca  = ($costoOriginal * $porcentajeBeca) / 100;
+                                $fechaGeneracion = $mes->copy()->day(1);
+                                $fechaLimite     = $mes->copy()->day(15);
 
-                                    $montoFinal -= $descuentoBeca;
+                                // =============================
+                                // MONTO (BECAS SOLO DE 2ª A 6ª)
+                                // =============================
+                                $costoOriginal      = $concepto->costo;
+                                $montoFinal         = $costoOriginal;
+                                $porcentajeBeca     = 0;
+                                $descuentoBeca      = 0;
+                                $nombreBeca         = null;
+                                $descuentoManual    = 0;
+
+
+                                if ($contadorMes > 1) {
+
+                                    $solicitudBeca = $estudiantePlan->estudiante
+                                        ->solicitudesDeBeca()
+                                        ->where('idEstatus', 6)
+                                        ->whereDate('fechaDeConclusion', '>=', now())
+                                        ->first();
+
+                                    if ($solicitudBeca) {
+
+                                        $porcentajeBeca = $solicitudBeca->porcentajeDeDescuento ?? 0;
+                                        $nombreBeca     = $solicitudBeca->nombreDeBeca;
+
+                                        $descuentoBeca  = ($costoOriginal * $porcentajeBeca) / 100;
+
+                                        $montoFinal -= $descuentoBeca;
+                                    }
                                 }
-                            }
 
 
-                            // =============================
-                            // REFERENCIA
-                            // =============================
-                            $referencia = ReferenciaBancariaAztecaService::generar(
-                                $estudiantePlan->estudiante,
-                                $concepto,
-                                $montoFinal,
-                                $fechaLimite
-                            );
-
-
-
-                            DB::transaction(function () use (
-                                $referencia,
-                                $ciclo,
-                                $idEstudiante,
-                                $concepto,
-                                $montoFinal,
-                                $costoOriginal,
-                                $porcentajeBeca,
-                                $descuentoBeca,
-                                $nombreBeca,
-                                $descuentoManual,
-                                $fechaGeneracion,
-                                $fechaLimite,
-                                $mes,
-                                &$seCrearonPagos,
-                                &$creados,
-                                &$duplicados,
-                                $estudiantePlan
-                            ) {
+                                // =============================
+                                // REFERENCIA
+                                // =============================
+                                $referencia = ReferenciaBancariaAztecaService::generar(
+                                    $estudiantePlan->estudiante,
+                                    $concepto,
+                                    $montoFinal,
+                                    $fechaLimite
+                                );
 
 
                                 // =============================
@@ -1069,6 +1030,7 @@ class PlanDePagoController extends Controller
                                     Pago::create([
                                         'Referencia'               => $referencia,
                                         'idCicloModalidad'         => $ciclo->idCicloModalidad,
+                                        'semestre'                 => $estudiante->semestre,
                                         'idEstudiante'             => $idEstudiante,
                                         'idConceptoDePago'         => $concepto->idConceptoDePago,
 
@@ -1110,27 +1072,19 @@ class PlanDePagoController extends Controller
                                         'idConcepto' => $concepto->idConceptoDePago,
                                     ];
                                 }
-                            });
-
-                            $contadorMes++;
+                                $contadorMes++;
+                            }
                         }
+
+
                     }
 
 
-                }
-
-
-                // =============================
-                // NOTIFICACIÓN AL ESTUDIANTE
-                // =============================
-                DB::transaction(function () use ($seCrearonPagos, $estudiantePlan) {
+                    // =============================
+                    // NOTIFICACIÓN AL ESTUDIANTE
+                    // =============================
 
                     if ($seCrearonPagos) {
-
-                        $estudiante = $estudiantePlan
-                            ->estudiante()
-                            ->with('usuario')
-                            ->first();
 
                         Notificacion::create([
                             'idUsuario'          => $estudiante->idUsuario,
@@ -1142,27 +1096,27 @@ class PlanDePagoController extends Controller
                             'leida'              => 0,
                         ]);
                     }
+
+
+
+
+                    // =============================
+                    // ORDENAR PAGOS POR FECHA
+                    // =============================
+                    if (!empty($creados[$idEstudiante]['pagos'])) {
+                        usort(
+                            $creados[$idEstudiante]['pagos'],
+                            fn ($a, $b) => strtotime($a['fecha']) <=> strtotime($b['fecha'])
+                        );
+                    }
+
+                    if (!empty($duplicados[$idEstudiante]['pagos'])) {
+                        usort(
+                            $duplicados[$idEstudiante]['pagos'],
+                            fn ($a, $b) => strtotime($a['fecha']) <=> strtotime($b['fecha'])
+                        );
+                    }
                 });
-
-
-
-
-                // =============================
-                // ORDENAR PAGOS POR FECHA
-                // =============================
-                if (!empty($creados[$idEstudiante]['pagos'])) {
-                    usort(
-                        $creados[$idEstudiante]['pagos'],
-                        fn ($a, $b) => strtotime($a['fecha']) <=> strtotime($b['fecha'])
-                    );
-                }
-
-                if (!empty($duplicados[$idEstudiante]['pagos'])) {
-                    usort(
-                        $duplicados[$idEstudiante]['pagos'],
-                        fn ($a, $b) => strtotime($a['fecha']) <=> strtotime($b['fecha'])
-                    );
-                }
 
             }
 
