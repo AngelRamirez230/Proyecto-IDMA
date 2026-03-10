@@ -20,18 +20,36 @@
 
             <form action="{{ route('reportes.pdf') }}" method="POST">
                 @csrf
+
                 <input type="hidden" name="tipo" value="{{ $tipo }}">
-                <input type="hidden" name="inicio" value="{{ $inicio }}">
-                <input type="hidden" name="fin" value="{{ $fin }}">
-                <button class="btn-boton-formulario2">Exportar PDF</button>
+
+                @if($tipo === 'kardex')
+                    <input type="hidden" name="estudiante_id" value="{{ $estudiante->idEstudiante }}">
+                @else
+                    <input type="hidden" name="inicio" value="{{ $inicio }}">
+                    <input type="hidden" name="fin" value="{{ $fin }}">
+                @endif
+
+                <button class="btn-boton-formulario2">
+                    Exportar PDF
+                </button>
             </form>
 
             <form action="{{ route('reportes.excel') }}" method="POST">
                 @csrf
+
                 <input type="hidden" name="tipo" value="{{ $tipo }}">
-                <input type="hidden" name="inicio" value="{{ $inicio }}">
-                <input type="hidden" name="fin" value="{{ $fin }}">
-                <button class="btn-boton-formulario2">Exportar Excel</button>
+
+                @if($tipo === 'kardex')
+                    <input type="hidden" name="estudiante_id" value="{{ $estudiante->idEstudiante }}">
+                @else
+                    <input type="hidden" name="inicio" value="{{ $inicio }}">
+                    <input type="hidden" name="fin" value="{{ $fin }}">
+                @endif
+
+                <button class="btn-boton-formulario2">
+                    Exportar Excel
+                </button>
             </form>
 
             <a href="{{ url('/apartadoReporteFinanzas') }}"
@@ -50,47 +68,41 @@
 
             <section class="consulta-tabla-contenedor">
 
-                <table class="tabla">
-                    <tbody class="tabla-cuerpo">
+                <table class="tabla-compacta  tabla-kardex-bordes">
 
-                        {{-- =========================
-                            ENCABEZADO DEL ESTUDIANTE
-                        ========================== --}}
-                        <tr>
-                            <td colspan="9">KARDEX DE PAGOS</td>
+                    <thead>
+
+                        <tr class="kardex-titulo">
+                            <th colspan="9">KARDEX DE PAGOS</th>
                         </tr>
 
-                        <tr>
-                            <td colspan="1">Nombre:</td>
-                            <td colspan="8">
+                        <tr class="kardex-encabezado-primera-tabla">
+                            <th>Nombre:</th>
+                            <th colspan="8">
                                 {{ Str::upper(
                                     $estudiante->usuario->primerNombre . ' ' .
                                     $estudiante->usuario->segundoNombre . ' ' .
                                     $estudiante->usuario->primerApellido . ' ' .
                                     $estudiante->usuario->segundoApellido
                                 ) }}
-                            </td>
+                            </th>
                         </tr>
 
-                        <tr>
-                            <td colspan="1">Carrera:</td>
-                            <td colspan="8">
+                        <tr class="kardex-encabezado-primera-tabla">
+                            <th>Carrera:</th>
+                            <th colspan="8">
                                 {{ mb_strtoupper($estudiante->planDeEstudios->licenciatura->nombreLicenciatura ?? '-', 'UTF-8') }}
-                            </td>
+                            </th>
                         </tr>
 
-                        <tr>
-                            <td colspan="1"><strong>Matrícula</strong></td>
-                            <td colspan="1"><strong>{{ $estudiante->matriculaAlfanumerica ?? '-' }}</strong></td>
-
-                            <td colspan="1">Generación:</td>
-                            <td colspan="6">{{ $estudiante->generacion->nombreGeneracion ?? '-' }}</td>
+                        <tr class="kardex-encabezado-primera-tabla">
+                            <th>Matrícula</th>
+                            <th>{{ $estudiante->matriculaAlfanumerica ?? '-' }}</th>
+                            <th>Generación</th>
+                            <th colspan="6">{{ $estudiante->generacion->nombreGeneracion ?? '-' }}</th>
                         </tr>
 
-                        {{-- =========================
-                            ENCABEZADO DE MOVIMIENTOS
-                        ========================== --}}
-                        <tr class="tabla-encabezado">
+                        <tr class="kardex-encabezado-primera-tabla">
                             <th>Concepto</th>
                             <th>Semestre o mes</th>
                             <th>Cantidad</th>
@@ -100,28 +112,24 @@
                             <th>Saldo</th>
                         </tr>
 
-                        {{-- =========================
-                            MOVIMIENTOS DEL KÁRDEX
-                        ========================== --}}
+                    </thead>
+
+                    <tbody>
 
                         @php
                             $saldo = 0;
                         @endphp
 
                         @forelse ($kardex as $fila)
-                            
-                        
+
                             @php
                                 if (($fila['estado'] ?? null) === 11 && !empty($fila['monto'])) {
                                     $saldo += $fila['monto'];
                                 }
                             @endphp
 
-
-
-
-
                             <tr>
+
                                 {{-- CONCEPTO --}}
                                 <td>
                                     @if ($fila['tipo'] === 'semestre')
@@ -176,7 +184,7 @@
                                     @endif
                                 </td>
 
-                                {{-- SALDO / ESTADO --}}
+                                {{-- SALDO --}}
                                 <td>
                                     @if (($fila['estado'] ?? null) === 11)
                                         ${{ number_format($saldo, 2) }}
@@ -188,29 +196,31 @@
                             </tr>
 
                         @empty
+
                             <tr>
                                 <td colspan="9" class="tablaVacia">
                                     No existen movimientos para este estudiante.
                                 </td>
                             </tr>
+
                         @endforelse
 
-
-
-
                     </tbody>
+
                 </table>
 
 
+                <table class="tabla-compacta tabla-resumen-kardex tabla-kardex-bordes">
 
-                <table class="tabla tabla-pequena tabla-secundaria">
-                    <tbody class="tabla-cuerpo">
-
-                        <tr class="tabla-encabezado">
+                    <thead>
+                        <tr class="kardex-titulo">
                             <th>Concepto</th>
                             <th>#</th>
                             <th>Monto</th>
                         </tr>
+                    </thead>
+
+                    <tbody>
 
                         <tr>
                             <td>Mensualidad</td>
@@ -262,7 +272,6 @@
                             </td>
                         </tr>
 
-                        {{-- TOTAL PAGADO --}}
                         <tr>
                             <td><strong>Total pagado</strong></td>
                             <td><strong>{{ $totalCantidad }}</strong></td>
@@ -276,12 +285,8 @@
                         </tr>
 
                     </tbody>
+
                 </table>
-
-
-
-
-
 
             </section>
 

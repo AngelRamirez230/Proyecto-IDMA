@@ -55,247 +55,13 @@ class ReporteFinancieroController extends Controller
                     'estudiante_id' => 'required|exists:estudiante,idEstudiante',
                 ]);
 
-                Carbon::setLocale('es');
-
-                // 🔹 Estudiante
-                $estudiante = Estudiante::with('generacion.mesInicio', 'generacion.mesFin')
-                    ->findOrFail($request->estudiante_id);
-
-                $generacion = $estudiante->generacion;
-
-                // 🔹 Fechas de la generación
-                $inicio = Carbon::create(
-                    $generacion->añoDeInicio,
-                    $generacion->mesInicio->idMes,
-                    1
-                );
-
-                $fin = Carbon::create(
-                    $generacion->añoDeFinalizacion,
-                    $generacion->mesFin->idMes,
-                    1
-                )->endOfMonth();
-
-                // 🔹 Todos los pagos del estudiante
-                $pagos = Pago::with('tipoDePago')
-                    ->where('idEstudiante', $estudiante->idEstudiante)
-                    ->orderBy('idCicloModalidad')
-                    ->orderBy('fechaLimiteDePago')
-                    ->get();
-
-                $pagosPorSemestre = $pagos->groupBy('semestre');
-
-                $maxSemestrePagado = $pagos->max('semestre') ?? 0;
-
-                $totalSemestres = max(8, $maxSemestrePagado);
-
-                // 🔹 Mensualidades
-                $mensualidades = $pagos
-                    ->where('idConceptoDePago', 2)
-                    ->filter(fn ($p) => $p->fechaLimiteDePago)
-                    ->mapWithKeys(function ($pago) {
-                        return [
-                            $pago->fechaLimiteDePago->format('Y-m') => $pago
-                        ];
-                    });
-
-                // 🔹 Inscripciones
-                $inscripciones = $pagos
-                    ->where('idConceptoDePago', 1)
-                    ->values();
-
-                // 🔹 Reinscripciones
-                $reinscripciones = $pagos
-                    ->where('idConceptoDePago', 30)
-                    ->values();
-
-                // 🔹 Recargos
-                $recargos = $pagos
-                    ->filter(fn ($p) => !empty($p->referenciaOriginal))
-                    ->where('idEstatus', 11)
-                    ->groupBy('referenciaOriginal');
-
-                // 🔹 Generar meses de la generación
-                $meses = [];
-                $actual = $inicio->copy();
-
-                while ($actual <= $fin) {
-                    $meses[] = $actual->copy();
-                    $actual->addMonth();
-                }
-
-                // 🔹 Armar kardex
-                $kardex = [];
-                $semestre = 1;
-
-                for ($semestre = 1; $semestre <= $totalSemestres; $semestre++) {
-
-                    $pagosSemestre = $pagosPorSemestre[$semestre] ?? collect();
-
-                    // =============================
-                    // INSCRIPCIÓN / REINSCRIPCIÓN
-                    // =============================
-                    $pagoSemestre = $semestre == 1
-                        ? $pagosSemestre->where('idConceptoDePago', 1)->first()
-                        : $pagosSemestre->where('idConceptoDePago', 30)->first();
-
-                    $estadoSemestre = $pagoSemestre?->idEstatus ?? 10;
-
-                    $kardex[] = [
-                        'concepto'  => $semestre == 1 ? 'Inscripción' : 'Reinscripción',
-                        'periodo'   => "{$semestre} Semestre",
-                        'tipo'      => 'semestre',
-                        'estado'    => $estadoSemestre,
-                        'monto'     => $pagoSemestre?->montoAPagar,
-                        'fechaPago' => $pagoSemestre?->fechaDePago,
-                        'formaPago' => ($pagoSemestre?->idTipoDePago === 3)
-                            ? 'Transferencia'
-                            : $pagoSemestre?->tipoDePago?->nombreTipoDePago,
-                    ];
-
-                    // =============================
-                    // GENERAR 6 MESES DEL SEMESTRE
-                    // =============================
-                    $mensualidadesPagadas = $pagosSemestre
-                        ->where('idConceptoDePago', 2)
-                        ->filter(fn($p) => $p->fechaLimiteDePago)
-                        ->sortBy('fechaLimiteDePago')
-                        ->values();
-
-                    // base para calcular meses
-                    $baseMes = ($semestre % 2 == 1) ? 3 : 9; // marzo o septiembre
-                    $añoBase = $inicio->year + floor(($semestre - 1) / 2);
-
-                    for ($i = 0; $i < 6; $i++) {
-
-                        $pago = $mensualidadesPagadas[$i] ?? null;
-
-                        $mes = $pago
-                            ? Carbon::parse($pago->fechaLimiteDePago)
-                            : null;
-
-                        $estado = $pago?->idEstatus ?? 10;
-
-                        $recargoPago = null;
-
-                        if ($pago && isset($recargos[$pago->Referencia])) {
-                            $recargoPago = $recargos[$pago->Referencia]->first();
-                        }
-
-                        $fechaPago = $pago?->fechaDePago;
-
-                        $formaPago = ($pago?->idTipoDePago === 3)
-                            ? 'Transferencia'
-                            : $pago?->tipoDePago?->nombreTipoDePago;
-
-                        if ($recargoPago) {
-
-                            $estado = $recargoPago->idEstatus;
-
-                            $fechaPago = $recargoPago->fechaDePago;
-
-                            $formaPago = ($recargoPago->idTipoDePago === 3)
-                                ? 'Transferencia'
-                                : $recargoPago->tipoDePago?->nombreTipoDePago;
-                        }
-
-                        $kardex[] = [
-                            'concepto'  => 'Mensualidad',
-                            'periodo' => $mes
-                                ? ucfirst($mes->translatedFormat('F Y'))
-                                : '-',
-                            'tipo'      => 'mensualidad',
-                            'estado'    => $estado,
-                            'monto'     => $pago?->montoAPagar,
-                            'fechaPago' => $fechaPago,
-                            'formaPago' => $formaPago,
-                        ];
-
-                        // =============================
-                        // AGREGAR RECARGOS
-                        // =============================
-                        if ($pago && isset($recargos[$pago->Referencia])) {
-
-                            foreach ($recargos[$pago->Referencia] as $recargo) {
-
-                                $montoRecargo = $recargo->montoAPagar - $pago->montoAPagar;
-
-                                $kardex[] = [
-                                    'concepto'  => 'Recargo',
-                                    'periodo' => $mes
-                                        ? ucfirst($mes->translatedFormat('F Y'))
-                                        : '-',
-                                    'tipo'      => 'recargo',
-                                    'estado'    => $recargo->idEstatus,
-                                    'monto'     => $montoRecargo,
-                                    'fechaPago' => $recargo->fechaDePago,
-                                    'formaPago' => ($recargo->idTipoDePago === 3)
-                                        ? 'Transferencia'
-                                        : $recargo->tipoDePago?->nombreTipoDePago,
-                                ];
-                            }
-                        }
-                    }
-                }
-
-                // 🔹 Resumen
-                $resumen = [
-                    'mensualidad' => ['cantidad' => 0, 'monto' => 0],
-                    'inscripcion' => ['cantidad' => 0, 'monto' => 0],
-                    'recargo'     => ['cantidad' => 0, 'monto' => 0],
-                    'examen'      => ['cantidad' => 0, 'monto' => 0],
-                    'uniforme'    => ['cantidad' => 0, 'monto' => 0],
-                ];
-
-                foreach ($kardex as $fila) {
-
-                    if (($fila['estado'] ?? null) !== 11) continue;
-
-                    switch (strtolower($fila['concepto'])) {
-
-                        case 'mensualidad':
-                            $resumen['mensualidad']['cantidad']++;
-                            $resumen['mensualidad']['monto'] += $fila['monto'] ?? 0;
-                            break;
-
-                        case 'inscripción':
-                        case 'reinscripción':
-                            $resumen['inscripcion']['cantidad']++;
-                            $resumen['inscripcion']['monto'] += $fila['monto'] ?? 0;
-                            break;
-
-                        case 'recargo':
-                            $resumen['recargo']['cantidad']++;
-                            $resumen['recargo']['monto'] += $fila['monto'] ?? 0;
-                            break;
-
-                        case 'examen':
-                            $resumen['examen']['cantidad']++;
-                            $resumen['examen']['monto'] += $fila['monto'] ?? 0;
-                            break;
-
-                        case 'uniforme':
-                            $resumen['uniforme']['cantidad']++;
-                            $resumen['uniforme']['monto'] += $fila['monto'] ?? 0;
-                            break;
-                    }
-                }
-
-                $totalPagado   = collect($resumen)->sum('monto');
-                $totalCantidad = collect($resumen)->sum('cantidad');
+                $data = $this->generarKardex($request->estudiante_id);
 
                 return view(
                     'SGFIDMA.moduloReportesFinanzas.vistaPreviaReporte',
-                    compact(
-                        'kardex',
-                        'resumen',
-                        'totalPagado',
-                        'totalCantidad',
-                        'estudiante',
-                        'tipo',
-                        'inicio',
-                        'fin'
-                    )
+                    array_merge($data, [
+                        'tipo' => $tipo
+                    ])
                 );
             }
 
@@ -339,6 +105,254 @@ class ReporteFinancieroController extends Controller
                 'Ocurrió un error al generar la vista previa del reporte.'
             );
         }
+    }
+
+
+    private function generarKardex($estudiante_id)
+    {
+        Carbon::setLocale('es');
+
+        $estudiante = Estudiante::with('generacion.mesInicio', 'generacion.mesFin')
+            ->findOrFail($estudiante_id);
+
+        $generacion = $estudiante->generacion;
+
+        // 🔹 Fechas de la generación
+        $inicio = Carbon::create(
+            $generacion->añoDeInicio,
+            $generacion->mesInicio->idMes,
+            1
+        );
+
+        $fin = Carbon::create(
+            $generacion->añoDeFinalizacion,
+            $generacion->mesFin->idMes,
+            1
+        )->endOfMonth();
+
+        // 🔹 Todos los pagos del estudiante
+        $pagos = Pago::with('tipoDePago')
+            ->where('idEstudiante', $estudiante->idEstudiante)
+            ->orderBy('idCicloModalidad')
+            ->orderBy('fechaLimiteDePago')
+            ->get();
+
+        $pagosPorSemestre = $pagos->groupBy('semestre');
+
+        $maxSemestrePagado = $pagos->max('semestre') ?? 0;
+
+        $totalSemestres = max(8, $maxSemestrePagado);
+
+        // 🔹 Mensualidades
+        $mensualidades = $pagos
+            ->where('idConceptoDePago', 2)
+            ->filter(fn ($p) => $p->fechaLimiteDePago)
+            ->mapWithKeys(function ($pago) {
+                return [
+                    $pago->fechaLimiteDePago->format('Y-m') => $pago
+                ];
+            });
+
+        // 🔹 Inscripciones
+        $inscripciones = $pagos
+            ->where('idConceptoDePago', 1)
+            ->values();
+
+        // 🔹 Reinscripciones
+        $reinscripciones = $pagos
+            ->where('idConceptoDePago', 30)
+            ->values();
+
+        // 🔹 Recargos
+        $recargos = $pagos
+            ->filter(fn ($p) => !empty($p->referenciaOriginal))
+            ->where('idEstatus', 11)
+            ->groupBy('referenciaOriginal');
+
+        // 🔹 Generar meses de la generación
+        $meses = [];
+
+        $actual = $inicio->copy();
+
+        while ($actual <= $fin) {
+
+            $meses[] = $actual->copy();
+
+            $actual->addMonth();
+        }
+
+        // 🔹 Armar kardex
+        $kardex = [];
+
+        for ($semestre = 1; $semestre <= $totalSemestres; $semestre++) {
+
+            $pagosSemestre = $pagosPorSemestre[$semestre] ?? collect();
+
+            // =============================
+            // INSCRIPCIÓN / REINSCRIPCIÓN
+            // =============================
+
+            $pagoSemestre = $semestre == 1
+                ? $pagosSemestre->where('idConceptoDePago', 1)->first()
+                : $pagosSemestre->where('idConceptoDePago', 30)->first();
+
+            $estadoSemestre = $pagoSemestre?->idEstatus ?? 10;
+
+            $kardex[] = [
+                'concepto' => $semestre == 1 ? 'Inscripción' : 'Reinscripción',
+                'periodo' => "{$semestre} Semestre",
+                'tipo' => 'semestre',
+                'estado' => $estadoSemestre,
+                'monto' => $pagoSemestre?->montoAPagar,
+                'fechaPago' => $pagoSemestre?->fechaDePago,
+                'formaPago' => ($pagoSemestre?->idTipoDePago === 3)
+                    ? 'Transferencia'
+                    : $pagoSemestre?->tipoDePago?->nombreTipoDePago,
+            ];
+
+            // =============================
+            // GENERAR 6 MESES DEL SEMESTRE
+            // =============================
+
+            $mensualidadesPagadas = $pagosSemestre
+                ->where('idConceptoDePago', 2)
+                ->filter(fn($p) => $p->fechaLimiteDePago)
+                ->sortBy('fechaLimiteDePago')
+                ->values();
+
+            // base para calcular meses
+            $baseMes = ($semestre % 2 == 1) ? 3 : 9;
+
+            $añoBase = $inicio->year + floor(($semestre - 1) / 2);
+
+            for ($i = 0; $i < 6; $i++) {
+
+                $pago = $mensualidadesPagadas[$i] ?? null;
+
+                $mes = $pago ? Carbon::parse($pago->fechaLimiteDePago) : null;
+
+                $estado = $pago?->idEstatus ?? 10;
+
+                $recargoPago = null;
+
+                if ($pago && isset($recargos[$pago->Referencia])) {
+
+                    $recargoPago = $recargos[$pago->Referencia]->first();
+                }
+
+                $fechaPago = $pago?->fechaDePago;
+
+                $formaPago = ($pago?->idTipoDePago === 3)
+                    ? 'Transferencia'
+                    : $pago?->tipoDePago?->nombreTipoDePago;
+
+                if ($recargoPago) {
+
+                    $estado = $recargoPago->idEstatus;
+
+                    $fechaPago = $recargoPago->fechaDePago;
+
+                    $formaPago = ($recargoPago->idTipoDePago === 3)
+                        ? 'Transferencia'
+                        : $recargoPago->tipoDePago?->nombreTipoDePago;
+                }
+
+                $kardex[] = [
+                    'concepto' => 'Mensualidad',
+                    'periodo' => $mes
+                        ? ucfirst($mes->translatedFormat('F Y'))
+                        : '-',
+                    'tipo' => 'mensualidad',
+                    'estado' => $estado,
+                    'monto' => $pago?->montoAPagar,
+                    'fechaPago' => $fechaPago,
+                    'formaPago' => $formaPago,
+                ];
+
+                // =============================
+                // AGREGAR RECARGOS
+                // =============================
+
+                if ($pago && isset($recargos[$pago->Referencia])) {
+
+                    foreach ($recargos[$pago->Referencia] as $recargo) {
+
+                        $montoRecargo = $recargo->montoAPagar - $pago->montoAPagar;
+
+                        $kardex[] = [
+                            'concepto' => 'Recargo',
+                            'periodo' => $mes
+                                ? ucfirst($mes->translatedFormat('F Y'))
+                                : '-',
+                            'tipo' => 'recargo',
+                            'estado' => $recargo->idEstatus,
+                            'monto' => $montoRecargo,
+                            'fechaPago' => $recargo->fechaDePago,
+                            'formaPago' => ($recargo->idTipoDePago === 3)
+                                ? 'Transferencia'
+                                : $recargo->tipoDePago?->nombreTipoDePago,
+                        ];
+                    }
+                }
+            }
+        }
+
+        // 🔹 Resumen
+        $resumen = [
+            'mensualidad' => ['cantidad' => 0, 'monto' => 0],
+            'inscripcion' => ['cantidad' => 0, 'monto' => 0],
+            'recargo' => ['cantidad' => 0, 'monto' => 0],
+            'examen' => ['cantidad' => 0, 'monto' => 0],
+            'uniforme' => ['cantidad' => 0, 'monto' => 0],
+        ];
+
+        foreach ($kardex as $fila) {
+
+            if (($fila['estado'] ?? null) !== 11) continue;
+
+            switch (strtolower($fila['concepto'])) {
+
+                case 'mensualidad':
+                    $resumen['mensualidad']['cantidad']++;
+                    $resumen['mensualidad']['monto'] += $fila['monto'] ?? 0;
+                break;
+
+                case 'inscripción':
+                case 'reinscripción':
+                    $resumen['inscripcion']['cantidad']++;
+                    $resumen['inscripcion']['monto'] += $fila['monto'] ?? 0;
+                break;
+
+                case 'recargo':
+                    $resumen['recargo']['cantidad']++;
+                    $resumen['recargo']['monto'] += $fila['monto'] ?? 0;
+                break;
+
+                case 'examen':
+                    $resumen['examen']['cantidad']++;
+                    $resumen['examen']['monto'] += $fila['monto'] ?? 0;
+                break;
+
+                case 'uniforme':
+                    $resumen['uniforme']['cantidad']++;
+                    $resumen['uniforme']['monto'] += $fila['monto'] ?? 0;
+                break;
+            }
+        }
+
+        $totalPagado = collect($resumen)->sum('monto');
+
+        $totalCantidad = collect($resumen)->sum('cantidad');
+
+        return [
+            'kardex' => $kardex,
+            'resumen' => $resumen,
+            'totalPagado' => $totalPagado,
+            'totalCantidad' => $totalCantidad,
+            'estudiante' => $estudiante,
+            'inicio' => $inicio,
+            'fin' => $fin
+        ];
     }
 
 
@@ -389,31 +403,61 @@ class ReporteFinancieroController extends Controller
     {
         try {
 
+            $tipo = $request->tipo;
+
+            // =========================
+            // PDF KÁRDEX
+            // =========================
+            if ($tipo === 'kardex') {
+
+                $request->validate([
+                    'estudiante_id' => 'required|exists:estudiante,idEstudiante',
+                ]);
+
+                // reutilizamos la misma lógica que vistaPrevia
+                $data = $this->generarKardex($request->estudiante_id);
+
+                $pdf = Pdf::loadView(
+                    'SGFIDMA.moduloReportesFinanzas.kardexPDF',
+                    $data
+                )->setPaper('A4', 'landscape');
+
+                $nombreCompleto = implode(' ', array_filter([
+                    $data['estudiante']->usuario->primerNombre,
+                    $data['estudiante']->usuario->segundoNombre,
+                    $data['estudiante']->usuario->primerApellido,
+                    $data['estudiante']->usuario->segundoApellido,
+                ]));
+
+                return $pdf->download('kardex_' . $nombreCompleto . '.pdf');
+            }
+
+            // =========================
+            // PDF NORMAL
+            // =========================
+
             $pagos = $this->obtenerPagos($request);
 
             $inicio = Carbon::parse($request->inicio);
             $fin    = Carbon::parse($request->fin);
-            $tipo   = $request->tipo;
 
             $pdf = Pdf::loadView(
                 'SGFIDMA.moduloReportesFinanzas.reportePDF',
                 compact('pagos', 'inicio', 'fin', 'tipo')
-            )->setPaper('A4', 'landscape');
+            )->setPaper('A4', 'portrait');
 
             return $pdf->download('reporte_financiero.pdf');
 
         } catch (\Throwable $e) {
 
-            \Log::error('Error al exportar reporte financiero en PDF', [
-                'inicio'  => $request->inicio ?? null,
-                'fin'     => $request->fin ?? null,
-                'tipo'    => $request->tipo ?? null,
-                'error'   => $e->getMessage(),
+            \Log::error('Error al exportar reporte PDF', [
+                'tipo' => $request->tipo ?? null,
+                'error' => $e->getMessage(),
             ]);
 
             return redirect()->back()->with(
                 'popupError',
-                'Ocurrió un error al generar el reporte en PDF.'
+                'Ocurrió un error al generar el PDF.'
             );
         }
     }

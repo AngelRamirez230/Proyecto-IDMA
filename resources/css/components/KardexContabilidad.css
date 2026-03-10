@@ -1,0 +1,32 @@
+
+.kardex-titulo th{
+    background: #A9D18E;
+    color: #000 ;
+    font-size: 14px;
+}
+
+.kardex-encabezado-primera-tabla th{
+    background: #F4B183;
+    color: #000 ;
+    font-size: 14px;
+}
+
+.tabla-kardex-bordes:not(.tabla-resumen-kardex) tbody td:nth-child(1),
+.tabla-kardex-bordes:not(.tabla-resumen-kardex) tbody td:nth-child(2){
+    background: #D9E1F2;
+}
+
+.tabla-kardex-bordes {
+    border: 2px solid black;
+}
+
+.tabla-kardex-bordes th,
+.tabla-kardex-bordes td {
+    border: 1px solid black;
+}
+
+.tabla-resumen-kardex{
+    width: 45%;
+    margin-right: auto;
+    margin-top: 40px;
+}
