@@ -14,8 +14,16 @@ class BecaController extends Controller
 {
     public function create()
     {
-        return view('SGFIDMA.moduloBecas.altaDeBeca');
+        try {
+            return view('SGFIDMA.moduloBecas.altaDeBeca');
+        } catch (\Throwable $e) {
+            return redirect()->back()
+                ->with('popupError', 'Ocurrió un error al cargar la página.');
+        }
     }
+
+
+
 
    public function store(Request $request)
     {
@@ -49,7 +57,7 @@ class BecaController extends Controller
 
         if ($validator->fails()) {
             return back()
-                ->with('popupError', 'No se pudo registrar la beca. Verifica los datos ingresados.')
+                ->with('popupError', "No se pudo registrar la beca.\nVerifica los datos ingresados.")
                 ->withErrors($validator)
                 ->withInput();
         }
@@ -82,7 +90,7 @@ class BecaController extends Controller
 
         } catch (\Exception $e) {
             return back()
-                ->with('popupError', 'Error: No se pudo registrar la beca. Inténtalo nuevamente.')
+                ->with('popupError', "Error: No se pudo registrar la beca. \nInténtalo nuevamente.")
                 ->withInput();
         }
     }
@@ -107,126 +115,180 @@ class BecaController extends Controller
 
     public function index(Request $request)
     {
-        $orden  = $request->orden;
-        $filtro = $request->filtro;
-        $buscar = $request->buscarBeca;
+        try {
 
-        
-        $usuario = null;
-        if (session()->has('idUsuario')) {
-            $usuario = \App\Models\Usuario::find(session('idUsuario'));
+            $orden  = $request->orden;
+            $filtro = $request->filtro;
+            $buscar = $request->buscarBeca;
+
+            // Usuario desde sesión
+            $usuario = null;
+            if (session()->has('idUsuario')) {
+                $usuario = \App\Models\Usuario::find(session('idUsuario'));
+            }
+
+            // Si no hay usuario, redirigir
+            if (!$usuario) {
+                return redirect()->route('login')
+                    ->with('error', 'Debes iniciar sesión para acceder a las becas.');
+            }
+
+            $query = Beca::with('estatus');
+
+            // ==============================
+            // FILTRO POR SELECCIÓN DEL USUARIO
+            // ==============================
+            if ($filtro === 'activas') {
+                $query->where('idEstatus', 1);
+            } elseif ($filtro === 'suspendidas') {
+                $query->where('idEstatus', 2);
+            } elseif ($filtro === 'eliminadas') {
+                $query->where('idEstatus', 8);
+            } else {
+                // ==============================
+                // FILTRO POR TIPO DE USUARIO (SIN selección)
+                // ==============================
+                if ((int) $usuario->idtipoDeUsuario === 4) {
+                    $query->where('idEstatus', 1); // Estudiantes solo activas
+                } else {
+                    $query->whereIn('idEstatus', [1, 2]); // Otros usuarios: activas + suspendidas
+                }
+            }
+
+            // Buscar por nombre
+            if ($request->filled('buscarBeca')) {
+                $query->where('nombreDeBeca', 'LIKE', "%{$buscar}%");
+            }
+
+
+            // Ordenamientos
+            if ($orden === 'alfabetico') {
+                $query->orderBy('nombreDeBeca', 'asc');
+            } elseif ($orden === 'porcentaje_mayor') {
+                $query->orderBy('porcentajeDeDescuento', 'desc');
+            } elseif ($orden === 'porcentaje_menor') {
+                $query->orderBy('porcentajeDeDescuento', 'asc');
+            }
+
+            $becas = $query->paginate(10)->withQueryString();
+
+            return view(
+                'SGFIDMA.moduloBecas.consultaDeBeca',
+                compact('becas', 'orden', 'filtro', 'buscar')
+            );
+
+        } catch (\Throwable $e) {
+
+            \Log::error('Error al cargar becas', [
+                'error' => $e->getMessage()
+            ]);
+
+            return redirect()->back()
+                ->with('popupError', "Ocurrió un error al cargar la lista de becas. \nIntenta más tarde.");
         }
-
-        $query = Beca::with('estatus');
-
-        
-        if ($usuario && $usuario->idtipoDeUsuario == 4) {
-            $query->where('idEstatus', 1);
-        }
-
-        
-        if ($request->filled('buscarBeca')) {
-            $query->where('nombreDeBeca', 'LIKE', '%' . $buscar . '%');
-        }
-
-        
-        if ($filtro === 'activas') {
-            $query->where('idEstatus', 1);
-        } elseif ($filtro === 'suspendidas') {
-            $query->where('idEstatus', 2);
-        }
-
-        
-        if ($orden === 'alfabetico') {
-            $query->orderBy('nombreDeBeca', 'asc');
-        } elseif ($orden === 'porcentaje_mayor') {
-            $query->orderBy('porcentajeDeDescuento', 'desc');
-        } elseif ($orden === 'porcentaje_menor') {
-            $query->orderBy('porcentajeDeDescuento', 'asc');
-        }
-
-        $becas = $query->paginate(5)->withQueryString();
-
-        return view('SGFIDMA.moduloBecas.consultaDeBeca', compact('becas', 'orden', 'filtro', 'buscar')
-        );
     }
+
 
 
     public function edit($id)
     {
-        // Buscar la beca por id
-        $beca = Beca::findOrFail($id);
+        try {
 
-        // Retornar la vista de modificación con los datos de la beca
-        return view('SGFIDMA.moduloBecas.modificacionDeBeca', compact('beca'));
+            // Buscar la beca por id
+            $beca = Beca::findOrFail($id);
+
+            // Retornar la vista de modificación
+            return view('SGFIDMA.moduloBecas.modificacionDeBeca', compact('beca'));
+
+        } catch (\Throwable $e) {
+
+            \Log::error('Error al cargar edición de beca', [
+                'id_beca' => $id,
+                'error'   => $e->getMessage()
+            ]);
+
+            return redirect()->back()
+                ->with('popupError', 'Ocurrió un error al cargar la información de la beca.');
+        }
     }
+
 
 
     public function update(Request $request, $idBeca)
     {
-        $beca = Beca::findOrFail($idBeca);
+        try {
+            $beca = Beca::findOrFail($idBeca);
 
-        if ($request->accion === 'guardar') {
+            if ($request->accion === 'guardar') {
 
-            // Validar nombre y porcentaje
-            $validator = Validator::make(
-                $request->all(),
-                [
-                    'nombreBeca'     => 'required|string|max:150',
-                    'porcentajeBeca' => 'required|numeric|min:1|max:100',
-                ],
-                [
-                    'required' => 'El campo :attribute es obligatorio.',
-                    'string'   => 'El campo :attribute debe ser texto.',
-                    'numeric'  => 'El campo :attribute debe ser un número válido.',
-                    'min'      => 'El campo :attribute debe ser mayor o igual a :min.',
-                    'max'      => 'El campo :attribute no debe exceder :max.',
-                ],
-                [
-                    'nombreBeca'     => 'nombre de la beca',
-                    'porcentajeBeca' => 'porcentaje de descuento',
-                ]
-            );
+                // Validar nombre y porcentaje
+                $validator = Validator::make(
+                    $request->all(),
+                    [
+                        'nombreBeca'     => 'required|string|max:150',
+                        'porcentajeBeca' => 'required|numeric|min:1|max:100',
+                    ],
+                    [
+                        'required' => 'El campo :attribute es obligatorio.',
+                        'string'   => 'El campo :attribute debe ser texto.',
+                        'numeric'  => 'El campo :attribute debe ser un número válido.',
+                        'min'      => 'El campo :attribute debe ser mayor o igual a :min.',
+                        'max'      => 'El campo :attribute no debe exceder :max.',
+                    ],
+                    [
+                        'nombreBeca'     => 'nombre de la beca',
+                        'porcentajeBeca' => 'porcentaje de descuento',
+                    ]
+                );
 
-            if ($validator->fails()) {
-                return back()
-                    ->with('popupError', 'No se pudo actualizar la beca. Verifica los datos ingresados.')
-                    ->withErrors($validator)
-                    ->withInput();
+                if ($validator->fails()) {
+                    return back()
+                        ->with('popupError', "No se pudo actualizar la beca. \nVerifica los datos ingresados.")
+                        ->withErrors($validator)
+                        ->withInput();
+                }
+
+                // Actualizar campos
+                $beca->nombreDeBeca = $request->nombreBeca;
+                $beca->porcentajeDeDescuento = $request->porcentajeBeca;
+                $beca->save();
+
+                return redirect()->route('consultaBeca')->with('success', 'Beca actualizada correctamente.');
+
+            } elseif ($request->accion === 'Suspender/Habilitar') {
+
+                // Revisar si hay estudiantes usando la beca y evitar suspender
+                $tieneSolicitudesActivas = $beca->solicitudes()
+                                                ->where('idEstatus', 6)
+                                                ->exists();
+
+                if ($beca->idEstatus == 1 && $tieneSolicitudesActivas) {
+                    return redirect()->route('consultaBeca')
+                        ->with('popupError', 'No se puede suspender esta beca porque algunos estudiantes tienen asignada esta beca.');
+                }
+
+                // Guardar el estatus actual antes de cambiarlo
+                $estatusAnterior = $beca->idEstatus;
+
+                // Alternar estatus
+                $beca->idEstatus = ($beca->idEstatus == 1) ? 2 : 1;
+                $beca->save();
+
+                // Determinar mensaje según el cambio
+                $mensaje = ($estatusAnterior == 1) 
+                    ? "La beca {$beca->nombreDeBeca} ha sido suspendida." 
+                    : "La beca {$beca->nombreDeBeca} ha sido activada.";
+
+                return redirect()->route('consultaBeca')->with('success', $mensaje);
             }
+        } catch (\Throwable $e) {
+            \Log::error('Error al actualizar beca', [
+                'id_beca' => $idBeca,
+                'error'   => $e->getMessage()
+            ]);
 
-            // Actualizar campos
-            $beca->nombreDeBeca = $request->nombreBeca;
-            $beca->porcentajeDeDescuento = $request->porcentajeBeca;
-            $beca->save();
-
-            return redirect()->route('consultaBeca')->with('success', 'Beca actualizada correctamente.');
-
-        } elseif ($request->accion === 'Suspender/Habilitar') {
-
-            // Revisar si hay estudiantes usando la beca y evitar suspender
-            $tieneSolicitudesActivas = $beca->solicitudes()
-                                            ->where('idEstatus', 6) // 1 = activo
-                                            ->exists();
-
-            if ($beca->idEstatus == 1 && $tieneSolicitudesActivas) {
-                return redirect()->route('consultaBeca')
-                    ->with('popupError', 'No se puede suspender esta beca porque algunos estudiantes tienen asignada esta beca.');
-            }
-
-            // Guardar el estatus actual antes de cambiarlo
-            $estatusAnterior = $beca->idEstatus;
-
-            // Alternar estatus
-            $beca->idEstatus = ($beca->idEstatus == 1) ? 2 : 1;
-            $beca->save();
-
-            // Determinar mensaje según el cambio
-            $mensaje = ($estatusAnterior == 1) 
-                ? "La beca {$beca->nombreDeBeca} ha sido suspendida." 
-                : "La beca {$beca->nombreDeBeca} ha sido activada.";
-
-            return redirect()->route('consultaBeca')->with('success', $mensaje);
+            return redirect()->back()
+                ->with('popupError', 'No se pudo realizar la actualización de la beca.');
         }
     }
 
@@ -234,20 +296,36 @@ class BecaController extends Controller
 
     public function destroy($idBeca)
     {
-        $beca = Beca::findOrFail($idBeca);
-        $beca->delete();
+        try {
+            $beca = Beca::findOrFail($idBeca);
 
-        return redirect()->route('consultaBeca')->with('success', "La beca {$beca->nombreDeBeca} ha sido eliminada.");
+            // Si algún estudiante la está usando actualmente
+            $tieneSolicitudesActivas = $beca->solicitudes()
+                ->where('idEstatus', 6) // estatus activo
+                ->exists();
+
+            if ($tieneSolicitudesActivas) {
+                return redirect()->route('consultaBeca')
+                    ->with('popupError', 'No se puede eliminar la beca porque actualmente hay estudiantes que la utilizan.');
+            }
+
+            // Cambiar estatus a eliminado (8)
+            $beca->idEstatus = 8;
+            $beca->save();
+
+            return redirect()->route('consultaBeca')
+                ->with('success', "La beca \"{$beca->nombreDeBeca}\" ha sido eliminada correctamente.");
+                
+        } catch (\Throwable $e) {
+            \Log::error('Error al eliminar beca', [
+                'id_beca' => $idBeca,
+                'error'   => $e->getMessage()
+            ]);
+
+            return redirect()->route('consultaBeca')
+                ->with('popupError', 'Ocurrió un error al intentar eliminar la beca.');
+        }
     }
-
-
-
-    
-
-
-
-
-
 
     
 }

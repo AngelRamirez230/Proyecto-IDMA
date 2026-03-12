@@ -15,14 +15,14 @@
 
         <h1 class="titulo-form2">Modificación de concepto de pago</h1>
 
-        {{-- NOMBRE DEL CONCEPTO (SOLO LECTURA) --}}
+        {{-- NOMBRE DEL CONCEPTO --}}
         <div class="form-group2">
             <label for="nombreConcepto">Nombre del concepto de pago:</label>
             <input
                 type="text"
                 id="nombreConcepto"
                 name="nombreConcepto"
-                class="input-grande2 input-bloqueado2"
+                class="input-grande2"
                 value="{{ old('nombreConcepto', $concepto->nombreConceptoDePago) }}"
                 readonly
             >

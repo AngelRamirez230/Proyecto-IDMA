@@ -13,6 +13,7 @@ use App\Models\Estudiante;
 use App\Models\SolicitudDeBeca;
 use App\Models\Beca;
 use App\Models\DocumentacionSolicitudDeBeca;
+use App\Models\Notificacion;
 
 class SolicitudDeBecaController extends Controller
 {
@@ -43,29 +44,60 @@ class SolicitudDeBecaController extends Controller
     ====================================================== */
     public function create($idBeca)
     {
-        $usuario = Auth::user();
+        try {
 
-        // Solo estudiantes pueden solicitar beca
-        if (!$usuario || !$usuario->estudiante) {
-            abort(403, 'Acceso no autorizado');
-        }
+            $usuario = Auth::user();
 
-        if ($this->fueraDePeriodoDeSolicitud()) {
+            // =============================
+            // SOLO ESTUDIANTES
+            // =============================
+            if (!$usuario || !$usuario->estudiante) {
+                abort(403, 'Acceso no autorizado');
+            }
+
+            /*// =============================
+            // VALIDAR PERIODO DE SOLICITUD
+            // =============================
+            if ($this->fueraDePeriodoDeSolicitud()) {
+                return redirect()
+                    ->route('consultaBeca')
+                    ->with(
+                        'popupError',
+                        'No te encuentras en el periodo válido para solicitar una beca.'
+                    );
+            }*/
+
+            // =============================
+            // BECA ACTIVA
+            // =============================
+            $beca = Beca::where('idBeca', $idBeca)
+                ->where('idEstatus', 1)
+                ->firstOrFail();
+
+            // =============================
+            // VISTA
+            // =============================
+            return view(
+                'SGFIDMA.moduloSolicitudBeca.formularioSolicitudDeBeca',
+                compact('beca')
+            );
+
+        } catch (\Throwable $e) {
+
+            \Log::error('Error al cargar formulario de solicitud de beca', [
+                'idBeca' => $idBeca,
+                'error'  => $e->getMessage(),
+            ]);
+
             return redirect()
                 ->route('consultaBeca')
-                ->with('popupError', 'No te encuentras en el periodo válido para solicitar una beca.');
+                ->with(
+                    'popupError',
+                    'Ocurrió un error al cargar el formulario de solicitud de beca.'
+                );
         }
-
-        // Beca activa
-        $beca = Beca::where('idBeca', $idBeca)
-            ->where('idEstatus', 1)
-            ->firstOrFail();
-
-        return view(
-            'SGFIDMA.moduloSolicitudBeca.formularioSolicitudDeBeca',
-            compact('beca')
-        );
     }
+
 
 
     /* ======================================================
@@ -194,7 +226,7 @@ class SolicitudDeBecaController extends Controller
         } catch (\Exception $e) {
 
             DB::rollBack();
-            throw $e; // útil en desarrollo
+            throw $e;
 
             return back()
                 ->with('popupError', 'Ocurrió un error al enviar tu solicitud.')
@@ -205,72 +237,94 @@ class SolicitudDeBecaController extends Controller
 
 
     /* ======================================================
-       LISTADO
+    LISTADO
     ====================================================== */
     public function index(Request $request)
     {
-        $orden  = $request->orden;
-        $filtro = $request->filtro;
-        $buscar = $request->buscarSolicitudDeBeca;
+        try {
 
-        $usuario = Auth::user();
+            $orden  = $request->orden;
+            $filtro = $request->filtro;
+            $buscar = $request->buscarSolicitudDeBeca;
 
-        $query = SolicitudDeBeca::with([
-            'estudiante.usuario',
-            'beca',
-            'estatus'
-        ]);
+            $usuario = Auth::user();
 
-        /* ======================================================
-        🔐 FILTRO REAL POR USUARIO LOGUEADO
-        ====================================================== */
-        if ($usuario->estudiante) {
-            $query->whereHas('estudiante', function ($q) use ($usuario) {
-                $q->where('idUsuario', $usuario->idUsuario);
-            });
-        }
+            $query = SolicitudDeBeca::with([
+                'estudiante.usuario',
+                'estudiante.cicloModalidad.cicloEscolar',
+                'estudiante.cicloModalidad.modalidad',
+                'beca',
+                'estatus'
+            ]);
 
-        /* ======================================================
-        🔎 BÚSQUEDA
-        ====================================================== */
-        if ($request->filled('buscarSolicitudDeBeca')) {
-            $query->whereHas('beca', function ($b) use ($buscar) {
-                $b->where('nombreDeBeca', 'LIKE', "%{$buscar}%");
-            });
-        }
-
-        /* ======================================================
-        📌 FILTRO POR ESTATUS
-        ====================================================== */
-        if ($filtro && $filtro !== 'todas') {
-
-            $map = [
-                'pendientes' => 5,
-                'aprobadas'  => 6,
-                'rechazadas' => 7,
-            ];
-
-            if (isset($map[$filtro])) {
-                $query->where('idEstatus', $map[$filtro]);
+            /* ======================================================
+                FILTRO REAL POR USUARIO LOGUEADO
+            ====================================================== */
+            if ($usuario->estudiante) {
+                $query->whereHas('estudiante', function ($q) use ($usuario) {
+                    $q->where('idUsuario', $usuario->idUsuario);
+                });
             }
+
+            /* ======================================================
+                BÚSQUEDA
+            ====================================================== */
+            if ($request->filled('buscarSolicitudDeBeca')) {
+                $buscar = trim($buscar);
+
+                $query->whereHas('beca', function ($b) use ($buscar) {
+                    $b->where('nombreDeBeca', 'LIKE', "%{$buscar}%");
+                });
+            }
+
+            /* ======================================================
+                FILTRO POR ESTATUS
+            ====================================================== */
+            if ($filtro && $filtro !== 'todas') {
+
+                $map = [
+                    'pendientes' => 5,
+                    'aprobadas'  => 6,
+                    'rechazadas' => 7,
+                ];
+
+                if (isset($map[$filtro])) {
+                    $query->where('idEstatus', $map[$filtro]);
+                }
+            }
+
+            /* ======================================================
+                ORDEN
+            ====================================================== */
+            if ($orden === 'mas_reciente') {
+                $query->orderBy('fechaDeSolicitud', 'desc');
+            } elseif ($orden === 'menos_reciente') {
+                $query->orderBy('fechaDeSolicitud', 'asc');
+            }
+
+            $solicitudes = $query->paginate(10)->withQueryString();
+
+            return view(
+                'SGFIDMA.moduloSolicitudBeca.consultaSolicitudDeBeca',
+                compact('solicitudes', 'buscar', 'filtro', 'orden')
+            );
+
+        } catch (\Throwable $e) {
+
+            \Log::error('Error al consultar solicitudes de beca', [
+                'usuario_id' => Auth::id(),
+                'error'      => $e->getMessage(),
+            ]);
+
+            return redirect()
+                ->back()
+                ->with(
+                    'popupError',
+                    'Ocurrió un error al consultar la lista de solicitudes de beca.'
+                );
         }
-
-        /* ======================================================
-        ⏱ ORDEN
-        ====================================================== */
-        if ($orden === 'mas_reciente') {
-            $query->orderBy('fechaDeSolicitud', 'desc');
-        } elseif ($orden === 'menos_reciente') {
-            $query->orderBy('fechaDeSolicitud', 'asc');
-        }
-
-        $solicitudes = $query->paginate(10)->withQueryString();
-
-        return view(
-            'SGFIDMA.moduloSolicitudBeca.consultaSolicitudDeBeca',
-            compact('solicitudes', 'buscar', 'filtro', 'orden')
-        );
     }
+
 
 
 
@@ -279,34 +333,45 @@ class SolicitudDeBecaController extends Controller
     ====================================================== */
     public function edit($id)
     {
-        $usuario = Auth::user();
+        try {
+            $usuario = Auth::user();
 
-        $query = SolicitudDeBeca::with([
-            'beca',
-            'estatus',
-            'documentaciones.tipoDeDocumentacion'
-        ]);
+            $query = SolicitudDeBeca::with([
+                'beca',
+                'estudiante.cicloModalidad.cicloEscolar',
+                'estudiante.cicloModalidad.modalidad',
+                'estatus',
+                'documentaciones.tipoDeDocumentacion'
+            ]);
 
-        if ($usuario->idtipoDeUsuario == 4) {
-            $query->delEstudiante($usuario->estudiante->idEstudiante);
+            // Restricción para estudiante
+            if ($usuario->idtipoDeUsuario == 4) {
+                $query->delEstudiante($usuario->estudiante->idEstudiante);
+            }
+
+            $solicitud = $query->findOrFail($id);
+
+            $docSolicitud = $solicitud->documentaciones
+                ->where('idTipoDeDocumentacion', 1)
+                ->first();
+
+            $docAdicional = $solicitud->documentaciones
+                ->where('idTipoDeDocumentacion', 2)
+                ->first();
+
+            return view(
+                'SGFIDMA.moduloSolicitudBeca.modificacionSolicitudDeBeca',
+                compact('solicitud', 'docSolicitud', 'docAdicional')
+            );
+
+        } catch (\Exception $e) {
+
+            return redirect()
+                ->route('consultaSolicitudDeBeca')
+                ->with('popupError', 'Ocurrió un error al intentar editar la solicitud de beca.');
         }
-
-        $solicitud = $query->findOrFail($id);
-
-        $docSolicitud = $solicitud->documentaciones
-            ->where('idTipoDeDocumentacion', 1)
-            ->first();
-
-        $docAdicional = $solicitud->documentaciones
-            ->where('idTipoDeDocumentacion', 2)
-            ->first();
-            
-
-        return view(
-            'SGFIDMA.moduloSolicitudBeca.modificacionSolicitudDeBeca',
-            compact('solicitud', 'docSolicitud', 'docAdicional')
-        );
     }
+
 
 
 
@@ -330,13 +395,13 @@ class SolicitudDeBecaController extends Controller
         $finUltimaSemanaAgosto = Carbon::create($anio, 8, 1)
             ->endOfMonth();
 
-        // 👉 Si fue solicitada en febrero → termina antes de agosto
+        // Si fue solicitada en febrero → termina antes de agosto
         if ($fechaSolicitud->between($inicioUltimaSemanaFebrero, $finUltimaSemanaFebrero)) {
 
             return $inicioUltimaSemanaAgosto->subDays(2); // 1 o 2 días antes
         }
 
-        // 👉 Si fue solicitada en agosto → termina antes de febrero (siguiente año)
+        // Si fue solicitada en agosto → termina antes de febrero (siguiente año)
         if ($fechaSolicitud->between($inicioUltimaSemanaAgosto, $finUltimaSemanaAgosto)) {
 
             return Carbon::create($anio + 1, 2, 1)
@@ -348,7 +413,7 @@ class SolicitudDeBecaController extends Controller
         return Carbon::now();
     }
 
-
+ 
     /* ======================================================
        ACTUALIZAR
     ====================================================== */
@@ -382,14 +447,24 @@ class SolicitudDeBecaController extends Controller
 
                 $solicitud = SolicitudDeBeca::findOrFail($id);
 
+                $solicitud = SolicitudDeBeca::with('beca')->findOrFail($id);
+
+                $beca = $solicitud->beca;
+
+                if (!$beca) {
+                    abort(400, 'La beca no existe.');
+                }
+
                 $fechaSolicitud = Carbon::parse($solicitud->fechaDeSolicitud);
 
                 $fechaConclusion = $this->calcularFechaConclusion($fechaSolicitud);
 
                 $solicitud->update([
-                    'idEstatus' => 6, // Aprobada
+                    'idEstatus' => 6,
                     'fechaDeConclusion' => $fechaConclusion,
                     'observacion' => null,
+                    'nombreDeBeca' => $beca->nombreDeBeca,
+                    'porcentajeDeDescuento' => $beca->porcentajeDeDescuento,
                 ]);
 
 
@@ -400,7 +475,7 @@ class SolicitudDeBecaController extends Controller
                     Notificacion::create([
                         'idUsuario'          => $usuario->idUsuario,
                         'titulo'             => 'Solicitud de beca aprobada',
-                        'mensaje'            => "Tu solicitud para la beca: {$nombreBeca} ha sido aprobada. Fecha de conclusión: {$fechaConclusion->format('d/m/Y')}.",
+                        'mensaje'            => "Tu solicitud para la beca: \"{$nombreBeca}\" ha sido aprobada. \nFecha de conclusión: {$fechaConclusion->format('d/m/Y')}.",
                         'tipoDeNotificacion' => 1, // Información
                         'fechaDeInicio'      => Carbon::today()->toDateString(),
                         'fechaFin'           => Carbon::today()->addDays(3)->toDateString(),
@@ -440,7 +515,7 @@ class SolicitudDeBecaController extends Controller
                     Notificacion::create([
                         'idUsuario'          => $usuario->idUsuario,
                         'titulo'             => 'Solicitud de beca rechazada',
-                        'mensaje'            => "Tu solicitud para la beca '{$nombreBeca}' ha sido rechazada. Observaciones: {$request->observaciones}",
+                        'mensaje'            => "Tu solicitud para la beca \"{$nombreBeca}\" ha sido rechazada. \nObservaciones: {$request->observaciones}",
                         'tipoDeNotificacion' => 2, // Advertencia
                         'fechaDeInicio'      => Carbon::today()->toDateString(),
                         'fechaFin'           => Carbon::today()->addDays(7)->toDateString(),
@@ -561,7 +636,7 @@ class SolicitudDeBecaController extends Controller
         } catch (\Exception $e) {
 
             DB::rollBack();
-            throw $e; // útil en desarrollo
+            throw $e; 
 
             return back()
                 ->with('popupError', 'Ocurrió un error al actualizar tu solicitud.')

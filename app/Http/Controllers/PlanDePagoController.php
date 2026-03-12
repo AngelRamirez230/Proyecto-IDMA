@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 use App\Models\PlanDePago;
 use App\Models\PlanConcepto;
@@ -13,147 +14,173 @@ use App\Models\Estudiante;
 use App\Models\EstudiantePlan;
 use App\Models\Notificacion;
 use App\Models\Pago;
+use App\Services\ReferenciaBancariaAztecaService;
 
 
 class PlanDePagoController extends Controller
 {
     public function create()
     {
-        $conceptos = ConceptoDePago::whereIn('idConceptoDePago', [1, 2, 30])
-        ->where('idEstatus', 1)
-        ->get();
-        return view('SGFIDMA.moduloPlanDePago.altaPlan', compact('conceptos'));
+        try {
+
+            $conceptos = ConceptoDePago::whereIn('idConceptoDePago', [1, 2, 30])
+                ->where('idEstatus', 1)
+                ->get();
+
+            return view('SGFIDMA.moduloPlanDePago.altaPlan', compact('conceptos'));
+
+        } catch (\Throwable $e) {
+
+            \Log::error('Error al cargar vista de alta de plan de pago', [
+                'error' => $e->getMessage()
+            ]);
+
+            return redirect()
+                ->back()
+                ->with(
+                    'popupError',
+                    'Ocurrió un error al cargar la vista de alta de plan de pago.'
+                );
+        }
     }
+
 
     public function store(Request $request)
     {
-        $validator = Validator::make(
-            $request->all(),
-            [
-                // ======================
-                // PLAN DE PAGO
-                // ======================
-                'nombrePlan' => 'required|string|max:150',
-                'cantidades' => 'required|array',
-            ],
-            [
-                // ======================
-                // MENSAJES GENERALES
-                // ======================
-                'required' => 'El campo :attribute es obligatorio.',
-                'string'   => 'El campo :attribute debe ser texto.',
-                'max'      => 'El campo :attribute no debe exceder :max caracteres.',
-                'array'    => 'El campo :attribute no tiene un formato válido.',
-            ],
-            [
-                // ======================
-                // NOMBRES AMIGABLES
-                // ======================
-                'nombrePlan' => 'nombre del plan de pago',
-                'cantidades' => 'conceptos del plan de pago',
-            ]
-        );
+        try {
 
-        // ⛔ Si falla la validación
-        if ($validator->fails()) {
-            return back()
-                ->with('popupError', 'No se pudo crear el plan de pago. Verifica los datos ingresados.')
-                ->withErrors($validator)
-                ->withInput();
-        }
+            $validator = Validator::make(
+                $request->all(),
+                [
+                    // ======================
+                    // PLAN DE PAGO
+                    // ======================
+                    'nombrePlan' => 'required|string|max:150',
+                    'cantidades' => 'required|array',
+                ],
+                [
+                    // ======================
+                    // MENSAJES GENERALES
+                    // ======================
+                    'required' => 'El campo :attribute es obligatorio.',
+                    'string'   => 'El campo :attribute debe ser texto.',
+                    'max'      => 'El campo :attribute no debe exceder :max caracteres.',
+                    'array'    => 'El campo :attribute no tiene un formato válido.',
+                ],
+                [
+                    // ======================
+                    // NOMBRES AMIGABLES
+                    // ======================
+                    'nombrePlan' => 'nombre del plan de pago',
+                    'cantidades' => 'conceptos del plan de pago',
+                ]
+            );
 
-        // ======================
-        // VALIDAR DUPLICADOS
-        // ======================
-        $existe = PlanDePago::whereRaw(
-            'LOWER(nombrePlanDePago) = ?',
-            [mb_strtolower(trim($request->nombrePlan))]
-        )->exists();
-
-        if ($existe) {
-            return back()
-                ->with('popupError', 'Ya existe un plan de pago con ese nombre.')
-                ->withInput();
-        }
-
-        // Formatear nombre
-        $nombre = $this->mbUcwords($request->nombrePlan);
-
-        // ======================
-        // VALIDAR QUE HAYA CONCEPTOS
-        // ======================
-        $todasCero = collect($request->cantidades)->every(function ($cantidad) {
-            return intval($cantidad) <= 0;
-        });
-
-        if ($todasCero) {
-            return back()
-                ->with('popupError', 'El plan de pago debe tener conceptos seleccionados.')
-                ->withInput();
-        }
-
-
-        // ======================
-        // VALIDACIÓN DE REGLA DE NEGOCIO
-        // ======================
-
-        // Cantidades seleccionadas
-        $cantidades = collect($request->cantidades);
-
-        // IDs clave
-        $inscripcion     = intval($cantidades->get(1, 0));   // INSCRIPCIÓN
-        $reinscripcion   = intval($cantidades->get(30, 0));  // REINSCRIPCIÓN
-        $colegiaturas    = intval($cantidades->get(2, 0));   // COLEGIATURA
-
-        
-        if (
-            ($inscripcion > 0 && $reinscripcion > 0) ||
-            ($inscripcion === 0 && $reinscripcion === 0)
-        ) {
-            return back()
-                ->withErrors([
-                    'cantidades' => 'El plan debe incluir INSCRIPCIÓN o REINSCRIPCIÓN (solo uno de ellos).'
-                ])
-                ->withInput();
-        }
-
-        // 2️⃣ Debe haber exactamente 6 colegiaturas
-        if ($colegiaturas !== 6) {
-            return back()
-                ->withErrors([
-                    'cantidades' => 'El plan debe incluir exactamente 6 colegiaturas.'
-                ])
-                ->withInput();
-        }
-
-
-        // ======================
-        // CREAR PLAN DE PAGO
-        // ======================
-        $plan = PlanDePago::create([
-            'nombrePlanDePago' => $nombre,
-            'idEstatus' => 1
-        ]);
-
-        // ======================
-        // GUARDAR CONCEPTOS
-        // ======================
-        foreach ($request->cantidades as $idConcepto => $cantidad) {
-            $cantidad = intval($cantidad);
-
-            if ($cantidad > 0) {
-                PlanConcepto::create([
-                    'idPlanDePago' => $plan->idPlanDePago,
-                    'idConceptoDePago' => $idConcepto,
-                    'cantidad' => $cantidad
-                ]);
+            // ⛔ Validación
+            if ($validator->fails()) {
+                return back()
+                    ->with('popupError', "No se pudo crear el plan de pago. \nVerifica los datos ingresados.")
+                    ->withErrors($validator)
+                    ->withInput();
             }
-        }
 
-        return redirect()
-            ->route('altaPlan')
-            ->with('success', 'Plan de pagos creado correctamente.');
+            // ======================
+            // VALIDAR DUPLICADOS
+            // ======================
+            $existe = PlanDePago::whereRaw(
+                'LOWER(nombrePlanDePago) = ?',
+                [mb_strtolower(trim($request->nombrePlan))]
+            )->exists();
+
+            if ($existe) {
+                return back()
+                    ->with('popupError', 'Ya existe un plan de pago con ese nombre.')
+                    ->withInput();
+            }
+
+            // Formatear nombre
+            $nombre = $this->mbUcwords($request->nombrePlan);
+
+            // ======================
+            // VALIDAR QUE HAYA CONCEPTOS
+            // ======================
+            $todasCero = collect($request->cantidades)->every(function ($cantidad) {
+                return intval($cantidad) <= 0;
+            });
+
+            if ($todasCero) {
+                return back()
+                    ->with('popupError', 'El plan de pago debe tener conceptos seleccionados.')
+                    ->withInput();
+            }
+
+            // ======================
+            // REGLAS DE NEGOCIO
+            // ======================
+            $cantidades = collect($request->cantidades);
+
+            $inscripcion   = intval($cantidades->get(1, 0));
+            $reinscripcion = intval($cantidades->get(30, 0));
+            $colegiaturas  = intval($cantidades->get(2, 0));
+
+            if (
+                ($inscripcion > 0 && $reinscripcion > 0) ||
+                ($inscripcion === 0 && $reinscripcion === 0)
+            ) {
+                return back()
+                    ->withErrors([
+                        'cantidades' => 'El plan debe incluir INSCRIPCIÓN o REINSCRIPCIÓN (solo uno de ellos).'
+                    ])
+                    ->withInput();
+            }
+
+            if ($colegiaturas !== 6) {
+                return back()
+                    ->withErrors([
+                        'cantidades' => 'El plan debe incluir exactamente 6 colegiaturas.'
+                    ])
+                    ->withInput();
+            }
+
+            // ======================
+            // CREAR PLAN
+            // ======================
+            $plan = PlanDePago::create([
+                'nombrePlanDePago' => $nombre,
+                'idEstatus' => 1
+            ]);
+
+            // ======================
+            // GUARDAR CONCEPTOS
+            // ======================
+            foreach ($request->cantidades as $idConcepto => $cantidad) {
+                $cantidad = intval($cantidad);
+
+                if ($cantidad > 0) {
+                    PlanConcepto::create([
+                        'idPlanDePago'     => $plan->idPlanDePago,
+                        'idConceptoDePago' => $idConcepto,
+                        'cantidad'         => $cantidad
+                    ]);
+                }
+            }
+
+            return redirect()
+                ->route('altaPlan')
+                ->with('success', 'Plan de pagos creado correctamente.');
+
+        } catch (\Throwable $e) {
+
+            \Log::error('Error al crear plan de pago', [
+                'error' => $e->getMessage()
+            ]);
+
+            return redirect()
+                ->back()
+                ->with('popupError', "Ocurrió un error al crear el plan de pago. \nIntenta más tarde.");
+        }
     }
+
 
     private function mbUcwords($string, $encoding = 'UTF-8')
     {
@@ -174,166 +201,375 @@ class PlanDePagoController extends Controller
 
     public function index(Request $request)
     {
-        $buscar = $request->buscarPlan;
-        $filtro = $request->filtro;
-        $orden  = $request->orden;
+        try {
 
-        $plan = PlanDePago::with('estatus');
+            $buscar = $request->buscarPlan;
+            $filtro = $request->filtro;
+            $orden  = $request->orden;
 
-        
-        if (!empty($buscar)) {
-            $plan->where('nombrePlanDePago', 'LIKE', '%' . $buscar . '%');
+            $plan = PlanDePago::with('estatus');
+
+            // ======================
+            // BUSCAR
+            // ======================
+            if (!empty($buscar)) {
+                $plan->where('nombrePlanDePago', 'LIKE', '%' . $buscar . '%');
+            }
+
+            // ======================
+            // FILTRO
+            // ======================
+            if ($filtro == 'activas') {
+                $plan->where('idEstatus', 1);
+            } elseif ($filtro == 'suspendidas') {
+                $plan->where('idEstatus', 2);
+            }
+
+            // ======================
+            // ORDEN
+            // ======================
+            if ($orden == 'alfabetico') {
+                $plan->orderBy('nombrePlanDePago', 'ASC');
+            }
+
+            // ======================
+            // PAGINACIÓN
+            // ======================
+            $planes = $plan->paginate(10)->withQueryString();
+
+            return view(
+                'SGFIDMA.moduloPlanDePago.consultaPlanDePago',
+                compact('planes', 'buscar', 'filtro', 'orden')
+            );
+
+        } catch (\Throwable $e) {
+
+            \Log::error('Error al cargar consulta de planes de pago', [
+                'error' => $e->getMessage()
+            ]);
+
+            return redirect()
+                ->back()
+                ->with(
+                    'popupError',
+                    'Ocurrió un error al cargar los planes de pago.'
+                );
         }
-
-        
-        if ($filtro == 'activas') {
-            $plan->where('idEstatus', 1);
-        } elseif ($filtro == 'suspendidas') {
-            $plan->where('idEstatus', 2);
-        }
-
-        
-        if ($orden == 'alfabetico') {
-            $plan->orderBy('nombrePlanDePago', 'ASC');
-        }
-
-        
-        $planes = $plan->paginate(5)->withQueryString();
-
-        return view('SGFIDMA.moduloPlanDePago.consultaPlanDePago', compact('planes', 'buscar', 'filtro', 'orden'));
     }
+
 
 
     public function edit($id)
     {
-        $plan = PlanDePago::with('conceptos')->findOrFail($id);
+        try {
 
-        // Obtener todos los conceptos activos
-        $conceptos = ConceptoDePago::whereIn('idConceptoDePago', [1, 2, 30])
-        ->where('idEstatus', 1)
-        ->get();
+            $plan = PlanDePago::with('conceptos')->findOrFail($id);
 
-        // Convertir cantidades actuales en un arreglo [idConcepto => cantidad]
-        $cantidadesActuales = $plan->conceptos->pluck('cantidad', 'idConceptoDePago')->toArray();
+            // Obtener todos los conceptos activos
+            $conceptos = ConceptoDePago::whereIn('idConceptoDePago', [1, 2, 30])
+                ->where('idEstatus', 1)
+                ->get();
 
-        return view('SGFIDMA.moduloPlanDePago.modificacionPlan', compact('plan', 'conceptos', 'cantidadesActuales'));
+            // Convertir cantidades actuales en un arreglo [idConcepto => cantidad]
+            $cantidadesActuales = $plan->conceptos
+                ->pluck('cantidad', 'idConceptoDePago')
+                ->toArray();
+
+            return view(
+                'SGFIDMA.moduloPlanDePago.modificacionPlan',
+                compact('plan', 'conceptos', 'cantidadesActuales')
+            );
+
+        } catch (\Throwable $e) {
+
+            \Log::error('Error al cargar edición de plan de pago', [
+                'id_plan' => $id,
+                'error'   => $e->getMessage()
+            ]);
+
+            return redirect()
+                ->back()
+                ->with(
+                    'popupError',
+                    'No se pudo cargar la información del plan de pago.'
+                );
+        }
     }
+
 
     public function update(Request $request, $id)
     {
-        $plan = PlanDePago::findOrFail($id);
+        try {
+            $plan = PlanDePago::findOrFail($id);
 
-        // Si solo cambia estatus
-        if ($request->accion === 'Suspender/Habilitar') {
+            /*
+            ==================================================
+            CAMBIO DE ESTATUS
+            ==================================================
+            */
+            if ($request->accion === 'Suspender/Habilitar') {
 
-            // Verificar si hay estudiantes activos con este plan
-            $tieneEstudianteActivo = $plan->estudiantes()
-                                        ->where('idEstatus', 1) // 1 = activo
-                                        ->exists();
+                $tieneEstudiantesActivos = $plan->estudiantes()
+                    ->where('idEstatus', 1) // 1 = activo
+                    ->exists();
 
-            // Intento de suspender
-            if ($plan->idEstatus == 1 && $tieneEstudianteActivo) {
-                return redirect()->route('consultaPlan')
-                    ->with('popupError', 'No se puede suspender este plan por que existen estudiantes con este plan asignado.');
+                if ($plan->idEstatus == 1 && $tieneEstudiantesActivos) {
+                    return redirect()
+                        ->route('consultaPlan')
+                        ->with('popupError', 'No se puede suspender este plan porque existen estudiantes con este plan asignado.');
+                }
+
+                $estatusAnterior = $plan->idEstatus;
+                $plan->idEstatus = ($plan->idEstatus == 1) ? 2 : 1;
+                $plan->save();
+
+                $mensaje = ($estatusAnterior == 1)
+                    ? "El plan de pago {$plan->nombrePlanDePago} ha sido suspendido."
+                    : "El plan de pago {$plan->nombrePlanDePago} ha sido activado.";
+
+                return redirect()->route('consultaPlan')->with('success', $mensaje);
             }
 
-            // Cambiar estatus normalmente
-            $estatusAnterior = $plan->idEstatus;
-            $plan->idEstatus = ($plan->idEstatus == 1) ? 2 : 1;
-            $plan->save();
+            /*
+            ==================================================
+            VALIDACIÓN DEL NOMBRE
+            ==================================================
+            */
+            $request->validate([
+                'nombrePlan' => 'required|string|max:150',
+            ]);
 
-            $mensaje = ($estatusAnterior == 1)
-                ? "El plan de pago {$plan->nombrePlanDePago} ha sido suspendido."
-                : "El plan de pago {$plan->nombrePlanDePago} ha sido activado.";
+            $nombreFormateado = $this->mbUcwords($request->nombrePlan);
 
-            return redirect()->route('consultaPlan')->with('success', $mensaje);
-        }
+            $existe = PlanDePago::whereRaw(
+                    'LOWER(nombrePlanDePago) = ?',
+                    [mb_strtolower($nombreFormateado)]
+                )
+                ->where('idPlanDePago', '!=', $id)
+                ->exists();
 
+            if ($existe) {
+                return back()
+                    ->with('popupError', 'Ya existe un plan de pago con ese nombre.')
+                    ->withInput();
+            }
 
-        // Validación del nombre
-        $request->validate([
-            'nombrePlan' => 'required|string|max:150',
-        ]);
+            /*
+            ==================================================
+            VERIFICAR USO DEL PLAN POR ESTUDIANTES
+            ==================================================
+            */
 
-        $nombreFormateado = $this->mbUcwords($request->nombrePlan);
+            // Estudiantes activos actualmente
+            $tieneEstudiantesActivos = $plan->estudiantes()
+                ->where('idEstatus', 1)
+                ->exists();
 
-        // Verificar duplicado sin contar el actual
-        $existe = PlanDePago::whereRaw('LOWER(nombrePlanDePago) = ?', [mb_strtolower($nombreFormateado)])
-                            ->where('idPlanDePago', '!=', $id)
-                            ->exists();
+            // Historial (estudiantes que ya no están activos)
+            $tieneHistorial = $plan->estudiantes()
+                ->where('idEstatus', '!=', 1)
+                ->exists();
 
-        if ($existe) {
-            return back()
-                ->with('popupError', 'Ya existe un plan de pago con ese nombre.')
-                ->withInput();
-        }
+            /*
+            Tiene estudiantes activos Y también historial
+            ➜ No se puede modificar nada
+            */
+            if ($tieneEstudiantesActivos && $tieneHistorial) {
+                return redirect()
+                    ->route('consultaPlan')
+                    ->with(
+                        'popupError',
+                        "No se puede modificar este plan de pago porque tiene estudiantes asignados actualmente y también cuenta con historial. \nSolo puede ser suspendido."
+                    );
+            }
 
-        // ==============================
-        // VERIFICAR SI ALGÚN ESTUDIANTE ACTIVO USA ESTE PLAN
-        // ==============================
-        $tieneEstudianteActivo = $plan->estudiantes()
-                                    ->where('idEstatus', 1) // 1 = activo
-                                    ->exists();
+            /*
+            Tiene estudiantes activos pero SIN historial
+            ➜ Solo se permite cambiar el nombre
+            */
+            if ($tieneEstudiantesActivos && !$tieneHistorial) {
+                $plan->nombrePlanDePago = $nombreFormateado;
+                $plan->save();
 
-        // Si tiene estudiantes activos, solo se permite cambiar el nombre
-        if ($tieneEstudianteActivo) {
+                return redirect()
+                    ->route('consultaPlan')
+                    ->with(
+                        'success',
+                        "El nombre del plan se actualizó correctamente. \nNo se pueden modificar los conceptos porque el plan tiene estudiantes asignados."
+                    );
+            }
+
+            /*
+            No tiene estudiantes activos
+            ➜ Se permite modificar nombre y conceptos
+            */
+
+            /*
+            ==================================================
+            NO TIENE ESTUDIANTES ACTIVOS
+            ➜ SE PERMITE MODIFICAR NOMBRE Y CONCEPTOS
+            ==================================================
+            */
+
+            $validator = Validator::make(
+                $request->all(),
+                [
+                    // ======================
+                    // PLAN DE PAGO
+                    // ======================
+                    'nombrePlan' => 'required|string|max:150',
+                    'cantidades' => 'required|array',
+                ],
+                [
+                    // ======================
+                    // MENSAJES GENERALES
+                    // ======================
+                    'required' => 'El campo :attribute es obligatorio.',
+                    'string'   => 'El campo :attribute debe ser texto.',
+                    'max'      => 'El campo :attribute no debe exceder :max caracteres.',
+                    'array'    => 'El campo :attribute no tiene un formato válido.',
+                ],
+                [
+                    // ======================
+                    // NOMBRES AMIGABLES
+                    // ======================
+                    'nombrePlan' => 'nombre del plan de pago',
+                    'cantidades' => 'conceptos del plan de pago',
+                ]
+            );
+
+            if ($validator->fails()) {
+                return back()
+                    ->with('popupError', "No se pudo actualizar el plan de pago. \nVerifica los datos ingresados.")
+                    ->withErrors($validator)
+                    ->withInput();
+            }
+
+            // ======================
+            // VALIDAR QUE HAYA CONCEPTOS
+            // ======================
+            $todasCero = collect($request->cantidades)->every(fn ($cantidad) => intval($cantidad) <= 0);
+
+            if ($todasCero) {
+                return back()
+                    ->with('popupError', 'El plan de pago debe tener conceptos seleccionados.')
+                    ->withInput();
+            }
+
+            // ======================
+            // REGLAS DE NEGOCIO
+            // ======================
+            $cantidades = collect($request->cantidades);
+
+            $inscripcion   = intval($cantidades->get(1, 0));
+            $reinscripcion = intval($cantidades->get(30, 0));
+            $colegiaturas  = intval($cantidades->get(2, 0));
+
+            // INSCRIPCIÓN o REINSCRIPCIÓN (solo uno)
+            if (
+                !(
+                    ($inscripcion === 1 && $reinscripcion === 0) ||
+                    ($inscripcion === 0 && $reinscripcion === 1)
+                )
+            ) {
+                return back()
+                    ->withErrors([
+                        'cantidades' => 'El plan debe incluir exactamente 1 INSCRIPCIÓN o 1 REINSCRIPCIÓN (solo uno de ellos).'
+                    ])
+                    ->withInput();
+            }
+
+            // Exactamente 6 colegiaturas
+            if ($colegiaturas !== 6) {
+                return back()
+                    ->withErrors([
+                        'cantidades' => 'El plan debe incluir exactamente 6 colegiaturas.'
+                    ])
+                    ->withInput();
+            }
+
+            // ======================
+            // ACTUALIZAR PLAN
+            // ======================
             $plan->nombrePlanDePago = $nombreFormateado;
             $plan->save();
 
-            return redirect()->route('consultaPlan')->with('success', 'El nombre del plan se actualizó correctamente, pero no se pueden modificar los conceptos porque el plan tiene estudiantes activos.');
-        }
+            // Reemplazar conceptos
+            $plan->conceptos()->delete();
 
-        // Validación de conceptos solo si NO hay estudiantes activos
-        $request->validate([
-            'cantidades' => 'required|array',
-        ]);
+            foreach ($request->cantidades as $idConcepto => $cantidad) {
+                $cantidad = intval($cantidad);
 
-        $todasCero = collect($request->cantidades)->every(fn($c) => intval($c) <= 0);
+                if ($cantidad > 0) {
+                    PlanConcepto::create([
+                        'idPlanDePago'     => $plan->idPlanDePago,
+                        'idConceptoDePago' => $idConcepto,
+                        'cantidad'         => $cantidad
+                    ]);
+                }
+            }
 
-        if ($todasCero) {
+            return redirect()
+                ->route('consultaPlan')
+                ->with('success', 'Plan de pagos actualizado correctamente.');
+
+
+        } catch (\Throwable $e) {
+
+            // report($e); // ← opcional para logs
+
             return back()
-                ->with('popupError', 'Debes seleccionar al menos un concepto.')
+                ->with('popupError', "Ocurrió un error al actualizar el plan de pagos. \nIntenta nuevamente.")
                 ->withInput();
         }
-
-        // Actualizar nombre
-        $plan->nombrePlanDePago = $nombreFormateado;
-        $plan->save();
-
-        // Eliminar conceptos anteriores y registrar nuevos
-        $plan->conceptos()->delete();
-
-        foreach ($request->cantidades as $idConcepto => $cantidad) {
-            $cantidad = intval($cantidad);
-            if ($cantidad > 0) {
-                PlanConcepto::create([
-                    'idPlanDePago' => $plan->idPlanDePago,
-                    'idConceptoDePago' => $idConcepto,
-                    'cantidad' => $cantidad
-                ]);
-            }
-        }
-
-        return redirect()->route('consultaPlan')->with('success', 'Plan de pagos actualizado correctamente.');
     }
+
 
 
 
 
     public function destroy($id)
     {
-        $plan = PlanDePago::findOrFail($id);
+        try {
 
-        // Verificar si el plan tiene conceptos asignados
-        $estaEnUso = PlanConcepto::where('idPlanDePago', $id)->exists();
+            $plan = PlanDePago::findOrFail($id);
 
+            // ==============================
+            // VERIFICAR SI ALGÚN ESTUDIANTE TIENE O TUVO ESTE PLAN
+            // ==============================
+            $tieneHistorial = $plan->estudiantes()->exists();
 
-        $plan->conceptos()->delete();
+            if ($tieneHistorial) {
+                return back()->with(
+                    'popupError',
+                    "No se puede eliminar este plan de pago porque existen o existieron estudiantes con este plan asignado. \nSolo puede ser suspendido si no existen estudiantes con este plan asignado en este momento."
+                );
+            }
 
-        $plan->delete();
+            // ==============================
+            // ELIMINAR CONCEPTOS ASOCIADOS
+            // ==============================
+            $plan->conceptos()->delete();
 
-        return back()->with('success', 'Plan eliminado correctamente.');
+            // ==============================
+            // ELIMINAR PLAN
+            // ==============================
+            $plan->delete();
+
+            return back()->with('success', 'Plan eliminado correctamente.');
+
+        } catch (\Throwable $e) {
+
+            return back()->with(
+                'popupError',
+                "Ocurrió un error al intentar eliminar el plan de pago. \nIntenta nuevamente."
+            );
+
+            // Para depuración:
+            // report($e);
+        }
     }
+
 
 
 
@@ -341,93 +577,114 @@ class PlanDePagoController extends Controller
 
     public function asignarCreate(Request $request)
     {
-        $buscar = $request->buscar;
-        $filtro = $request->filtro;
-        $orden  = $request->orden;
+        try {
 
-        // =============================
-        // PLANES DE PAGO ACTIVOS
-        // =============================
-        $planes = PlanDePago::where('idEstatus', 1)->get();
+            $buscar = $request->buscar;
+            $filtro = $request->filtro;
+            $orden  = $request->orden;
 
-        // =============================
-        // QUERY BASE DE ESTUDIANTES
-        // =============================
-        $query = Estudiante::with([
-            'usuario',
-            'planDeEstudios.licenciatura'
-        ]);
+            // =============================
+            // PLANES DE PAGO ACTIVOS
+            // =============================
+            $planes = PlanDePago::where('idEstatus', 1)->get();
 
-        // =============================
-        // BUSCADOR (nombre completo o matrícula)
-        // =============================
-        if ($request->filled('buscar')) {
+            // =============================
+            // QUERY BASE DE ESTUDIANTES
+            // =============================
+            $query = Estudiante::with([
+                'usuario',
+                'planDeEstudios.licenciatura'
+            ]);
 
-            $buscar = trim($buscar);
 
-            $query->where(function ($q) use ($buscar) {
+            // =============================
+            // BUSCADOR (nombre completo o matrícula)
+            // =============================
+            if ($request->filled('buscar')) {
 
-                // Buscar por matrícula
-                $q->where('matriculaAlfanumerica', 'LIKE', "%{$buscar}%");
+                $buscar = trim($buscar);
 
-                // Buscar por nombre completo
-                $q->orWhereHas('usuario', function ($u) use ($buscar) {
-                    $u->where('primerNombre', 'LIKE', "%{$buscar}%")
-                    ->orWhere('segundoNombre', 'LIKE', "%{$buscar}%")
-                    ->orWhere('primerApellido', 'LIKE', "%{$buscar}%")
-                    ->orWhere('segundoApellido', 'LIKE', "%{$buscar}%")
-                    ->orWhereRaw(
-                        "REPLACE(
-                            TRIM(
-                                CONCAT(
-                                    primerNombre, ' ',
-                                    IFNULL(segundoNombre, ''), ' ',
-                                    primerApellido, ' ',
-                                    IFNULL(segundoApellido, '')
-                                )
-                            ),
-                            '  ', ' '
-                        ) LIKE ?",
-                        ["%{$buscar}%"]
-                    );
+                $query->where(function ($q) use ($buscar) {
+
+                    // Buscar por matrícula
+                    $q->where('matriculaAlfanumerica', 'LIKE', "%{$buscar}%")
+
+                    // Buscar por nombre completo
+                    ->orWhereHas('usuario', function ($u) use ($buscar) {
+                        $u->where('primerNombre', 'LIKE', "%{$buscar}%")
+                            ->orWhere('segundoNombre', 'LIKE', "%{$buscar}%")
+                            ->orWhere('primerApellido', 'LIKE', "%{$buscar}%")
+                            ->orWhere('segundoApellido', 'LIKE', "%{$buscar}%")
+                            ->orWhereRaw(
+                                "REPLACE(
+                                    TRIM(
+                                        CONCAT(
+                                            primerNombre, ' ',
+                                            IFNULL(segundoNombre, ''), ' ',
+                                            primerApellido, ' ',
+                                            IFNULL(segundoApellido, '')
+                                        )
+                                    ),
+                                    '  ', ' '
+                                ) LIKE ?",
+                                ["%{$buscar}%"]
+                            );
+                    });
                 });
-            });
+            }
+
+            // =============================
+            // FILTRO POR ESTATUS ACADÉMICO
+            // =============================
+            if ($filtro === 'nuevoIngreso') {
+                $query->where('grado', 1);
+            }
+
+            if ($filtro === 'inscritos') {
+                $query->where('grado', '>', 1);
+            }
+
+            // =============================
+            // ORDENAMIENTO
+            // =============================
+            if ($orden === 'alfabetico') {
+                $query->join('usuario', 'usuario.idUsuario', '=', 'estudiante.idUsuario')
+                    ->orderBy('usuario.primerNombre')
+                    ->orderBy('usuario.primerApellido')
+                    ->orderBy('usuario.segundoApellido')
+                    ->select('estudiante.*');
+            }
+
+            // =============================
+            // PAGINACIÓN
+            // =============================
+            $estudiantes = $query
+                ->paginate(10)
+                ->withQueryString();
+
+            return view(
+                'SGFIDMA.moduloPlanDePago.asignacionDePlanDePago',
+                compact('planes', 'estudiantes', 'buscar', 'filtro', 'orden')
+            );
+
+        } catch (\Throwable $e) {
+
+            // Registrar el error
+            \Log::error('Error en asignarCreate', [
+                'mensaje' => $e->getMessage(),
+                'archivo' => $e->getFile(),
+                'linea'   => $e->getLine()
+            ]);
+
+            return redirect()
+                ->back()
+                ->with(
+                    'popupError',
+                    "Ocurrió un error al cargar la asignación de planes de pago. \nIntente nuevamente."
+                );
         }
-
-        // =============================
-        // FILTRO POR ESTATUS ACADÉMICO
-        // =============================
-        if ($filtro === 'nuevoIngreso') {
-            $query->where('grado', 1);
-        }
-
-        if ($filtro === 'inscritos') {
-            $query->where('grado', '>', 1);
-        }
-
-        // =============================
-        // ORDENAMIENTO
-        // =============================
-        if ($orden === 'alfabetico') {
-            $query->join('usuario', 'usuario.idUsuario', '=', 'estudiante.idUsuario')
-                ->orderBy('usuario.primerNombre')
-                ->orderBy('usuario.primerApellido')
-                ->orderBy('usuario.segundoApellido')
-                ->select('estudiante.*');
-        }
-
-        // =============================
-        // PAGINACIÓN
-        // =============================
-        $estudiantes = $query
-            ->paginate(10)
-            ->withQueryString();
-
-        return view(
-            'SGFIDMA.moduloPlanDePago.asignacionDePlanDePago',
-            compact('planes', 'estudiantes', 'buscar', 'filtro', 'orden')
-        );
     }
+
 
 
     private function obtenerMesesDelPlan(Carbon $inicio): array
@@ -441,442 +698,486 @@ class PlanDePagoController extends Controller
         return $meses;
     }
 
-    private function generarReferenciaBancaria(
-        Estudiante $estudiante,
-        ConceptoDePago $concepto,
-        float $monto,
-        Carbon $fechaLimite
-    ) {
-        $anioBase = 2013;
-        $anioCond = ($fechaLimite->year - $anioBase) * 372;
-        $mesCond  = ($fechaLimite->month - 1) * 31;
-        $diaCond  = ($fechaLimite->day - 1);
-        $fechaCondensada = $anioCond + $mesCond + $diaCond;
-
-        $prefijo   = '0007777';
-        $matricula = $estudiante->matriculaNumerica;
-
-        $conceptoFormateado = str_pad(
-            $concepto->idConceptoDePago,
-            2,
-            '0',
-            STR_PAD_LEFT
-        );
-
-        $monto = number_format($monto, 2, '', '');
-        $monto = str_pad($monto, 10, '0', STR_PAD_LEFT);
-
-        $ponderadores = [7, 3, 1];
-        $digitos = str_split($monto);
-        $suma = 0;
-
-        foreach ($digitos as $i => $digito) {
-            $indice = (count($digitos) - 1 - $i) % 3;
-            $suma += ((int)$digito) * $ponderadores[$indice];
-        }
-
-        $importeCondensado = $suma % 10;
-        $constante = '2';
-
-        $referenciaInicial =
-            $prefijo .
-            $matricula .
-            $conceptoFormateado .
-            $fechaCondensada .
-            $importeCondensado .
-            $constante;
-
-        $ponderadores97 = [11, 13, 17, 19, 23];
-        $digitosRef = str_split($referenciaInicial);
-        $suma = 0;
-
-        foreach ($digitosRef as $i => $digito) {
-            $pos = (count($digitosRef) - 1 - $i) % count($ponderadores97);
-            $suma += ((int)$digito) * $ponderadores97[$pos];
-        }
-
-        $remanente = str_pad(($suma % 97) + 1, 2, '0', STR_PAD_LEFT);
-
-        return $referenciaInicial . $remanente;
-    }
-
-
-
 
     public function asignarStore(Request $request)
     {
-        $hoy = Carbon::now();
-        $mesActual = $hoy->month;
+        try{
+            $hoy = Carbon::now();
+            $mesActual = $hoy->month;
 
-        // =============================
-        // RESTRICCIÓN DE MESES
-        // =============================
-        if (!in_array($mesActual, [3, 9])) {
-            return back()
-                ->with('popupError', 'Los planes de pago solo se pueden asignar en los meses de MARZO y SEPTIEMBRE.')
-                ->withInput();
-        }
+            // =============================
+            // RESTRICCIÓN DE MESES
+            // =============================
+            if (!in_array($mesActual, [3, 9])) {
+                return back()
+                    ->with('popupError', 'Los planes de pago solo se pueden asignar en los meses de MARZO y SEPTIEMBRE.')
+                    ->withInput();
+            }
 
-        // =============================
-        // VALIDACIÓN
-        // =============================
-        $validator = Validator::make(
-            $request->all(),
-            [
-                'idPlanDePago'        => 'required|exists:Plan_de_pago,idPlanDePago',
-                'fechaDeFinalizacion' => 'required|date|after_or_equal:today',
-                'estudiantes'         => 'required|array|min:1',
-                'estudiantes.*'       => 'exists:Estudiante,idEstudiante',
-            ],
-            [
-                'required'        => 'El campo :attribute es obligatorio.',
-                'exists'          => 'El :attribute seleccionado no es válido.',
-                'array'           => 'Debe seleccionar al menos un estudiante.',
-                'min'             => 'Debe seleccionar al menos :min estudiante.',
-                'date'            => 'El campo :attribute debe ser una fecha válida.',
-                'after_or_equal'  => 'La :attribute no puede ser menor a la fecha actual.',
-            ],
-            [
-                'idPlanDePago'        => 'plan de pago',
-                'fechaDeFinalizacion' => 'fecha de finalización',
-                'estudiantes'         => 'estudiantes',
-            ]
-        );
-
-        if ($validator->fails()) {
-            return back()
-                ->with('popupError', 'No se pudo asignar el plan. Verifica la información.')
-                ->withErrors($validator)
-                ->withInput();
-        }
-
-
-        $creados = [];
-        $duplicados = [];
-        $noAplicados = [];
-
-
-        foreach ($request->estudiantes as $idEstudiante) {
-
-            $usuario = Estudiante::with('usuario')
-                ->find($idEstudiante)
-                ->usuario;
-
-            $nombreCompleto = trim(
-                collect([
-                    $usuario->primerNombre,
-                    $usuario->segundoNombre,
-                    $usuario->primerApellido,
-                    $usuario->segundoApellido,
-                ])->filter()->implode(' ')
+            // =============================
+            // VALIDACIÓN
+            // =============================
+            $validator = Validator::make(
+                $request->all(),
+                [
+                    'idPlanDePago'        => 'required|exists:Plan_de_pago,idPlanDePago',
+                    'fechaDeFinalizacion' => 'required|date|after_or_equal:today',
+                    'estudiantes'         => 'required|array|min:1',
+                    'estudiantes.*'       => 'exists:Estudiante,idEstudiante',
+                ],
+                [
+                    'required'        => 'El campo :attribute es obligatorio.',
+                    'exists'          => 'El :attribute seleccionado no es válido.',
+                    'array'           => 'Debe seleccionar al menos un estudiante.',
+                    'min'             => 'Debe seleccionar al menos :min estudiante.',
+                    'date'            => 'El campo :attribute debe ser una fecha válida.',
+                    'after_or_equal'  => 'La :attribute no puede ser menor a la fecha actual.',
+                ],
+                [
+                    'idPlanDePago'        => 'plan de pago',
+                    'fechaDeFinalizacion' => 'fecha de finalización',
+                    'estudiantes'         => 'estudiantes',
+                ]
             );
 
-            $estudiante = Estudiante::with(['usuario'])
-                ->findOrFail($idEstudiante);
-
-            // 🔹 Inicializar SIEMPRE
-            $creados[$idEstudiante]['estudiante']    = $nombreCompleto;
-            $duplicados[$idEstudiante]['estudiante'] = $nombreCompleto;
-
-            $creados[$idEstudiante]['pagos']    = [];
-            $duplicados[$idEstudiante]['pagos'] = [];
-
-            $seCrearonPagos = false;
-
-            $estudiantePlan = EstudiantePlan::where('idEstudiante', $idEstudiante)
-                ->where('idEstatus', 1)
-                ->with('planDePago')
-                ->first();
-
-            // =============================
-            // VALIDAR PLAN ACTIVO EXISTENTE
-            // =============================
-            if ($estudiantePlan) {
-
-                $noAplicados[] = [
-                    'estudiante' => $nombreCompleto,
-                    'motivo'     => 'El estudiante ya cuenta con un plan de pago activo: ' .
-                                    $estudiantePlan->planDePago->nombrePlanDePago
-                ];
-
-                continue; 
+            if ($validator->fails()) {
+                return back()
+                    ->with('popupError', "No se pudo asignar el plan. \nVerifica la información.")
+                    ->withErrors($validator)
+                    ->withInput();
             }
 
 
-            
-            $plan = PlanDePago::with('conceptos.concepto')->findOrFail($request->idPlanDePago);
-
-            $contieneInscripcion   = $plan->conceptos->contains(fn ($pc) => $pc->concepto->idConceptoDePago == 1);
-            $contieneReinscripcion = $plan->conceptos->contains(fn ($pc) => $pc->concepto->idConceptoDePago == 30);
-
-            $grado = $estudiante->grado;
-
-
-            if ($grado == 1 && $contieneReinscripcion) {
-
-                $noAplicados[] = [
-                    'estudiante' => $nombreCompleto,
-                    'motivo'     => 'No se aplicó el plan porque el estudiante es de nuevo ingreso y el plan contiene reinscripción.'
-                ];
-
-                continue;
-            }
-
-            if ($grado >= 2 && $contieneInscripcion) {
-
-                $noAplicados[] = [
-                    'estudiante' => $nombreCompleto,
-                    'motivo'     => 'No se aplicó el plan porque el estudiante no es de nuevo ingreso y el plan contiene inscripción.'
-                ];
-
-                continue; 
-            }
-
-
-
-
-
-            if (!$estudiantePlan) {
-                $estudiantePlan = EstudiantePlan::create([
-                    'idEstudiante'        => $idEstudiante,
-                    'idPlanDePago'        => $request->idPlanDePago,
-                    'idEstatus'           => 1,
-                    'fechaDeAsignacion'   => now()->toDateString(),
-                    'fechaDeFinalizacion' => $request->fechaDeFinalizacion,
-                ]);
-            }
-
+            $creados = [];
+            $duplicados = [];
+            $noAplicados = [];
 
 
             $plan = PlanDePago::with('conceptos.concepto')->findOrFail($request->idPlanDePago);
-            // Determinar mes inicial
-            $hoy = Carbon::now();
-            $inicioPlan = $hoy->month <= 6
-                ? Carbon::create($hoy->year, 3, 1)
-                : Carbon::create($hoy->year, 9, 1);
 
-            $meses = $this->obtenerMesesDelPlan($inicioPlan);
 
-            foreach ($plan->conceptos as $pc) {
+            foreach ($request->estudiantes as $idEstudiante) {
 
-                $concepto = $pc->concepto;
+                DB::transaction(function () use ($idEstudiante,$request,$plan,&$creados,&$duplicados,&$noAplicados) 
+                {
 
-                // =====================
-                // INSCRIPCIÓN o REINSCRIPCION (1 VEZ)
-                // =====================
-                if (in_array($concepto->idConceptoDePago, [1, 30])) {
+                    $estudiante = Estudiante::with('usuario')
+                         ->findOrFail($idEstudiante);
 
-                    $primerMes = $meses[0];
-                    $fechaLimite = $primerMes->copy()->day(15);
+                    $usuario = $estudiante->usuario;
 
-                    $aportacionTexto = $concepto->idConceptoDePago == 1
-                        ? 'INSCRIPCIÓN'
-                        : 'REINSCRIPCIÓN';
-
-                    $referencia = $this->generarReferenciaBancaria(
-                        $estudiantePlan->estudiante,
-                        $concepto,
-                        $concepto->costo,
-                        $fechaLimite
+                    $nombreCompleto = trim(
+                        collect([
+                            $usuario->primerNombre,
+                            $usuario->segundoNombre,
+                            $usuario->primerApellido,
+                            $usuario->segundoApellido,
+                        ])->filter()->implode(' ')
                     );
 
-                    $pagoExistente = Pago::where('Referencia', $referencia)
-                        ->where('idEstudiante', $idEstudiante)
+                    $ciclo = $estudiante->cicloModalidad;
+
+
+                    // 🔹 Inicializar SIEMPRE
+                    $creados[$idEstudiante]['estudiante']    = $nombreCompleto;
+                    $duplicados[$idEstudiante]['estudiante'] = $nombreCompleto;
+
+                    $creados[$idEstudiante]['pagos']    = [];
+                    $duplicados[$idEstudiante]['pagos'] = [];
+
+                    $seCrearonPagos = false;
+
+                    $estudiantePlan = EstudiantePlan::where('idEstudiante', $idEstudiante)
+                        ->where('idEstatus', 1)
+                        ->lockForUpdate()
+                        ->with('planDePago')
                         ->first();
 
-                    if (!$pagoExistente) {
+                    // =============================
+                    // VALIDAR PLAN ACTIVO EXISTENTE
+                    // =============================
+                    if ($estudiantePlan) {
 
-                        $seCrearonPagos = true;
-
-                        Pago::create([
-                            'Referencia'            => $referencia,
-                            'idEstudiante'          => $idEstudiante,
-                            'idConceptoDePago'      => $concepto->idConceptoDePago,
-                            'montoAPagar'           => $concepto->costo,
-                            'fechaGeneracionDePago' => $primerMes->copy()->day(1),
-                            'fechaLimiteDePago'     => $fechaLimite,
-                            'aportacion'            => $aportacionTexto,
-                            'idEstatus'             => 3
-                        ]);
-
-                        $creados[$idEstudiante]['pagos'][] = [
-                            'referencia' => $referencia,
-                            'concepto'   => $aportacionTexto,
-                            'fecha'      => $fechaLimite,
-                            'idConcepto' => $concepto->idConceptoDePago, // 🔑 CLAVE
+                        $noAplicados[] = [
+                            'estudiante' => $nombreCompleto,
+                            'motivo'     => 'El estudiante ya cuenta con un plan de pago activo: ' .
+                                            $estudiantePlan->planDePago->nombrePlanDePago
                         ];
 
-                    } else {
-
-                        $duplicados[$idEstudiante]['pagos'][] = [
-                            'referencia' => $pagoExistente->Referencia,
-                            'concepto'   => $pagoExistente->aportacion ?? $aportacionTexto,
-                            'fecha'      => $pagoExistente->fechaLimiteDePago,
-                            'idConcepto' => $concepto->idConceptoDePago,
-                        ];
+                        return;
                     }
-                }
+
+
+                    // =============================
+                    // VALIDAR CICLO ACTIVO
+                    // =============================
+                    if (!$ciclo || $ciclo->idTipoDeEstatus != 1) {
+
+                        $noAplicados[] = [
+                            'estudiante' => $nombreCompleto,
+                            'motivo'     => 'El estudiante no tiene un ciclo escolar activo.'
+                        ];
+
+                        return;
+                    }
+
+
+                    
+
+                    $contieneInscripcion   = $plan->conceptos->contains(fn ($pc) => $pc->concepto->idConceptoDePago == 1);
+                    $contieneReinscripcion = $plan->conceptos->contains(fn ($pc) => $pc->concepto->idConceptoDePago == 30);
+
+                    $grado = $estudiante->grado;
+
+
+                    if ($grado == 1 && $contieneReinscripcion) {
+
+                        $noAplicados[] = [
+                            'estudiante' => $nombreCompleto,
+                            'motivo'     => 'No se aplicó el plan porque el estudiante es de nuevo ingreso y el plan contiene reinscripción.'
+                        ];
+
+                        return;
+                    }
+
+                    if ($grado >= 2 && $contieneInscripcion) {
+
+                        $noAplicados[] = [
+                            'estudiante' => $nombreCompleto,
+                            'motivo'     => 'No se aplicó el plan porque el estudiante no es de nuevo ingreso y el plan contiene inscripción.'
+                        ];
+
+                        return;
+                    }
 
 
 
-                // =====================
-                // MENSUALIDADES
-                // =====================
-                if ($concepto->idConceptoDePago == 2) {
+                    $estudiantePlan = EstudiantePlan::create([
+                        'idEstudiante'        => $idEstudiante,
+                        'idPlanDePago'        => $request->idPlanDePago,
+                        'idEstatus'           => 1,
+                        'fechaDeAsignacion'   => now()->toDateString(),
+                        'fechaDeFinalizacion' => $request->fechaDeFinalizacion,
+                    ]);
 
-                    $contadorMes = 1;
 
-                    foreach ($meses as $mes) {
+                    // Determinar mes inicial
+                    $hoy = Carbon::now();
+                    $inicioPlan = $hoy->month <= 6
+                        ? Carbon::create($hoy->year, 3, 1)
+                        : Carbon::create($hoy->year, 9, 1);
 
-                        $fechaGeneracion = $mes->copy()->day(1);
-                        $fechaLimite     = $mes->copy()->day(15);
+                    $meses = $this->obtenerMesesDelPlan($inicioPlan);
 
-                        // =============================
-                        // MONTO (BECAS SOLO DE 2ª A 6ª)
-                        // =============================
-                        $montoFinal = $concepto->costo;
+                    foreach ($plan->conceptos as $pc) {
 
-                        if ($contadorMes > 1) {
+                        $concepto = $pc->concepto;
 
-                            $solicitudBeca = $estudiantePlan->estudiante
-                                ->solicitudesDeBeca()
-                                ->where('idEstatus', 6)
-                                ->with('beca')
+                        // =====================
+                        // INSCRIPCIÓN o REINSCRIPCION (1 VEZ)
+                        // =====================
+                        if (in_array($concepto->idConceptoDePago, [1, 30])) {
+
+                            $primerMes = $meses[0];
+                            $fechaLimite = $primerMes->copy()->day(15);
+
+                            $aportacionTexto = $concepto->idConceptoDePago == 1
+                                ? 'INSCRIPCIÓN'
+                                : 'REINSCRIPCIÓN';
+
+                            $costoOriginal   = $concepto->costo;
+                            $montoFinal      = $costoOriginal;
+                            $descuentoManual = 0;
+
+                            $referencia = ReferenciaBancariaAztecaService::generar(
+                                $estudiantePlan->estudiante,
+                                $concepto,
+                                $montoFinal,
+                                $fechaLimite
+                            );
+
+
+                            $pagoExistente = Pago::where('Referencia', $referencia)
+                                ->where('idEstudiante', $idEstudiante)
                                 ->first();
+                            if ($pagoExistente) {
 
-                            if ($solicitudBeca && $solicitudBeca->beca) {
-                                $porcentaje = $solicitudBeca->beca->porcentajeDeDescuento;
-                                $montoFinal -= ($concepto->costo * $porcentaje) / 100;
+                                $pagoExistente->update([
+                                    'nombrePlanDePago' => $estudiantePlan->planDePago->nombrePlanDePago
+                                ]);
+
+                            }
+
+                            if (!$pagoExistente) {
+
+                                $seCrearonPagos = true;
+
+                                Pago::create([
+                                    'Referencia'               => $referencia,
+                                    'idCicloModalidad'         => $ciclo->idCicloModalidad,
+                                    'semestre'                 => $estudiante->grado,
+                                    'idEstudiante'             => $idEstudiante,
+                                    'idConceptoDePago'         => $concepto->idConceptoDePago,
+
+                                    'costoConceptoOriginal'    => $costoOriginal,
+                                    'descuentoDePago'          => $descuentoManual,
+                                    'nombrePlanDePago'         => $estudiantePlan->planDePago->nombrePlanDePago,
+
+                                    'montoAPagar'              => $montoFinal,
+
+                                    'fechaGeneracionDePago'    => $primerMes->copy()->day(1),
+                                    'fechaLimiteDePago'        => $fechaLimite,
+                                    'aportacion'               => $aportacionTexto,
+                                    'idEstatus'                => 10
+                                ]);
+
+
+                                $creados[$idEstudiante]['pagos'][] = [
+                                    'referencia' => $referencia,
+                                    'concepto'   => $aportacionTexto,
+                                    'fecha'      => $fechaLimite,
+                                    'idConcepto' => $concepto->idConceptoDePago,
+                                ];
+
+                            } else {
+
+                                $duplicados[$idEstudiante]['pagos'][] = [
+                                    'referencia' => $pagoExistente->Referencia,
+                                    'concepto'   => $pagoExistente->aportacion ?? $aportacionTexto,
+                                    'fecha'      => $pagoExistente->fechaLimiteDePago,
+                                    'idConcepto' => $concepto->idConceptoDePago,
+                                ];
+                            }
+                            
+
+                        }
+
+
+
+                        // =====================
+                        // MENSUALIDADES
+                        // =====================
+                        if ($concepto->idConceptoDePago == 2) {
+
+                            $contadorMes = 1;
+
+                            foreach ($meses as $mes) {
+
+                                $fechaGeneracion = $mes->copy()->day(1);
+                                $fechaLimite     = $mes->copy()->day(15);
+
+                                // =============================
+                                // MONTO (BECAS SOLO DE 2ª A 6ª)
+                                // =============================
+                                $costoOriginal      = $concepto->costo;
+                                $montoFinal         = $costoOriginal;
+                                $porcentajeBeca     = 0;
+                                $descuentoBeca      = 0;
+                                $nombreBeca         = null;
+                                $descuentoManual    = 0;
+
+
+                                if ($contadorMes > 1) {
+
+                                    $solicitudBeca = $estudiantePlan->estudiante
+                                        ->solicitudesDeBeca()
+                                        ->where('idEstatus', 6)
+                                        ->whereDate('fechaDeConclusion', '>=', now())
+                                        ->first();
+
+                                    if ($solicitudBeca) {
+
+                                        $porcentajeBeca = $solicitudBeca->porcentajeDeDescuento ?? 0;
+                                        $nombreBeca     = $solicitudBeca->nombreDeBeca;
+
+                                        $descuentoBeca  = ($costoOriginal * $porcentajeBeca) / 100;
+
+                                        $montoFinal -= $descuentoBeca;
+                                    }
+                                }
+
+
+                                // =============================
+                                // REFERENCIA
+                                // =============================
+                                $referencia = ReferenciaBancariaAztecaService::generar(
+                                    $estudiantePlan->estudiante,
+                                    $concepto,
+                                    $montoFinal,
+                                    $fechaLimite
+                                );
+
+
+                                // =============================
+                                // VALIDAR DUPLICADO (IGUAL QUE INSCRIPCIÓN)
+                                // =============================
+                                $pagoExistente = Pago::where('Referencia', $referencia)
+                                    ->where('idEstudiante', $idEstudiante)
+                                    ->first();
+
+                                if ($pagoExistente) {
+
+                                    $pagoExistente->update([
+                                        'nombrePlanDePago' => $estudiantePlan->planDePago->nombrePlanDePago
+                                    ]);
+
+                                }
+
+                                if (!$pagoExistente) {
+
+                                    $seCrearonPagos = true;
+
+                                    Pago::create([
+                                        'Referencia'               => $referencia,
+                                        'idCicloModalidad'         => $ciclo->idCicloModalidad,
+                                        'semestre'                 => $estudiante->semestre,
+                                        'idEstudiante'             => $idEstudiante,
+                                        'idConceptoDePago'         => $concepto->idConceptoDePago,
+
+                                        'costoConceptoOriginal'    => $costoOriginal,
+                                        'descuentoDePago'          => $descuentoManual,
+                                        'nombrePlanDePago'         => $estudiantePlan->planDePago->nombrePlanDePago,
+
+                                        'nombreBeca'               => $nombreBeca,
+                                        'porcentajeDeDescuento'    => $porcentajeBeca,
+                                        'descuentoDeBeca'          => $descuentoBeca,
+
+                                        'montoAPagar'              => $montoFinal,
+
+                                        'fechaGeneracionDePago'    => $fechaGeneracion,
+                                        'fechaLimiteDePago'        => $fechaLimite,
+                                        'aportacion'               => 'MES DE ' . strtoupper(
+                                            $mes->locale('es')->translatedFormat('F')
+                                        ),
+                                        'idEstatus'                => 10
+                                    ]);
+
+
+                                    $creados[$idEstudiante]['pagos'][] = [
+                                        'referencia' => $referencia,
+                                        'concepto'   => 'MES DE ' . strtoupper(
+                                            $mes->locale('es')->translatedFormat('F')
+                                        ),
+                                        'fecha'      => $fechaLimite,
+                                        'idConcepto' => 2,
+                                    ];
+
+                                } else {
+
+                                    $duplicados[$idEstudiante]['pagos'][] = [
+                                        'referencia' => $pagoExistente->Referencia,
+                                        'concepto'   => $pagoExistente->aportacion
+                                                        ?? $pagoExistente->concepto->nombreConceptoDePago,
+                                        'fecha'      => $pagoExistente->fechaLimiteDePago,
+                                        'idConcepto' => $concepto->idConceptoDePago,
+                                    ];
+                                }
+                                $contadorMes++;
                             }
                         }
 
-                        // =============================
-                        // REFERENCIA
-                        // =============================
-                        $referencia = $this->generarReferenciaBancaria(
-                            $estudiantePlan->estudiante,
-                            $concepto,
-                            $montoFinal,
-                            $fechaLimite
-                        );
 
-                        // =============================
-                        // VALIDAR DUPLICADO (IGUAL QUE INSCRIPCIÓN)
-                        // =============================
-                        $pagoExistente = Pago::where('Referencia', $referencia)
-                            ->where('idEstudiante', $idEstudiante)
-                            ->first();
-
-                        if (!$pagoExistente) {
-
-                            $seCrearonPagos = true;
-
-                            Pago::create([
-                                'Referencia'            => $referencia,
-                                'idEstudiante'          => $idEstudiante,
-                                'idConceptoDePago'      => $concepto->idConceptoDePago,
-                                'montoAPagar'           => $montoFinal,
-                                'fechaGeneracionDePago' => $fechaGeneracion,
-                                'fechaLimiteDePago'     => $fechaLimite,
-                                'aportacion'            => 'MES DE ' . strtoupper(
-                                    $mes->locale('es')->translatedFormat('F')
-                                ),
-                                'idEstatus'             => 3
-                            ]);
-
-                            $usuario = $estudiantePlan->estudiante->usuario;
-
-                            $creados[$idEstudiante]['pagos'][] = [
-                                'referencia' => $referencia,
-                                'concepto'   => 'MES DE ' . strtoupper(
-                                    $mes->locale('es')->translatedFormat('F')
-                                ),
-                                'fecha'      => $fechaLimite,
-                                'idConcepto' => 2,
-                            ];
-
-                        } else {
-
-                            $usuario = $estudiantePlan->estudiante->usuario;
-
-                            $duplicados[$idEstudiante]['pagos'][] = [
-                                'referencia' => $pagoExistente->Referencia,
-                                'concepto'   => $pagoExistente->aportacion ?? $pagoExistente->concepto->nombreConceptoDePago,
-                                'fecha'      => $pagoExistente->fechaLimiteDePago,
-                                'idConcepto' => $concepto->idConceptoDePago,
-                            ];
-                        }
-
-                        $contadorMes++;
                     }
-                }
 
+
+                    // =============================
+                    // NOTIFICACIÓN AL ESTUDIANTE
+                    // =============================
+
+                    if ($seCrearonPagos) {
+
+                        Notificacion::create([
+                            'idUsuario'          => $estudiante->idUsuario,
+                            'titulo'             => 'Nuevo plan de pago asignado',
+                            'mensaje'            => "Se te ha asignado el plan de pago: \n{$estudiantePlan->planDePago->nombrePlanDePago}. \nRevisa tu información en inicio.",
+                            'tipoDeNotificacion' => 1,
+                            'fechaDeInicio'      => now()->toDateString(),
+                            'fechaFin'           => now()->addDays(3)->toDateString(),
+                            'leida'              => 0,
+                        ]);
+                    }
+
+
+
+
+                    // =============================
+                    // ORDENAR PAGOS POR FECHA
+                    // =============================
+                    if (!empty($creados[$idEstudiante]['pagos'])) {
+                        usort(
+                            $creados[$idEstudiante]['pagos'],
+                            fn ($a, $b) => strtotime($a['fecha']) <=> strtotime($b['fecha'])
+                        );
+                    }
+
+                    if (!empty($duplicados[$idEstudiante]['pagos'])) {
+                        usort(
+                            $duplicados[$idEstudiante]['pagos'],
+                            fn ($a, $b) => strtotime($a['fecha']) <=> strtotime($b['fecha'])
+                        );
+                    }
+                });
 
             }
 
 
+            return redirect()
+                ->route('planPago.detallesAsignacion')
+                ->with('successAsignacion', true)
+                ->with('creados', $creados)
+                ->with('duplicados', $duplicados)
+                ->with('noAplicados', $noAplicados);
 
-
-            // =============================
-            // NOTIFICACIÓN AL ESTUDIANTE
-            // =============================
-            if ($seCrearonPagos) {
-
-                $estudiante = $estudiantePlan->estudiante()->with('usuario')->first();
-
-                Notificacion::create([
-                    'idUsuario'          => $estudiante->idUsuario,
-                    'titulo'             => 'Nuevo plan de pago asignado',
-                    'mensaje'            => "Se te ha asignado el plan de pago: {$estudiantePlan->planDePago->nombrePlanDePago}. Revisa tu información en inicio.",
-                    'tipoDeNotificacion' => 1,
-                    'fechaDeInicio'      => now()->toDateString(),
-                    'fechaFin'           => now()->addDays(3)->toDateString(),
-                    'leida'              => 0,
-                ]);
-            }
-
-
+        } catch (\Throwable $e) {
 
             // =============================
-            // ORDENAR PAGOS POR FECHA
+            // LOG DE ERROR
             // =============================
-            if (!empty($creados[$idEstudiante]['pagos'])) {
-                usort(
-                    $creados[$idEstudiante]['pagos'],
-                    fn ($a, $b) => strtotime($a['fecha']) <=> strtotime($b['fecha'])
-                );
-            }
+            \Log::error('Error en asignarStore', [
+                'mensaje' => $e->getMessage(),
+                'archivo' => $e->getFile(),
+                'linea'   => $e->getLine(),
+                'request' => $request->all()
+            ]);
 
-            if (!empty($duplicados[$idEstudiante]['pagos'])) {
-                usort(
-                    $duplicados[$idEstudiante]['pagos'],
-                    fn ($a, $b) => strtotime($a['fecha']) <=> strtotime($b['fecha'])
-                );
-            }
-
+            return back()
+                ->with(
+                    'popupError',
+                    "Ocurrió un error inesperado al asignar el plan de pago. \nIntente nuevamente o contacte al administrador."
+                )
+                ->withInput();
         }
-
-        return redirect()
-            ->route('planPago.detallesAsignacion')
-            ->with('successAsignacion', true)
-            ->with('creados', $creados)
-            ->with('duplicados', $duplicados)
-            ->with('noAplicados', $noAplicados);
     }
 
 
 
     public function detallesAsignacionDePlan()
     {
-        return view('SGFIDMA.moduloPlanDePago.detallesAsignacionDePlan', [
-            'creados'    => session('creados', []),
-            'duplicados' => session('duplicados', []),
-            'noAplicados'  => session('noAplicados', []),
-        ]);
+        try {
+
+            return view('SGFIDMA.moduloPlanDePago.detallesAsignacionDePlan', [
+                'creados'     => session('creados', []),
+                'duplicados'  => session('duplicados', []),
+                'noAplicados' => session('noAplicados', []),
+            ]);
+
+        } catch (\Throwable $e) {
+
+            // Registrar el error
+            \Log::error('Error al mostrar detalles de asignación de plan', [
+                'mensaje' => $e->getMessage(),
+                'archivo' => $e->getFile(),
+                'linea'   => $e->getLine(),
+            ]);
+
+            return redirect()
+                ->route('admin.planPago.asignar.create')
+                ->with(
+                    'popupError',
+                    'Ocurrió un error al mostrar los detalles de la asignación del plan.'
+                );
+        }
     }
-
-
-
 
 
 }

@@ -25,14 +25,13 @@
                     <input type="hidden" name="buscarPlan" value="{{ $buscar ?? '' }}">
 
                     <select name="filtro" class="select select-boton" onchange="this.form.submit()">
-                        <option value="" disabled selected>Filtrar por</option>
-                        <option value="todas" {{ ($filtro ?? '') == 'todas' ? 'selected' : '' }}>Ver todas</option>
+                        <option value="" selected>Filtrar por</option>
                         <option value="activas" {{ ($filtro ?? '') == 'activas' ? 'selected' : '' }}>Activo(a)</option>
                         <option value="suspendidas" {{ ($filtro ?? '') == 'suspendidas' ? 'selected' : '' }}>Suspendido(a)</option>
                     </select>
 
                     <select name="orden" class="select select-boton" onchange="this.form.submit()">
-                        <option value="" disabled selected>Ordenar por</option>
+                        <option value="" selected>Ordenar por</option>
                         <option value="alfabetico" {{ ($orden ?? '') == 'alfabetico' ? 'selected' : '' }}>Alfabéticamente (A-Z)</option>
                     </select>
                 </form>
@@ -46,7 +45,9 @@
                     <tr class="tabla-encabezado">
                         <th>Plan de pago</th>
                         <th>Estatus</th>
-                        <th>Acciones</th>
+                        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+                            <th>Acciones</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody class="tabla-cuerpo">
@@ -59,56 +60,57 @@
                             <tr class="{{ $plan->idEstatus == 2 ? 'fila-suspendida' : '' }}">
                                 <td>{{ $plan->nombrePlanDePago }}</td>
                                 <td>{{ $plan->estatus->nombreTipoDeEstatus ?? 'Sin estatus' }}</td>
+                                @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+                                    <td>
+                                        <div class="tabla-acciones">
 
-                                <td>
-                                    <div class="tabla-acciones">
-
-                                        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
-                                            <!-- BOTÓN EDITAR -->
-                                            <a href="{{ route('planes.edit', $plan->idPlanDePago) }}" class="accion-boton" title="Editar">
-                                                <img 
-                                                    src="{{ $plan->idEstatus == 2 
-                                                        ? asset('imagenes/IconoEditarGris.png') 
-                                                        : asset('imagenes/IconoEditar.png') }}" 
-                                                    alt="Editar">
-                                            </a>
-
-                                            <!-- BOTÓN SUSPENDER/HABILITAR -->
-                                            <form action="{{ route('planes.update', $plan->idPlanDePago) }}" method="POST" style="display:inline">
-                                                @csrf
-                                                @method('PUT')
-                                                <button type="submit" title="Suspender/Habilitar" class="accion-boton" name="accion" value="Suspender/Habilitar">
-
+                                            @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+                                                <!-- BOTÓN EDITAR -->
+                                                <a href="{{ route('planes.edit', $plan->idPlanDePago) }}" class="accion-boton" title="Editar">
                                                     <img 
                                                         src="{{ $plan->idEstatus == 2 
-                                                            ? asset('imagenes/IconoHabilitar.png') 
-                                                            : asset('imagenes/IconoSuspender.png') }}" 
-                                                        alt="Suspender/Habilitar"
-                                                    >
+                                                            ? asset('imagenes/IconoEditarGris.png') 
+                                                            : asset('imagenes/IconoEditar.png') }}" 
+                                                        alt="Editar">
+                                                </a>
 
-                                                </button>
-                                            </form>
-
-                                            @admin
-                                                <!-- BOTÓN ELIMINAR -->
-                                                <form action="{{ route('planes.destroy', $plan->idPlanDePago) }}" method="POST" style="display:inline">
+                                                <!-- BOTÓN SUSPENDER/HABILITAR -->
+                                                <form action="{{ route('planes.update', $plan->idPlanDePago) }}" method="POST" style="display:inline">
                                                     @csrf
-                                                    @method('DELETE')
-                                                    <button type="button" class="accion-boton" title="Eliminar"
-                                                        onclick="mostrarPopupConfirmacion('{{ $plan->nombrePlanDePago }}', this)">
+                                                    @method('PUT')
+                                                    <button type="submit" title="Suspender/Habilitar" class="accion-boton" name="accion" value="Suspender/Habilitar">
+
                                                         <img 
                                                             src="{{ $plan->idEstatus == 2 
-                                                                ? asset('imagenes/IconoEliminarGris.png') 
-                                                                : asset('imagenes/IconoEliminar.png') }}" 
-                                                            alt="Eliminar"
+                                                                ? asset('imagenes/IconoHabilitar.png') 
+                                                                : asset('imagenes/IconoSuspender.png') }}" 
+                                                            alt="Suspender/Habilitar"
                                                         >
+
                                                     </button>
                                                 </form>
-                                            @endadmin
-                                        @endif
 
-                                    </div>
-                                </td>
+                                                @admin
+                                                    <!-- BOTÓN ELIMINAR -->
+                                                    <form action="{{ route('planes.destroy', $plan->idPlanDePago) }}" method="POST" style="display:inline">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="button" class="accion-boton" title="Eliminar"
+                                                            onclick="mostrarPopupConfirmacion('{{ $plan->nombrePlanDePago }}', this)">
+                                                            <img 
+                                                                src="{{ $plan->idEstatus == 2 
+                                                                    ? asset('imagenes/IconoEliminarGris.png') 
+                                                                    : asset('imagenes/IconoEliminar.png') }}" 
+                                                                alt="Eliminar"
+                                                            >
+                                                        </button>
+                                                    </form>
+                                                @endadmin
+                                            @endif
+
+                                        </div>
+                                    </td>
+                                @endif
                             </tr>
                         @endforeach
 
@@ -131,7 +133,7 @@
 
             // Cambiar texto del popup
             document.getElementById('mensajeConfirmacion').innerText =
-                `¿Estás seguro de eliminar la beca "${nombreBeca}"?`;
+                `¿Estás seguro de eliminar el plan de pago "${nombreBeca}"?`;
 
             // Mostrar popup
             document.getElementById('popupConfirmacion').style.display = 'flex';

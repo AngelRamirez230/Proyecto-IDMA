@@ -27,7 +27,7 @@
 
                 <form action="{{ route('admin.pagos.create') }}" method="get">
                     <button type="submit" class="popup-boton">
-                        Cerrar
+                        Volver
                     </button>
                 </form>
             </div>
@@ -41,7 +41,6 @@
 
         <h1 class="titulo-form2">Resumen de generación de pagos</h1>
 
-
         <section class="consulta-controles"> 
             <div class="consulta-selects">
                 <a href="{{ route('admin.pagos.create') }}"
@@ -50,6 +49,12 @@
                 </a>
             </div>
         </section>
+
+
+
+        <h2 class="titulo-form2" style="font-size:22px;">
+            Pagos creados o existentes
+        </h2>
 
 
         <section class="consulta-tabla-contenedor">
@@ -111,12 +116,11 @@
         </section>
 
 
-        {{-- ================= OMITIDOS POR PLAN ================= --}}
-        @if(!empty($omitidos))
+        {{-- ================= OMITIDOS ================= --}}
         <section class="consulta-tabla-contenedor" style="margin-top:40px;">
 
             <h2 class="titulo-form2" style="font-size:22px;">
-                Pagos omitidos por plan activo
+                Pagos omitidos
             </h2>
 
             <table class="tabla">
@@ -150,8 +154,6 @@
             </table>
 
         </section>
-        @endif
-
 
     </main>
 

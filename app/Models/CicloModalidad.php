@@ -13,8 +13,29 @@ class CicloModalidad extends Model
     protected $fillable = [
         'idModalidad',
         'idCicloEscolar',
+        'idLicenciatura',
         'fechaInicio',
         'fechaFin',
         'idTipoDeEstatus',
     ];
+
+
+    public function cicloEscolar()
+    {
+        return $this->belongsTo(
+            CicloEscolar::class,
+            'idCicloEscolar',
+            'idCicloEscolar'
+        );
+    }
+
+    public function modalidad()
+    {
+        return $this->belongsTo(
+            Modalidad::class,
+            'idModalidad',
+            'idModalidad'
+        );
+    }
+
 }

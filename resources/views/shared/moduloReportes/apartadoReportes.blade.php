@@ -16,7 +16,7 @@
             <a href="#" class="btn-boton btn-reportes-academicos">Reportes académicos</a>
         @endadmin
 
-        @if(Auth::user()->esEmpleadoDe(11))
+        @if(Auth::user()->esEmpleadoDe(11,12))
             <a href="{{ route('apartadoReportesFinanzas') }}" class="btn-boton btn-reportes-financieros">Reportes financieros</a>
         @endif
 

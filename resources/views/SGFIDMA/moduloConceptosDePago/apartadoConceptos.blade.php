@@ -16,6 +16,11 @@
             <a href="{{ route('consultaConcepto')}}" class="btn-boton btn-consulta-conceptos">Consultar conceptos de pago</a>
         @endif
 
+
+        @if(Auth::user()->esEmpleadoDe(12))
+            <a href="{{ route('consultaConcepto')}}" class="btn-boton btn-consulta-conceptos">Consultar conceptos de pago</a>
+        @endif
+
         @estudiante
         <a href="{{ route('consultaConcepto')}}" class="btn-boton btn-consulta-conceptos">Consultar conceptos de pago</a>
         @endestudiante

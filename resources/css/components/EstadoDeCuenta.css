@@ -1,0 +1,140 @@
+
+
+.oculto {
+    display: none;
+}
+
+.bloque-ciclo {
+    margin-bottom: 25px;
+    border-radius: 0px;
+    overflow: hidden; 
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.bloque-ciclo:hover {
+    transform: scale(1.02); 
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.btn-ciclo {
+    width: 100%;
+    padding: 14px 18px;
+    background: #FFB300;
+    color: #79272C;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    border-radius: 0px; 
+    transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.bloque-ciclo:hover .btn-ciclo {
+    background-color: #79272C; 
+    color: #ffffff;           
+}
+
+.contenido-ciclo {
+    padding: 15px;
+    background: #f9fafb;
+}
+
+
+/* =====================================
+   TABLAS COMPACTAS - ESTADO DE CUENTA
+===================================== */
+
+.consulta-tabla-contenedor {
+    margin-top: 25px;
+    margin-bottom: 25px;
+    overflow-x: auto;
+}
+
+/* Tabla base */
+.tabla-compacta {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: "Poppins", sans-serif;
+    font-size: 13px; /* más compacto */
+}
+
+/* Encabezados */
+.tabla-compacta thead {
+    background: #79272C;
+    color: #fff;
+}
+
+.tabla-compacta thead th {
+    padding: 8px 10px; /* menos padding */
+    font-weight: 500;
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* Filas */
+.tabla-compacta tbody tr {
+    border-top: 1px solid #ddd;
+}
+
+.tabla-compacta tbody tr:nth-child(even) {
+    background: #fafafa;
+}
+
+.tabla-compacta tbody tr:hover {
+    background: #f1f1f1;
+}
+
+/* Celdas */
+.tabla-compacta tbody td {
+    padding: 6px 8px; /* mucho más compacto */
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.tabla-datos {
+    width: 40%;
+}
+
+.tabla-resumen {
+    width: 20%;
+}
+
+.tabla-compacta-secundaria {
+    margin-top: 25px;
+}
+
+.tabla-compacta-secundaria2 {
+    margin-top: 25px;
+    margin-left: auto;
+}
+
+.resumen-cuenta td:first-child {
+    text-align: left;
+}
+
+.resumen-cuenta td:last-child {
+    text-align: right;
+}
+
+/* Contenedor de las 2 tablas superiores */
+.estado-cuenta-tablas-compacto {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    padding-bottom: 20px;
+}
+
+.estado-cuenta-tabla-vacia {
+    text-align: center;
+    padding: 15px;
+    font-size: 14px;
+    color: #79272C;
+}
+
+.titulo-movimientos {
+    font-size: 16px;
+    color: #79272C;
+    text-align: center;
+}
+

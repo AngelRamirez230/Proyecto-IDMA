@@ -24,10 +24,9 @@
                 <form action="{{ route('consultaConcepto') }}" method="GET" id="formFiltro">
                     <input type="hidden" name="buscarConcepto" value="{{ $buscar ?? '' }}">
 
-                    @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+                    @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11,12))
                         <select name="filtro" class="select select-boton" onchange="this.form.submit()">
-                            <option value="" disabled selected>Filtrar por</option>
-                            <option value="todas" {{ ($filtro ?? '') == 'todas' ? 'selected' : '' }}>Ver todas</option>
+                            <option value="" selected>Filtrar por</option>
                             <option value="activas" {{ ($filtro ?? '') == 'activas' ? 'selected' : '' }}>Activo(a)</option>
                             <option value="suspendidas" {{ ($filtro ?? '') == 'suspendidas' ? 'selected' : '' }}>Suspendido(a)</option>
                             <option value="pieza" {{ ($filtro ?? '') == 'pieza' ? 'selected' : '' }}>Pieza</option>
@@ -37,15 +36,14 @@
 
                     @estudiante
                         <select name="filtro" class="select select-boton" onchange="this.form.submit()">
-                            <option value="" disabled selected>Filtrar por</option>
-                            <option value="todas" {{ ($filtro ?? '') == 'todas' ? 'selected' : '' }}>Ver todas</option>
+                            <option value="" selected>Filtrar por</option>
                             <option value="pieza" {{ ($filtro ?? '') == 'pieza' ? 'selected' : '' }}>Pieza</option>
                             <option value="servicio" {{ ($filtro ?? '') == 'servicio' ? 'selected' : '' }}>Servicio</option>
                         </select>
                     @endestudiante
 
                     <select name="orden" class="select select-boton" onchange="this.form.submit()">
-                        <option value="" disabled selected>Ordenar por</option>
+                        <option value="" selected>Ordenar por</option>
                         <option value="alfabetico" {{ ($orden ?? '') == 'alfabetico' ? 'selected' : '' }}>Alfabéticamente (A-Z)</option>
                         <option value="costo_mayor" {{ ($orden ?? '') == 'costo_mayor' ? 'selected' : '' }}>Mayor costo</option>
                         <option value="costo_menor" {{ ($orden ?? '') == 'costo_menor' ? 'selected' : '' }}>Menor costo</option>
@@ -62,10 +60,14 @@
                         <th>Concepto de pago</th>
                         <th>Costo</th>
                         <th>Unidad</th>
-                        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+                        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11,12))
                             <th>Estatus</th>
                         @endif
-                        <th>Acciones</th>
+                        
+                        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11) || Auth::user()->esEstudiante())
+                            <th>Acciones</th>
+                        @endif
+                        
 
                     </tr>
                 </thead>
@@ -80,66 +82,71 @@
                                 <td>{{ $concepto->nombreConceptoDePago }}</td>
                                 <td>${{ $concepto->costo }}</td>
                                 <td>{{ $concepto->unidad->nombreUnidad ?? 'Sin unidad' }}</td>
-                                @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+                                @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11,12))
                                     <td>{{ $concepto->estatus->nombreTipoDeEstatus ?? 'Sin estatus' }}</td>
                                 @endif
-                                <td>
-                                    <div class="tabla-acciones">
 
-                                        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
-                                            <!-- BOTÓN EDITAR -->
-                                            <a href="{{route('concepto.edit', $concepto->idConceptoDePago)}}" class="accion-boton" title="Editar">
-                                                <img 
-                                                    src="{{ $concepto->idEstatus == 2 
-                                                        ? asset('imagenes/IconoEditarGris.png') 
-                                                        : asset('imagenes/IconoEditar.png') }}" 
-                                                    alt="Editar">
-                                            </a>
+                                @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11) || Auth::user()->esEstudiante())
+                                    <td>
+                                        <div class="tabla-acciones">
 
-                                            <!-- BOTÓN SUSPENDER/HABILITAR -->
-                                            <form action="{{ route('concepto.update', $concepto->idConceptoDePago) }}" method="POST" style="display:inline">
-                                                @csrf
-                                                @method('PUT')
-                                                <button type="submit" title="Suspender/Habilitar" class="accion-boton" name="accion" value="Suspender/Habilitar">
-
+                                            @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+                                                <!-- BOTÓN EDITAR -->
+                                                <a href="{{route('concepto.edit', $concepto->idConceptoDePago)}}" class="accion-boton" title="Editar">
                                                     <img 
                                                         src="{{ $concepto->idEstatus == 2 
-                                                            ? asset('imagenes/IconoHabilitar.png') 
-                                                            : asset('imagenes/IconoSuspender.png') }}" 
-                                                        alt="Suspender/Habilitar"
-                                                    >
-                                                </button>
-                                            </form>
+                                                            ? asset('imagenes/IconoEditarGris.png') 
+                                                            : asset('imagenes/IconoEditar.png') }}" 
+                                                        alt="Editar">
+                                                </a>
 
-                                            @admin
-                                                <!-- BOTÓN ELIMINAR -->
-                                                <form action="{{ route('concepto.destroy', $concepto->idConceptoDePago) }}" method="POST" style="display:inline">
+                                                <!-- BOTÓN SUSPENDER/HABILITAR -->
+                                                <form action="{{ route('concepto.update', $concepto->idConceptoDePago) }}" method="POST" style="display:inline">
                                                     @csrf
-                                                    @method('DELETE')
-                                                    <button type="button" class="accion-boton" title="Eliminar"
-                                                        onclick="mostrarPopupConfirmacion('{{ $concepto->nombreConceptoDePago }}', this)">
+                                                    @method('PUT')
+                                                    <button type="submit" title="Suspender/Habilitar" class="accion-boton" name="accion" value="Suspender/Habilitar">
+
                                                         <img 
                                                             src="{{ $concepto->idEstatus == 2 
-                                                                ? asset('imagenes/IconoEliminarGris.png') 
-                                                                : asset('imagenes/IconoEliminar.png') }}" 
-                                                            alt="Eliminar"
+                                                                ? asset('imagenes/IconoHabilitar.png') 
+                                                                : asset('imagenes/IconoSuspender.png') }}" 
+                                                            alt="Suspender/Habilitar"
                                                         >
                                                     </button>
                                                 </form>
-                                            @endadmin
-                                        @endif
 
-                                       @estudiante
-                                            <!-- BOTÓN GENERAR REFERENCIA -->
-                                            <a href="{{ route('pago.generar-referencia', $concepto->idConceptoDePago) }}"
-                                            class="btn-boton-formulario2 btn-accion"
-                                            title="Generar referencia de pago">
-                                                Generar referencia
-                                            </a>
-                                        @endestudiante
-                                    </div>
-                                    
-                                </td>
+                                                @admin
+                                                    <!-- BOTÓN ELIMINAR -->
+                                                    <form action="{{ route('concepto.destroy', $concepto->idConceptoDePago) }}" method="POST" style="display:inline">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="button" class="accion-boton" title="Eliminar"
+                                                            onclick="mostrarPopupConfirmacion('{{ $concepto->nombreConceptoDePago }}', this)">
+                                                            <img 
+                                                                src="{{ $concepto->idEstatus == 2 
+                                                                    ? asset('imagenes/IconoEliminarGris.png') 
+                                                                    : asset('imagenes/IconoEliminar.png') }}" 
+                                                                alt="Eliminar"
+                                                            >
+                                                        </button>
+                                                    </form>
+                                                @endadmin
+                                            @endif
+
+                                        @estudiante
+                                                <!-- BOTÓN GENERAR REFERENCIA -->
+                                                <a href="{{ route('pago.generar-referencia', $concepto->idConceptoDePago) }}"
+                                                class="btn-boton-formulario2 btn-accion"
+                                                title="Generar referencia de pago">
+                                                    Generar referencia
+                                                </a>
+                                            @endestudiante
+
+
+                                        </div>
+                                        
+                                    </td>
+                                @endif
                             </tr>
                         @endforeach
                     @endif

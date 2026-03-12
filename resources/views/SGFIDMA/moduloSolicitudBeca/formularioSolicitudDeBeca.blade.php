@@ -47,72 +47,77 @@
         {{-- ================= DATOS DE LA BECA ================= --}}
         <input type="hidden" name="idBeca" value="{{ old('idBeca', $beca->idBeca ?? '') }}">
 
-        <div class="form-group2">
-            <label for="nombreBeca">Nombre de Beca:</label>
-            <input
-                type="text"
-                id="nombreBeca"
-                name="nombreBeca"
-                class="input-grande2"
-                value="{{ old('nombreBeca', $beca->nombreDeBeca ?? '') }}"
-                readonly
-            >
-            <x-error-field field="nombreBeca" />
-        </div>
+        <div class="bloque-horizontal-pagos">
 
-        <div class="form-group2">
-            <label for="porcentajeBeca">Porcentaje de descuento:</label>
-            <div class="contenedor-input-icono2">
+            {{-- NOMBRE BECA --}}
+            <div class="form-group">
+                <label for="nombreBeca">Nombre de Beca:</label>
                 <input
                     type="text"
-                    id="porcentajeBeca"
-                    name="porcentajeBeca"
-                    class="input-chico2"
-                    value="{{ old('porcentajeBeca', $beca->porcentajeDeDescuento ?? '') }}"
+                    id="nombreBeca"
+                    name="nombreBeca"
+                    class="input-chico"
+                    value="{{ old('nombreBeca', $beca->nombreDeBeca ?? '') }}"
+                    placeholder="Nombre de la beca"
                     readonly
                 >
-                <img
-                    src="{{ asset('imagenes/IconoPorcentaje.png') }}"
-                    class="icono-input-img2"
-                    alt="icono"
-                >
+                <x-error-field field="nombreBeca" />
             </div>
-            <x-error-field field="porcentajeBeca" />
-        </div>
 
-        {{-- ================= DATOS DEL ESTUDIANTE ================= --}}
-        <div class="form-group2">
-            <label for="promedio">
-                ¿Cuál fue tu promedio en el semestre que acabas de cursar?
-            </label>
-            <input
-                type="number"
-                step="0.01"
-                min="8.5"
-                max="10"
-                id="promedio"
-                name="promedio"
-                placeholder="Ejemplo: 9.5"
-                class="input-chico2"
-                value="{{ old('promedio') }}"
-                required
-            >
-            <x-error-field field="promedio" />
-        </div>
+            {{-- PORCENTAJE --}}
+            <div class="form-group">
+                <label for="porcentajeBeca">Porcentaje de descuento:</label>
+                <div class="contenedor-input-icono2">
+                    <input
+                        type="text"
+                        id="porcentajeBeca"
+                        name="porcentajeBeca"
+                        class="input-chico"
+                        value="{{ old('porcentajeBeca', $beca->porcentajeDeDescuento ?? '') }}"
+                        placeholder="Ejemplo: 50"
+                        readonly
+                    >
+                    <img
+                        src="{{ asset('imagenes/IconoPorcentaje.png') }}"
+                        class="icono-input-img2"
+                        alt="icono"
+                    >
+                </div>
+                <x-error-field field="porcentajeBeca" />
+            </div>
 
-        <div class="form-group2">
-            <label for="examenExtraordinario">
-                En el semestre cursado ¿Presentaste algún examen extraordinario? ¿Cuál?
-            </label>
-            <input
-                type="text"
-                id="examenExtraordinario"
-                name="examenExtraordinario"
-                class="input-grande2"
-                placeholder="Especifica o deja vacío"
-                value="{{ old('examenExtraordinario') }}"
-            >
-            <x-error-field field="examenExtraordinario" />
+            {{-- PROMEDIO --}}
+            <div class="form-group">
+                <label for="promedio">Promedio del semestre cursado:</label>
+                <input
+                    type="number"
+                    step="0.01"
+                    min="8.5"
+                    max="10"
+                    id="promedio"
+                    name="promedio"
+                    class="input-chico"
+                    placeholder="Ejemplo: 9.5"
+                    value="{{ old('promedio') }}"
+                    required
+                >
+                <x-error-field field="promedio" />
+            </div>
+
+            {{-- EXTRAORDINARIO --}}
+            <div class="form-group">
+                <label for="examenExtraordinario">¿Presentaste examen extraordinario?</label>
+                <input
+                    type="text"
+                    id="examenExtraordinario"
+                    name="examenExtraordinario"
+                    class="input-chico"
+                    placeholder="Especifica o deja vacío"
+                    value="{{ old('examenExtraordinario') }}"
+                >
+                <x-error-field field="examenExtraordinario" />
+            </div>
+
         </div>
 
         {{-- ================= TEXTO INFORMATIVO ================= --}}

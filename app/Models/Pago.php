@@ -5,8 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Estudiante;
 use App\Models\ConceptoDePago;
-use App\Models\Estatus;
+use App\Models\TipoDeEstatus;
 use App\Models\TipoDePago;
+use App\Models\CicloModalidad;
 
 class Pago extends Model
 {
@@ -18,10 +19,22 @@ class Pago extends Model
 
     public $timestamps = false;
 
+    // =============================
+    // CAMPOS ASIGNABLES
+    // =============================
     protected $fillable = [
         'Referencia',
+        'idCicloModalidad', 
+        'semestre',
         'fechaDePago',
         'idConceptoDePago',
+        'costoConceptoOriginal',
+        'nombrePlanDePago', 
+        'nombreBeca',
+        'porcentajeDeDescuento',
+        'descuentoDeBeca',
+        'descuentoDePago',
+        'referenciaOriginal',
         'montoAPagar',
         'numeroDeOperaciónBAZ',
         'numeroDeSucursal',
@@ -35,16 +48,23 @@ class Pago extends Model
         'fechaLimiteDePago',
         'aportacion',
         'idEstatus',
-        'idEstudiante'
+        'idEstudiante',
     ];
 
-
+    // =============================
+    // CASTS
+    // =============================
     protected $casts = [
-        'fechaDePago' => 'datetime',
+        'fechaDePago'           => 'datetime',
         'fechaGeneracionDePago' => 'datetime',
         'fechaLimiteDePago'     => 'datetime',
-    ];
 
+        'costoConceptoOriginal' => 'decimal:2',
+        'porcentajeDeDescuento' => 'decimal:2',
+        'descuentoDeBeca'       => 'decimal:2',
+        'descuentoDePago'       => 'decimal:2',
+        'montoAPagar'           => 'decimal:2',
+    ];
 
     // =============================
     // RELACIONES
@@ -77,7 +97,6 @@ class Pago extends Model
         );
     }
 
-
     public function tipoDePago()
     {
         return $this->belongsTo(
@@ -85,6 +104,102 @@ class Pago extends Model
             'idTipoDePago',
             'idTipoDePago'
         );
+    }
+
+    public function cicloModalidad()
+    {
+        return $this->belongsTo(
+            CicloModalidad::class,
+            'idCicloModalidad',
+            'idCicloModalidad'
+        );
+    }
+
+
+
+    // =============================
+    // RELACIÓN RECURSIVA (RECARGOS)
+    // =============================
+
+    public function pagoOriginal()
+    {
+        return $this->belongsTo(
+            self::class,
+            'referenciaOriginal',
+            'Referencia'
+        );
+    }
+
+    public function recargos()
+    {
+        return $this->hasMany(
+            self::class,
+            'referenciaOriginal',
+            'Referencia'
+        );
+    }
+
+
+    public function getAbonoSaldoAttribute()
+    {
+        if (!$this->referenciaOriginal) {
+            return $this->montoAPagar ?? 0;
+        }
+
+        return $this->pagoOriginal->montoAPagar ?? 0;
+    }
+
+    public function getAbonoRecargoAttribute()
+    {
+        if (!$this->referenciaOriginal) {
+            return 0;
+        }
+
+        $montoOriginal = $this->pagoOriginal->montoAPagar ?? 0;
+        $montoRecargo  = $this->montoAPagar ?? 0;
+
+        return max($montoRecargo - $montoOriginal, 0);
+    }
+
+    public function getCostoConceptoMostrarAttribute()
+    {
+        if ($this->referenciaOriginal && $this->pagoOriginal) {
+            return $this->pagoOriginal->costoConceptoOriginal ?? 0;
+        }
+
+        return $this->costoConceptoOriginal ?? 0;
+    }
+
+
+    public function getRecargoConceptoAttribute()
+    {
+        if (!$this->referenciaOriginal || !$this->pagoOriginal) {
+            return 0;
+        }
+
+        $costoActual   = $this->costoConceptoOriginal ?? 0;
+        $costoOriginal = $this->pagoOriginal->costoConceptoOriginal ?? 0;
+
+        return max($costoActual - $costoOriginal, 0);
+    }
+
+
+    public static function calcularRecargosDesdeColeccion($pagos)
+    {
+        return $pagos
+            ->whereNotNull('referenciaOriginal')
+            ->groupBy('referenciaOriginal')
+            ->map(function ($grupo) {
+
+                $ultimo = $grupo->sortByDesc('fechaLimiteDePago')->first();
+
+                return max(
+                    ($ultimo->montoAPagar ?? 0) -
+                    ($ultimo->pagoOriginal->montoAPagar ?? 0),
+                    0
+                );
+            })
+            ->sum();
     }
 
 }

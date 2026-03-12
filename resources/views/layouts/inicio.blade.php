@@ -19,8 +19,8 @@
                     {{ $notificacion->usuario->segundoNombre ?? '' }} 
                     {{ $notificacion->usuario->primerApellido ?? '' }} 
                     {{ $notificacion->usuario->segundoApellido ?? '' }}
-                    <br>
-                    {{ $notificacion->mensaje }}
+                    <br><br>
+                    {!! nl2br(e($notificacion->mensaje)) !!}
                     
                 </p>
                 <button class="popup-boton" onclick="marcarComoLeida({{ $notificacion->idNotificacion }})">
@@ -137,7 +137,7 @@
         @endif
 
         {{-- 9. PAGOS --}}
-        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11) || Auth::user()->estudiante)
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11,12) || Auth::user()->estudiante)
         <a href="{{ route('apartadoPagos') }}" class="card-btn">
             <img src="/imagenes/IconoInicioPagos.png" alt="">
             <span class="card-btn-title">Pagos</span>
@@ -145,7 +145,7 @@
         @endif
 
         {{-- 10. CONCEPTOS DE PAGO --}}
-        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11) || Auth::user()->estudiante)
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11,12) || Auth::user()->estudiante)
         <a href="{{ route('apartadoConceptos') }}" class="card-btn">
             <img src="/imagenes/IconoConceptodepago.png" alt="">
             <span class="card-btn-title">Conceptos de pago</span>
@@ -153,7 +153,7 @@
         @endif
 
         {{-- 11. PLANES DE PAGO --}}
-        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11,12))
         <a href="{{ route('apartadoPlanDePago') }}" class="card-btn">
             <img src="/imagenes/IconoInicioPlanesdepago.png" alt="">
             <span class="card-btn-title">Planes de pago</span>
@@ -161,14 +161,22 @@
         @endif
 
         {{-- 12. REPORTES --}}
-        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11, 12))
         <a href="{{ route('apartadoReportes') }}" class="card-btn">
             <img src="/imagenes/IconoInicioReportes.png" alt="">
             <span class="card-btn-title">Reportes</span>
         </a>
         @endif
 
-        {{-- 13. BITÁCORAS --}}
+        {{-- 11. Estados de cuenta --}}
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11, 12) || Auth::user()->estudiante)
+        <a href="{{ route('apartadoEstadoDeCuenta') }}" class="card-btn">
+            <img src="/imagenes/IconoInicioEstadoDeCuenta.png" alt="">
+            <span class="card-btn-title">Estados de cuenta</span>
+        </a>
+        @endif
+
+        {{-- 14. BITÁCORAS --}}
         @admin
         <a href="{{ route('apartadoBitacoras') }}" class="card-btn">
             <img src="/imagenes/IconoBitacorasdelsistema.png" alt="">
@@ -213,113 +221,128 @@
 @endif
 
 
+@estudiante
 
-    @php
-        $pagosOrdenados = collect($pagos);
+    @if($planAsignado)
+        @php
+            // 1. Obtener conceptos del plan asignado
+            $conceptosDelPlan = $planAsignado
+                ->planDePago
+                ->conceptos
+                ->pluck('idConceptoDePago')
+                ->toArray();
 
-        // Inscripción o reinscripción (solo uno de los dos existirá)
-        $principal = $pagosOrdenados->first(fn ($p) =>
-            in_array($p->idConceptoDePago, [1, 30])
-        );
+            // 2. Filtrar pagos: solo del plan y no vencidos
+            $pagosFiltrados = collect($pagos)
+                ->whereIn('idConceptoDePago', $conceptosDelPlan)
+                ->where('fechaLimiteDePago', '>=', now());
 
-        // Mensualidades ordenadas por fecha límite
-        $mensualidades = $pagosOrdenados
-            ->where('idConceptoDePago', 2)
-            ->sortBy('fechaLimiteDePago');
+            // 3. Inscripción / reinscripción (solo uno)
+            $principal = $pagosFiltrados->first(fn ($p) =>
+                in_array($p->idConceptoDePago, [1, 30])
+            );
 
-        // Unir todo
-        $pagosOrdenadosFinal = collect();
+            // 4. Mensualidades ordenadas por fecha
+            $mensualidades = $pagosFiltrados
+                ->where('idConceptoDePago', 2)
+                ->sortBy('fechaLimiteDePago');
 
-        if ($principal) {
-            $pagosOrdenadosFinal->push($principal);
-        }
+            // 5. Orden final
+            $pagosOrdenadosFinal = collect();
 
-        $pagosOrdenadosFinal = $pagosOrdenadosFinal->merge($mensualidades);
-    @endphp
+            if ($principal) {
+                $pagosOrdenadosFinal->push($principal);
+            }
+
+            $pagosOrdenadosFinal = $pagosOrdenadosFinal->merge($mensualidades);
+        @endphp
 
 
-    @if($pagos->count())
-        @if($planAsignado)
 
-            <section class="consulta">
+        @if($planAsignado && $pagosOrdenadosFinal->count())
+            @if($planAsignado)
 
-                <h2 class="consulta-titulo titulo-centrado">
-                    {{ $planAsignado->planDePago->nombrePlanDePago }}
-                </h2>
+                <section class="consulta">
 
-                <section class="consulta-tabla-contenedor">
-                    <table class="tabla">
+                    <h2 class="consulta-titulo titulo-centrado">
+                        {{ $planAsignado->planDePago->nombrePlanDePago }}
+                    </h2>
 
-                        <thead>
-                            <tr>
-                                <th>Concepto</th>
-                                <th>Aportación</th>
-                                <th>Fecha limite de pago</th>
-                                <th>Estatus</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
+                    <section class="consulta-tabla-contenedor">
+                        <table class="tabla">
 
-                        <tbody>
-
-                            @foreach($pagosOrdenadosFinal as $pago)
-
-                                @php
-                                    $yaGenerado = now()->gte($pago->fechaGeneracionDePago);
-                                @endphp
-
+                            <thead>
                                 <tr>
-                                    <td>{{ $pago->concepto->nombreConceptoDePago }}</td>
-
-                                    <td>{{ $pago->aportacion }}</td>
-
-                                    <td>{{ $pago->fechaLimiteDePago->format('d/m/Y') }}</td>
-
-                                    <td>
-                                        <span class="estatus estatus-{{ strtolower($pago->estatus->nombreTipoDeEstatus) }}">
-                                            {{ $pago->estatus->nombreTipoDeEstatus }}
-                                        </span>
-                                    </td>
-
-                                    <td>
-                                        <div class="tabla-acciones">
-
-                                            @php
-                                                $yaGenerado = now()->gte($pago->fechaGeneracionDePago);
-                                            @endphp
-
-                                            {{-- VER DETALLES --}}
-                                            <a href="{{ $yaGenerado ? route('pagos.show', $pago->Referencia) : '#' }}"
-                                            class="btn-boton-formulario2 btn-accion {{ $yaGenerado ? '' : 'btn-desabilitado' }}"
-                                            title="{{ $yaGenerado ? 'Ver detalles' : 'Disponible próximamente' }}">
-                                                Ver detalles
-                                            </a>
-
-                                            {{-- DESCARGAR RECIBO --}}
-                                            <a href="{{ ($yaGenerado) ? route('pagos.recibo', $pago->Referencia) : '#' }}"
-                                            class="btn-boton-formulario2 btn-accion {{ ($yaGenerado) ? '' : 'btn-desabilitado' }}"
-                                            title="{{ ($yaGenerado) ? 'Descargar recibo' : 'No disponible aún' }}">
-                                                Descargar recibo
-                                            </a>
-
-                                        </div>
-                                    </td>
-
+                                    <th>Concepto</th>
+                                    <th>Aportación</th>
+                                    <th>Fecha limite de pago</th>
+                                    <th>Estatus</th>
+                                    <th>Acciones</th>
                                 </tr>
+                            </thead>
 
-                            @endforeach
+                            <tbody>
 
-                        </tbody>
+                                @foreach($pagosOrdenadosFinal as $pago)
 
-                    </table>
+                                    @php
+                                        $yaGenerado = now()->gte($pago->fechaGeneracionDePago);
+                                    @endphp
+
+                                    <tr>
+                                        <td>{{ $pago->concepto->nombreConceptoDePago }}</td>
+
+                                        <td>{{ $pago->aportacion }}</td>
+
+                                        <td>{{ $pago->fechaLimiteDePago->format('d/m/Y') }}</td>
+
+                                        <td>
+                                            <span class="estatus estatus-{{ strtolower($pago->estatus->nombreTipoDeEstatus) }}">
+                                                {{ $pago->estatus->nombreTipoDeEstatus }}
+                                            </span>
+                                        </td>
+
+                                        <td>
+                                            <div class="tabla-acciones">
+
+                                                @php
+                                                    $yaGenerado = now()->gte($pago->fechaGeneracionDePago);
+                                                @endphp
+
+                                                {{-- VER DETALLES --}}
+                                                <a href="{{ $yaGenerado ? route('pagos.show', $pago->Referencia) : '#' }}"
+                                                class="btn-boton-formulario2 btn-accion {{ $yaGenerado ? '' : 'btn-desabilitado' }}"
+                                                title="{{ $yaGenerado ? 'Ver detalles' : 'Disponible próximamente' }}">
+                                                    Ver detalles
+                                                </a>
+
+                                                {{-- DESCARGAR RECIBO --}}
+                                                <a href="{{ ($yaGenerado) ? route('pagos.recibo', $pago->Referencia) : '#' }}"
+                                                class="btn-boton-formulario2 btn-accion {{ ($yaGenerado) ? '' : 'btn-desabilitado' }}"
+                                                title="{{ ($yaGenerado) ? 'Descargar recibo' : 'No disponible aún' }}">
+                                                    Descargar recibo
+                                                </a>
+
+                                            </div>
+                                        </td>
+
+                                    </tr>
+
+                                @endforeach
+
+                            </tbody>
+
+                        </table>
+                    </section>
+
                 </section>
+            @endif
 
-            </section>
         @endif
 
     @endif
 
-
+@endestudiante
 
 
 

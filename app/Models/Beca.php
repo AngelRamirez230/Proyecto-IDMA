@@ -31,4 +31,11 @@ class Beca extends Model
             'idBeca'
         );
     }
+
+    public function getPorcentajeFormateadoAttribute()
+    {
+        return $this->porcentajeDeDescuento !== null
+            ? rtrim(rtrim($this->porcentajeDeDescuento, '0'), '.')
+            : null;
+    }
 }

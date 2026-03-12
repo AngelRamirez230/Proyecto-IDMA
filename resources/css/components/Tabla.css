@@ -328,9 +328,6 @@ font-size: 18px;
     margin-top: 50px;
 }
 
-.tabla-pequena {
-    width: 60%;
-}
 
 @media (max-width: 1024px) {
     .consulta-selects form {

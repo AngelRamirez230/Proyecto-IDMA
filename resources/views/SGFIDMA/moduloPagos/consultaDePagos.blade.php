@@ -25,7 +25,11 @@
                     <input
                         type="text"
                         name="buscarPago"
-                        placeholder="Ingresa número de referencia o estudiante"
+                        placeholder="{{ 
+                            (Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+                            ? 'Ingresa número de referencia o estudiante'
+                            : 'Ingresa número de referencia'
+                        }}"
                         value="{{ $buscar ?? '' }}"
                         onkeydown="if(event.key === 'Enter') this.form.submit();"
                     >
@@ -40,7 +44,7 @@
 
                     
                     <select name="filtro" class="select select-boton" onchange="this.form.submit()">
-                        <option value="" disabled {{ empty($filtro) ? 'selected' : '' }}>
+                        <option value=""  {{ empty($filtro) ? 'selected' : '' }}>
                             Filtrar por
                         </option>
                         <option value="pendientes" {{ ($filtro ?? '') == 'pendientes' ? 'selected' : '' }}>
@@ -52,20 +56,25 @@
                         <option value="rechazados" {{ ($filtro ?? '') == 'rechazados' ? 'selected' : '' }}>
                             Rechazados
                         </option>
+                        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11))
+                            <option value="eliminados" {{ ($filtro ?? '') == 'eliminados' ? 'selected' : '' }}>
+                                Eliminados
+                            </option>
+                        @endif
                     </select>
                     
 
                     <select name="orden" class="select select-boton" onchange="this.form.submit()">
-                        <option value="" disabled {{ empty($orden) ? 'selected' : '' }}>
+                        <option value=""  {{ empty($orden) ? 'selected' : '' }}>
                             Ordenar por
                         </option>
                         <option value="alfabetico" {{ ($orden ?? '') == 'alfabetico' ? 'selected' : '' }}>
                             Alfabéticamente (A-Z)
                         </option>
-                        <option value="porcentaje_mayor" {{ ($orden ?? '') == 'porcentaje_mayor' ? 'selected' : '' }}>
+                        <option value="mas_reciente" {{ ($orden ?? '') == 'mas_reciente' ? 'selected' : '' }}>
                             Más reciente
                         </option>
-                        <option value="porcentaje_menor" {{ ($orden ?? '') == 'porcentaje_menor' ? 'selected' : '' }}>
+                        <option value="mas_antiguo" {{ ($orden ?? '') == 'mas_antiguo' ? 'selected' : '' }}>
                             Más antiguo
                         </option>
                     </select>
@@ -75,39 +84,65 @@
 
         </section>
 
+        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11, 12))
 
-        <div class="detalle-usuario__header">
+            <section class="consulta-tabla-contenedor">
+                <table class="tabla">
+                    <thead>
+                        <tr>
+                            <th>Seleccionar archivo</th>
+                            <th>Nombre del archivo</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <form action="{{ route('pagos.validarArchivo') }}" 
+                                method="POST" 
+                                enctype="multipart/form-data">
+                                @csrf
 
-            <!-- BOTÓN SUBIR TXT -->
-            <form action="{{ route('pagos.validarArchivo') }}" method="POST" enctype="multipart/form-data" class="upload-form">
-                @csrf
-                <div class="upload-container">
+                                <td>
+                                    <input 
+                                        type="file" 
+                                        name="archivoTxt" 
+                                        id="archivoTxt" 
+                                        accept=".txt,.xlsx,.xls" 
+                                        style="display:none"
+                                        required
+                                        onchange="mostrarNombreArchivo(this)"
+                                    >
 
-                    <label for="archivoTxt" class="btn-upload">
-                        Seleccionar archivo
-                    </label>
+                                    <button 
+                                        type="button"
+                                        class="btn-boton-formulario2 btn-accion"
+                                        onclick="document.getElementById('archivoTxt').click()">
+                                        Subir archivo
+                                    </button>
+                                </td>
 
-                    <input 
-                        type="file" 
-                        name="archivoTxt" 
-                        id="archivoTxt" 
-                        accept=".txt,.xlsx,.xls" 
-                        required 
-                        class="upload-input-hidden"
-                    >
+                                <td>
+                                    <span id="archivoNombre" class="nombre-archivo">
+                                        Ningún archivo seleccionado
+                                    </span>
+                                </td>
 
-                    <span id="archivoNombre" class="archivo-nombre">
-                        Ningún documento seleccionado
-                    </span>
+                                <td>
+                                    <button 
+                                        type="submit" 
+                                        class="btn-boton-formulario2 btn-accion">
+                                        Validar pagos
+                                    </button>
+                                </td>
 
-                    <!-- Botón validar -->
-                    <button type="submit" class="btn-boton-formulario2 btn-accion">
-                        Validar pagos
-                    </button>
+                            </form>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
 
-                </div>
-            </form>
-        </div>
+        @endif
+
 
         <!-- =========================
             TABLA
@@ -117,9 +152,13 @@
 
                 <thead>
                     <tr class="tabla-encabezado">
-                        <th>Nombre estudiante</th>
+                        @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11,12))
+                            <th>Nombre estudiante</th>
+                        @endif
                         <th>Referencia de pago</th>
                         <th>Concepto de pago</th>
+                        <th>Aportación</th>
+                        <th>Monto</th>
                         <th>Fecha límite de pago</th>
                         <th>Fecha de pago</th>
                         <th>Estatus</th>
@@ -131,24 +170,29 @@
 
                     @if ($pagos->isEmpty())
                         <tr>
-                            <td colspan="7" class="tablaVacia">
+                            <td colspan="9" class="tablaVacia">
                                 No existen pagos registrados.
                             </td>
                         </tr>
                     @else
                         @foreach ($pagos as $pago)
-                            <tr class="{{ $pago->idEstatus == 2 ? 'fila-suspendida' : '' }}">
-
-                                <td>
-                                    {{ $pago->estudiante->usuario->primerNombre }}
-                                    {{ $pago->estudiante->usuario->segundoNombre }}
-                                    {{ $pago->estudiante->usuario->primerApellido }}
-                                    {{ $pago->estudiante->usuario->segundoApellido }}
-                                </td>
+                            <tr>
+                                @if(Auth::user()->esAdmin() || Auth::user()->esEmpleadoDe(11,12))
+                                    <td>
+                                        {{ $pago->estudiante->usuario->primerNombre }}
+                                        {{ $pago->estudiante->usuario->segundoNombre }}
+                                        {{ $pago->estudiante->usuario->primerApellido }}
+                                        {{ $pago->estudiante->usuario->segundoApellido }}
+                                    </td>
+                                @endif
 
                                 <td>{{ $pago->Referencia }}</td>
 
                                 <td>{{ $pago->concepto->nombreConceptoDePago }}</td>
+
+                                <td>{{ $pago->aportacion ?? '-' }}</td>
+
+                                <td>${{ $pago->montoAPagar }}</td>
 
                                 <td>
                                     {{ $pago->fechaLimiteDePago?->format('d/m/Y') ?? '-' }}
@@ -168,7 +212,7 @@
                                                 Ver detalles
                                         </a>
 
-                                        @if($pago->idEstatus == 3)
+                                        @if($pago->idEstatus == 10)
                                             <a href="{{ route('pagos.recibo', $pago->Referencia) }}"
                                                 class="btn-boton-formulario2 btn-accion"
                                                 title="Descargar recibo">

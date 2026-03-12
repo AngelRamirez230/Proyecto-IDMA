@@ -109,6 +109,17 @@
     box-sizing: border-box;
 }
 
+input,
+select{
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+input, select, textarea{
+    font-size: 16px;
+}
+
 .input-date{
     width: 100%;
     padding: 10px 40px 10px 12px;
@@ -294,13 +305,55 @@
     padding: 10px 16px;
 }
 
+
+/* =========================
+   BLOQUE HORIZONTAL PAGOS
+========================= */
+.bloque-horizontal-pagos{
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px 40px;
+    margin-bottom: 20px;
+    margin-top: 15px;
+}
+
+
+/* =======================
+   CELULAR: 1 columna
+======================= */
+@media screen and (max-width: 950px){
+    .bloque-horizontal-pagos{
+        grid-template-columns: 1fr;
+        width: calc(100% - 40px);
+        margin-left: 20px;
+        margin-right: 20px;
+    }
+
+    .formulario2 .form-group:has(input[type="date"]) {
+        width: calc(100% - 30px);
+        margin-left: auto;
+        margin-right: auto;
+        transform: translateX(-15px); 
+    }
+}
+
 /* =======================
    RESPONSIVE: 1 columna
 ======================= */
 @media screen and (max-width: 950px){
     .formulario{
         grid-template-columns: 1fr;
-        padding-left: 20px;
+        padding: 10px 30px;
+    }
+
+    input[type="date"]{
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    .formulario *{
+        min-width: 0;
     }
 
     .formulario > .form-group:last-child{

@@ -39,7 +39,7 @@
                     id="porcentajeBeca"
                     name="porcentajeBeca"
                     class="input-chico2"
-                    value="{{ old('porcentajeBeca', $beca->porcentajeDeDescuento) }}"
+                    value="{{ old('porcentajeBeca', $beca->porcentaje_formateado ?? '') }}"
                     required
                 >
 
