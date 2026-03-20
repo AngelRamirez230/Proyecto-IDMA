@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Pago;
 use App\Models\Generacion;
 use App\Models\Estudiante;
+use App\Exports\KardexExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ReportePagosExport;
@@ -108,7 +109,7 @@ class ReporteFinancieroController extends Controller
     }
 
 
-    private function generarKardex($estudiante_id)
+    public function generarKardex($estudiante_id)
     {
         Carbon::setLocale('es');
 
@@ -469,6 +470,24 @@ class ReporteFinancieroController extends Controller
     {
         try {
 
+            // =========================
+            // EXCEL KÁRDEX
+            // =========================
+            if ($request->tipo === 'kardex') {
+
+                $request->validate([
+                    'estudiante_id' => 'required|exists:estudiante,idEstudiante',
+                ]);
+
+                return Excel::download(
+                    new KardexExport($request->estudiante_id),
+                    'kardex.xlsx'
+                );
+            }
+
+            // =========================
+            // EXCEL NORMAL
+            // =========================
             return Excel::download(
                 new ReportePagosExport($request),
                 'reporte_financiero.xlsx'
