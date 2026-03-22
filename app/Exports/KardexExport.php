@@ -8,9 +8,11 @@ use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use Maatwebsite\Excel\Concerns\WithDrawings;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 use Carbon\Carbon;
 
-class KardexExport implements FromArray, WithCustomStartCell, WithColumnWidths, WithStyles
+class KardexExport implements FromArray, WithCustomStartCell, WithColumnWidths, WithStyles, WithDrawings
 {
     protected $estudiante_id;
 
@@ -44,10 +46,27 @@ class KardexExport implements FromArray, WithCustomStartCell, WithColumnWidths, 
 
     public function styles(Worksheet $sheet)
     {
+
         // 🔹 Obtener datos otra vez
         $controller = new ReporteFinancieroController();
         $data = $controller->generarKardex($this->estudiante_id);
         $kardex = $data['kardex'];
+
+        $sheet->setCellValue('B1', 
+            "Sociedad, Mexico Fortalece el Futuro S.C.\n" .
+            "SMF200812IC8\n" .
+            "Instituto Daniel Malpica Altamirano\n" .
+            "Dirección: Transversal 1 S/N, Piso 2, Col. Azteca, C.P. 91183 Xalapa, Ver."
+        );
+
+        $sheet->mergeCells('B1:J7');
+        $sheet->getStyle('B1:J7')->getAlignment()
+            ->setHorizontal('center')
+            ->setVertical('center')
+            ->setWrapText(true); 
+        $sheet->getStyle('B1:J7')->getFont()->setBold(true);
+
+
 
         $sheet->mergeCells('B8:J8');
         $sheet->getStyle('B8')->getAlignment()->setHorizontal('center');
@@ -77,6 +96,26 @@ class KardexExport implements FromArray, WithCustomStartCell, WithColumnWidths, 
 
 
         return [];
+    }
+
+
+    public function drawings()
+    {
+        $izquierda = new Drawing();
+        $izquierda->setName('Logo Izquierdo');
+        $izquierda->setDescription('Logo Izquierdo');
+        $izquierda->setPath(public_path('imagenes/EscudoIDMA.png'));
+        $izquierda->setHeight(80);
+        $izquierda->setCoordinates('B1'); // izquierda
+
+        $derecha = new Drawing();
+        $derecha->setName('Logo Derecho');
+        $derecha->setDescription('Logo Derecho');
+        $derecha->setPath(public_path('imagenes/EscudoIDMA.png'));
+        $derecha->setHeight(80);
+        $derecha->setCoordinates('I1'); // derecha
+
+        return [$izquierda, $derecha];
     }
 
     public function array(): array

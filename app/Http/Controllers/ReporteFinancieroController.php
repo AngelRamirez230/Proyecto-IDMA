@@ -479,9 +479,19 @@ class ReporteFinancieroController extends Controller
                     'estudiante_id' => 'required|exists:estudiante,idEstudiante',
                 ]);
 
+                $data = $this->generarKardex($request->estudiante_id);
+
+                $nombreCompleto = implode(' ', array_filter([
+                    $data['estudiante']->usuario->primerNombre,
+                    $data['estudiante']->usuario->segundoNombre,
+                    $data['estudiante']->usuario->primerApellido,
+                    $data['estudiante']->usuario->segundoApellido,
+                ]));
+
+
                 return Excel::download(
                     new KardexExport($request->estudiante_id),
-                    'kardex.xlsx'
+                    'kardex_' . $nombreCompleto . '.xlsx'
                 );
             }
 
