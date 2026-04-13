@@ -110,7 +110,7 @@
             </section>
 
             <div style="margin-top: 16px;">
-                <button type="submit" class="btn-boton">Guardar calificaciones</button>
+                <button type="submit" class="btn-boton-formulario">Guardar</button>
             </div>
         </form>
     </main>
