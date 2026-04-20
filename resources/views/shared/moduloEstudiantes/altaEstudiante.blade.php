@@ -236,6 +236,34 @@
 
                 <h3 class="subtitulo-form">Datos académicos</h3>
 
+                <div class="form-group">
+                    <label for="idCicloEscolar">Ciclo escolar:</label>
+                    <select id="idCicloEscolar" name="idCicloEscolar" class="select" required>
+                        <option value="" disabled {{ old('idCicloEscolar') ? '' : 'selected' }}>
+                            Seleccionar
+                        </option>
+                        @foreach($ciclos as $ciclo)
+                            <option
+                                value="{{ $ciclo->idCicloEscolar }}"
+                                {{ old('idCicloEscolar') == $ciclo->idCicloEscolar ? 'selected' : '' }}
+                            >
+                                {{ $ciclo->nombreCicloEscolar }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <x-error-field field="idCicloEscolar" />
+                </div>
+
+                <div class="form-group">
+                    <label for="idCicloModalidad">Modalidad:</label>
+                    <select id="idCicloModalidad" name="idCicloModalidad" class="select" required disabled>
+                        <option value="" disabled selected>
+                            Seleccionar
+                        </option>
+                    </select>
+                    <x-error-field field="idCicloModalidad" />
+                </div>
+
                 {{-- Matricula Alfanumerica --}}
                 <div class="form-group">
                     <label for="matriculaAlfanumerica">Matrícula alfanumérica:</label>
@@ -336,7 +364,7 @@
                             readonly
                         >
                         <p class="mensajeError">
-                            Debe crearse una nueva generación (Marzo o Septiembre)
+                            Sólo puede asignarse generación en periodo de inscripción
                         </p>
                     @endif
                 </div>
@@ -693,21 +721,68 @@
             const planSelect   = document.getElementById('idPlanDeEstudios');
             const licInput     = document.getElementById('licenciatura');
 
-            if (!planSelect || !licInput) return;
+            if (planSelect && licInput) {
+                const setLicenciatura = () => {
+                    const option = planSelect.options[planSelect.selectedIndex];
+                    licInput.value = option?.dataset?.licenciatura || '';
+                };
 
-            const setLicenciatura = () => {
-                const option = planSelect.options[planSelect.selectedIndex];
-                licInput.value = option?.dataset?.licenciatura || '';
+                // 🔹 Cambio manual
+                planSelect.addEventListener('change', setLicenciatura);
+
+                // 🔹 Carga inicial (old() / edición)
+                setLicenciatura();
+            }
+
+            const cicloSelect = document.getElementById('idCicloEscolar');
+            const modalidadSelect = document.getElementById('idCicloModalidad');
+
+            if (!cicloSelect || !modalidadSelect) {
+                return;
+            }
+
+            const modalidades = @json($cicloModalidades);
+            const oldModalidad = "{{ old('idCicloModalidad') }}";
+            const oldCiclo = "{{ old('idCicloEscolar') }}";
+
+            const resetModalidades = (placeholder, disabled = true) => {
+                modalidadSelect.innerHTML = `<option value="">${placeholder}</option>`;
+                modalidadSelect.disabled = disabled;
             };
 
-            // 🔹 Cambio manual
-            planSelect.addEventListener('change', setLicenciatura);
+            const cargarModalidades = (idCiclo) => {
+                const opciones = modalidades.filter(m => String(m.idCicloEscolar) === String(idCiclo));
+                resetModalidades('Seleccionar', opciones.length === 0);
 
-            // 🔹 Carga inicial (old() / edición)
-            setLicenciatura();
+                opciones.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.idCicloModalidad;
+                    option.textContent = item.nombreModalidad;
+                    if (oldModalidad && String(oldModalidad) === String(item.idCicloModalidad)) {
+                        option.selected = true;
+                    }
+                    modalidadSelect.appendChild(option);
+                });
+            };
+
+            if (oldCiclo) {
+                cicloSelect.value = oldCiclo;
+                cargarModalidades(oldCiclo);
+            } else {
+                resetModalidades('Seleccionar', true);
+            }
+
+            cicloSelect.addEventListener('change', function () {
+                if (!this.value) {
+                    resetModalidades('Seleccionar', true);
+                    return;
+                }
+                cargarModalidades(this.value);
+            });
         });
     </script>
 
 
 </body>
 </html>
+
