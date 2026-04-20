@@ -20,6 +20,8 @@ use App\Models\Pais;
 use App\Models\PlanDeEstudios;
 use App\Models\Generacion;
 use App\Models\TipoDeInscripcion;
+use App\Models\CicloEscolar;
+use App\Models\CicloModalidad;
 
 class EstudianteController extends Controller
 {
@@ -57,6 +59,21 @@ class EstudianteController extends Controller
                 ->first();
         }
 
+        $ciclos = CicloEscolar::orderBy('idCicloEscolar', 'desc')->get();
+
+        $cicloModalidades = DB::table('Ciclo_modalidad as cm')
+            ->join('Modalidad as m', 'cm.idModalidad', '=', 'm.idModalidad')
+            ->select(
+                'cm.idCicloModalidad',
+                'cm.idCicloEscolar',
+                'cm.idModalidad',
+                'm.nombreModalidad',
+                'cm.fechaInicio'
+            )
+            ->orderBy('cm.idCicloEscolar')
+            ->orderBy('m.nombreModalidad')
+            ->get();
+
         return view('shared.moduloEstudiantes.altaEstudiante', [
             'sexos'            => Sexo::orderBy('nombreSexo')->get(),
             'estadosCiviles'   => EstadoCivil::orderBy('nombreEstadoCivil')->get(),
@@ -66,7 +83,9 @@ class EstudianteController extends Controller
             'paises'           => Pais::orderBy('nombrePais')->get(),
             'planes'           => PlanDeEstudios::orderBy('nombrePlanDeEstudios')->get(),
             'tipoInscripcion'  => TipoDeInscripcion::orderBy('nombreTipoDeInscripcion')->get(),
-            'generacionActual' => $generacionActual
+            'generacionActual' => $generacionActual,
+            'ciclos'           => $ciclos,
+            'cicloModalidades' => $cicloModalidades,
         ]);
     }
 
@@ -115,6 +134,8 @@ class EstudianteController extends Controller
                 'idGeneracion'          => 'required|exists:generacion,idGeneracion',
                 'idPlanDeEstudios'      => 'required|exists:plan_de_estudios,idPlanDeEstudios',
                 'idTipoDeInscripcion'   => 'required|exists:tipo_de_inscripcion,idTipoDeInscripcion',
+                'idCicloEscolar'        => 'required|exists:Ciclo_escolar,idCicloEscolar',
+                'idCicloModalidad'      => 'required|exists:Ciclo_modalidad,idCicloModalidad',
 
             ],
             [
@@ -151,6 +172,8 @@ class EstudianteController extends Controller
                 'idGeneracion'        => 'generación',
                 'idPlanDeEstudios'    => 'plan de estudios',
                 'idTipoDeInscripcion' => 'tipo de inscripción',
+                'idCicloEscolar'      => 'ciclo escolar',
+                'idCicloModalidad'    => 'modalidad',
                 'paisNacimiento'      => 'país de nacimiento',
                 'entidadNacimiento'   => 'entidad de nacimiento',
                 'municipioNacimiento' => 'municipio de nacimiento',
@@ -167,6 +190,16 @@ class EstudianteController extends Controller
             return back()
                 ->withErrors($validator)
                 ->with('popupError', 'No se pudo crear el estudiante, verifique los datos ingresados')
+                ->withInput();
+        }
+
+        $cicloModalidad = DB::table('Ciclo_modalidad')
+            ->where('idCicloModalidad', $request->idCicloModalidad)
+            ->first();
+
+        if (!$cicloModalidad || (int) $cicloModalidad->idCicloEscolar !== (int) $request->idCicloEscolar) {
+            return back()
+                ->with('popupError', 'La modalidad seleccionada no pertenece al ciclo escolar elegido.')
                 ->withInput();
         }
 
@@ -283,6 +316,7 @@ class EstudianteController extends Controller
                 'idGeneracion'          => $request->idGeneracion,
                 'idTipoDeInscripcion'   => $request->idTipoDeInscripcion,
                 'idPlanDeEstudios'      => $request->idPlanDeEstudios,
+                'idCicloModalidad'      => $request->idCicloModalidad,
                 'idEstatus'             => 1,
             ]);
         });
@@ -613,6 +647,11 @@ class EstudianteController extends Controller
     }
 
 }
+
+
+
+
+
 
 
 

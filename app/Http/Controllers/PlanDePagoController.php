@@ -1030,7 +1030,7 @@ class PlanDePagoController extends Controller
                                     Pago::create([
                                         'Referencia'               => $referencia,
                                         'idCicloModalidad'         => $ciclo->idCicloModalidad,
-                                        'semestre'                 => $estudiante->semestre,
+                                        'semestre'                 => $estudiante->grado,
                                         'idEstudiante'             => $idEstudiante,
                                         'idConceptoDePago'         => $concepto->idConceptoDePago,
 
@@ -1181,5 +1181,4 @@ class PlanDePagoController extends Controller
 
 
 }
-
 
